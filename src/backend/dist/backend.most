@@ -1,0 +1,103 @@
+// Version: 1.0.0
+type ChapterId__202794786 = Nat;
+type Chapter__984132722 =
+  {
+    chapterNumber : Nat;
+    comicId : ComicId__267240378;
+    createdAt : Timestamp__301639476;
+    id : ChapterId__202794786;
+    images : [Text];
+    title : Text;
+    var updatedAt : Timestamp__301639476
+  };
+type ComicId__267240378 = Nat;
+type Comic__722828990 =
+  {
+    author : Text;
+    coverUrl : Text;
+    createdAt : Timestamp__301639476;
+    description : Text;
+    genres : [Text];
+    id : ComicId__267240378;
+    var isFeatured : Bool;
+    var isPinned : Bool;
+    var isPremium : Bool;
+    var isTrending : Bool;
+    var likesCount : Nat;
+    var ownerUploaded : Bool;
+    title : Text;
+    var viewsCount : Nat
+  };
+type Comment__557653139 =
+  {
+    chapterId : ?ChapterId__202794786;
+    comicId : ComicId__267240378;
+    createdAt : Timestamp__301639476;
+    id : Nat;
+    text : Text;
+    userId : UserId__158757552
+  };
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type FAQ__807772090 =
+  {
+    answer : Text;
+    var approved : Bool;
+    category : Text;
+    createdAt : Int;
+    id : Nat;
+    isUserQuestion : Bool;
+    question : Text;
+    var upvotes : Nat
+  };
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type ReadingProgress__311107587 =
+  {
+    chapterId : ChapterId__202794786;
+    comicId : ComicId__267240378;
+    lastReadAt : Timestamp__301639476;
+    scrollPosition : Nat
+  };
+type Timestamp__301639476 = Int;
+type UserId__158757552 = Text;
+actor {
+  stable chapters :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Chapter__984132722]];
+      var elementIndex : Nat__490723111
+    };
+  stable comics :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Comic__722828990]];
+      var elementIndex : Nat__490723111
+    };
+  stable comments :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Comment__557653139]];
+      var elementIndex : Nat__490723111
+    };
+  stable faqs :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?FAQ__807772090]];
+      var elementIndex : Nat__490723111
+    };
+  stable nextChapterId : [var Nat];
+  stable nextComicId : [var Nat];
+  stable nextCommentId : [var Nat];
+  stable nextFAQId : [var Nat];
+  stable progressMap :
+    {
+      var root : Node__46230540<Text, ReadingProgress__311107587>;
+      var size : Nat__490723111
+    }
+};

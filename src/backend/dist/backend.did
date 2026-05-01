@@ -1,0 +1,119 @@
+type UserId = text;
+type Timestamp = int;
+type ReadingProgress = 
+ record {
+   chapterId: ChapterId;
+   comicId: ComicId;
+   lastReadAt: Timestamp;
+   scrollPosition: nat;
+ };
+type FAQPublic = 
+ record {
+   answer: text;
+   approved: bool;
+   category: text;
+   createdAt: int;
+   id: nat;
+   isUserQuestion: bool;
+   question: text;
+   upvotes: nat;
+ };
+type FAQInput = 
+ record {
+   answer: text;
+   category: text;
+   isUserQuestion: bool;
+   question: text;
+ };
+type Comment = 
+ record {
+   chapterId: opt ChapterId;
+   comicId: ComicId;
+   createdAt: Timestamp;
+   id: nat;
+   "text": text;
+   userId: UserId;
+ };
+type ComicPublic = 
+ record {
+   author: text;
+   coverUrl: text;
+   createdAt: Timestamp;
+   description: text;
+   genres: vec text;
+   id: ComicId;
+   isFeatured: bool;
+   isPinned: bool;
+   isPremium: bool;
+   isTrending: bool;
+   likesCount: nat;
+   ownerUploaded: bool;
+   title: text;
+   viewsCount: nat;
+ };
+type ComicInput = 
+ record {
+   author: text;
+   coverUrl: text;
+   description: text;
+   genres: vec text;
+   isFeatured: bool;
+   isPinned: bool;
+   isPremium: bool;
+   isTrending: bool;
+   ownerUploaded: bool;
+   title: text;
+ };
+type ComicId = nat;
+type ChapterPublic = 
+ record {
+   chapterNumber: nat;
+   comicId: ComicId;
+   createdAt: Timestamp;
+   id: ChapterId;
+   images: vec text;
+   title: text;
+   updatedAt: Timestamp;
+ };
+type ChapterInput = 
+ record {
+   chapterNumber: nat;
+   comicId: ComicId;
+   images: vec text;
+   title: text;
+ };
+type ChapterId = nat;
+service : {
+  addComment: (userId: UserId, comicId: ComicId, chapterId: opt ChapterId,
+   "text": text) -> (nat);
+  approveFAQ: (id: nat) -> (bool);
+  bookmarkComic: (_id: ComicId) -> (bool);
+  createChapter: (input: ChapterInput) -> (ChapterId);
+  createComic: (input: ComicInput) -> (ComicId);
+  createFAQ: (input: FAQInput) -> (nat);
+  deleteChapter: (id: ChapterId) -> (bool);
+  deleteComic: (id: ComicId) -> (bool);
+  deleteFAQ: (id: nat) -> (bool);
+  getChapter: (id: ChapterId) -> (opt ChapterPublic) query;
+  getComic: (id: ComicId) -> (opt ComicPublic) query;
+  getLikes: (id: ComicId) -> (opt nat) query;
+  getProgress: (userId: UserId, comicId: ComicId) ->
+   (opt ReadingProgress) query;
+  getTrending: (limit: nat) -> (vec ComicPublic) query;
+  getViews: (id: ComicId) -> (opt nat) query;
+  likeComic: (id: ComicId) -> (bool);
+  listChapters: (comicId: ComicId) -> (vec ChapterPublic) query;
+  listComics: () -> (vec ComicPublic) query;
+  listComments: (comicId: ComicId) -> (vec Comment) query;
+  listFAQs: (approvedOnly: bool) -> (vec FAQPublic) query;
+  listProgress: (userId: UserId) -> (vec ReadingProgress) query;
+  saveProgress: (userId: UserId, progress: ReadingProgress) -> ();
+  submitFAQ: (input: FAQInput) -> (nat);
+  unbookmarkComic: (_id: ComicId) -> (bool);
+  unlikeComic: (id: ComicId) -> (bool);
+  updateChapter: (id: ChapterId, input: ChapterInput) -> (bool);
+  updateComic: (id: ComicId, input: ComicInput) -> (bool);
+  updateFAQ: (id: nat, input: FAQInput) -> (bool);
+  viewComic: (id: ComicId) -> (bool);
+  voteFAQ: (id: nat) -> (bool);
+}
