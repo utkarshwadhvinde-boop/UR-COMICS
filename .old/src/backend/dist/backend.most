@@ -1,12 +1,26 @@
 // Version: 1.0.0
 type ChapterId__202794786 = Nat;
+type ChapterLike__1049748893 =
+  {
+    chapterId : ChapterId__202794786;
+    comicId : ComicId__267240378;
+    createdAt : Timestamp__301639476;
+    userId : UserId__158757552
+  };
+type ChapterStatus__429616001 = {#draft; #published};
 type Chapter__984132722 =
   {
     chapterNumber : Nat;
+    var chapterStatus : ChapterStatus__429616001;
     comicId : ComicId__267240378;
     createdAt : Timestamp__301639476;
+    creatorId : UserId__158757552;
+    var deleted : Bool;
     id : ChapterId__202794786;
+    imageKeys : [Text];
+    imageOrder : [Nat];
     images : [Text];
+    var publishedAt : ?Timestamp__301639476;
     title : Text;
     var updatedAt : Timestamp__301639476
   };
@@ -16,6 +30,8 @@ type Comic__722828990 =
     author : Text;
     coverUrl : Text;
     createdAt : Timestamp__301639476;
+    creatorId : UserId__158757552;
+    var deleted : Bool;
     description : Text;
     genres : [Text];
     id : ComicId__267240378;
@@ -27,6 +43,15 @@ type Comic__722828990 =
     var ownerUploaded : Bool;
     title : Text;
     var viewsCount : Nat
+  };
+type CommentReply__483017740 =
+  {
+    createdAt : Timestamp__301639476;
+    id : Nat;
+    parentCommentId : Nat;
+    text : Text;
+    userId : UserId__158757552;
+    username : Text
   };
 type Comment__557653139 =
   {
@@ -50,13 +75,40 @@ type FAQ__807772090 =
     question : Text;
     var upvotes : Nat
   };
+type Follow__117545276 =
+  {
+    createdAt : Timestamp__301639476;
+    followeeId : UserId__158757552;
+    followerId : UserId__158757552
+  };
 type Internal__8484328<K, V> =
   {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type List__415060402<T> = List__790383201<T>;
+type List__790383201<T> =
+  {
+    var blockIndex : Nat__490723111;
+    var blocks : [var [var ?T]];
+    var elementIndex : Nat__490723111
+  };
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type NotificationType__64243690 = {#comment; #follow; #like; #reply};
+type Notification__754541412 =
+  {
+    actorId : UserId__158757552;
+    actorName : Text;
+    chapterId : ?ChapterId__202794786;
+    comicId : ?ComicId__267240378;
+    commentPreview : ?Text;
+    createdAt : Timestamp__301639476;
+    id : Nat;
+    var isRead : Bool;
+    notifType : NotificationType__64243690;
+    userId : UserId__158757552
+  };
 type ReadingProgress__311107587 =
   {
     chapterId : ChapterId__202794786;
@@ -66,7 +118,25 @@ type ReadingProgress__311107587 =
   };
 type Timestamp__301639476 = Int;
 type UserId__158757552 = Text;
+type UserProfile__277265826 =
+  {
+    var avatarUrl : ?Text;
+    var bio : ?Text;
+    createdAt : Timestamp__301639476;
+    var followerCount : Nat;
+    var followingCount : Nat;
+    id : UserId__158757552;
+    var totalCommentsReceived : Nat;
+    var totalLikesReceived : Nat;
+    var totalSeries : Nat;
+    var username : Text
+  };
 actor {
+  stable chapterLikes :
+    {
+      var root : Node__46230540<Text, ChapterLike__1049748893>;
+      var size : Nat__490723111
+    };
   stable chapters :
     {
       var blockIndex : Nat__490723111;
@@ -78,6 +148,12 @@ actor {
       var blockIndex : Nat__490723111;
       var blocks : [var [var ?Comic__722828990]];
       var elementIndex : Nat__490723111
+    };
+  stable commentReplies :
+    {
+      var root :
+        Node__46230540<Text, List__415060402<CommentReply__483017740>>;
+      var size : Nat__490723111
     };
   stable comments :
     {
@@ -91,13 +167,31 @@ actor {
       var blocks : [var [var ?FAQ__807772090]];
       var elementIndex : Nat__490723111
     };
+  stable follows :
+    {
+      var root : Node__46230540<Text, Follow__117545276>;
+      var size : Nat__490723111
+    };
   stable nextChapterId : [var Nat];
   stable nextComicId : [var Nat];
   stable nextCommentId : [var Nat];
   stable nextFAQId : [var Nat];
+  stable nextNotificationId : [var Nat];
+  stable nextReplyId : [var Nat];
+  stable notifications :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Notification__754541412]];
+      var elementIndex : Nat__490723111
+    };
   stable progressMap :
     {
       var root : Node__46230540<Text, ReadingProgress__311107587>;
+      var size : Nat__490723111
+    };
+  stable userProfiles :
+    {
+      var root : Node__46230540<Text, UserProfile__277265826>;
       var size : Nat__490723111
     }
 };

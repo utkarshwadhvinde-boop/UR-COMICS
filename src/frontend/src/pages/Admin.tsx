@@ -25,129 +25,6 @@ import { toast } from "sonner";
 const ADMIN_PASSWORD = "FaqAdmin2025!";
 const LS_FAQS_KEY = "ur_comics_faqs";
 
-const EXTENDED_SAMPLE_FAQS: FAQ[] = [
-  {
-    id: "faq-1",
-    question: "How do I start reading a comic?",
-    answer:
-      "Simply click on any comic cover to open its detail page, then click 'Read Now' or select a specific chapter to start reading.",
-    category: "Reading",
-    upvotes: 42,
-    isApproved: true,
-    createdAt: Date.now() - 30 * 86400000,
-  },
-  {
-    id: "faq-2",
-    question: "What are UR Coins and how do I get them?",
-    answer:
-      "UR Coins are the platform currency used to unlock premium chapters. You can earn them through daily streaks, reading activities, or purchase coin packages in the Coins shop.",
-    category: "Coins & Premium",
-    upvotes: 38,
-    isApproved: true,
-    createdAt: Date.now() - 25 * 86400000,
-  },
-  {
-    id: "faq-3",
-    question: "How do I upload my own comic?",
-    answer:
-      "Go to the Upload section in the sidebar or visit /create. Fill in your comic details, upload a cover image, add genres, and start adding chapters. Your comic will be published instantly.",
-    category: "Creators",
-    upvotes: 29,
-    isApproved: true,
-    createdAt: Date.now() - 20 * 86400000,
-  },
-  {
-    id: "faq-4",
-    question: "Does my reading progress save automatically?",
-    answer:
-      "Yes! Your reading progress is saved continuously as you scroll. When you come back to a comic, it will automatically resume from where you left off.",
-    category: "Reading",
-    upvotes: 55,
-    isApproved: true,
-    createdAt: Date.now() - 15 * 86400000,
-  },
-  {
-    id: "faq-5",
-    question: "How does the daily streak work?",
-    answer:
-      "Log in and read at least one chapter every day to maintain your streak. Streaks earn you bonus UR Coins and unlock special badges displayed on your profile.",
-    category: "Account",
-    upvotes: 21,
-    isApproved: true,
-    createdAt: Date.now() - 10 * 86400000,
-  },
-  {
-    id: "faq-6",
-    question: "How do I create an account on UR Comics?",
-    answer:
-      "Click 'Sign Up' in the top navigation. Enter a username, email, and password. Your account is created instantly with 100 free UR Coins to get you started.",
-    category: "Getting Started",
-    upvotes: 63,
-    isApproved: true,
-    createdAt: Date.now() - 35 * 86400000,
-  },
-  {
-    id: "faq-7",
-    question: "Is UR Comics free to use?",
-    answer:
-      "Yes! UR Comics is free to join and read. Most comics are completely free. Some chapters are marked Premium and require UR Coins to unlock, but a large library is always free.",
-    category: "Getting Started",
-    upvotes: 88,
-    isApproved: true,
-    createdAt: Date.now() - 40 * 86400000,
-  },
-  {
-    id: "faq-8",
-    question: "Can I read comics offline?",
-    answer:
-      "Currently, UR Comics requires an internet connection. We are working on an offline mode feature that will allow you to download chapters for later reading.",
-    category: "Reading",
-    upvotes: 34,
-    isApproved: true,
-    createdAt: Date.now() - 18 * 86400000,
-  },
-  {
-    id: "faq-9",
-    question: "How do I unlock a premium chapter?",
-    answer:
-      "Open the chapter you want to unlock and click the 'Unlock' button. The required coin amount will be deducted from your balance. Unlocked chapters stay accessible permanently.",
-    category: "Coins & Premium",
-    upvotes: 47,
-    isApproved: true,
-    createdAt: Date.now() - 22 * 86400000,
-  },
-  {
-    id: "faq-10",
-    question: "How do I change my username or profile picture?",
-    answer:
-      "Go to your Profile page by clicking your avatar in the sidebar. Click 'Edit Profile' to update your username, bio, or profile picture.",
-    category: "Account",
-    upvotes: 19,
-    isApproved: true,
-    createdAt: Date.now() - 8 * 86400000,
-  },
-  {
-    id: "faq-11",
-    question: "Can creators earn money on UR Comics?",
-    answer:
-      "Yes! Creators earn UR Coins whenever readers unlock their premium chapters. Coins can be tracked in the Creator Dashboard. Monetization features and payout options are continually expanding.",
-    category: "Creators",
-    upvotes: 52,
-    isApproved: true,
-    createdAt: Date.now() - 28 * 86400000,
-  },
-  {
-    id: "faq-12",
-    question: "What formats can I upload for comic pages?",
-    answer:
-      "You can upload comic pages as JPG, PNG, or WebP images. Each chapter supports up to 50 pages. Cover images should be at least 400×600 pixels for best display quality.",
-    category: "Creators",
-    upvotes: 26,
-    isApproved: true,
-    createdAt: Date.now() - 14 * 86400000,
-  },
-];
-
 const CATEGORIES = [
   "Getting Started",
   "Reading",
@@ -166,16 +43,7 @@ function loadStoredFAQs(): FAQ[] {
 }
 
 function saveStoredFAQs(faqs: FAQ[]): void {
-  const sampleIds = new Set(EXTENDED_SAMPLE_FAQS.map((f) => f.id));
-  const extra = faqs.filter((f) => !sampleIds.has(f.id));
-  localStorage.setItem(LS_FAQS_KEY, JSON.stringify(extra));
-}
-
-function mergeFAQs(): FAQ[] {
-  const stored = loadStoredFAQs();
-  const ids = new Set(EXTENDED_SAMPLE_FAQS.map((f) => f.id));
-  const extra = stored.filter((f) => !ids.has(f.id));
-  return [...EXTENDED_SAMPLE_FAQS, ...extra];
+  localStorage.setItem(LS_FAQS_KEY, JSON.stringify(faqs));
 }
 
 type AdminTab = "approved" | "pending" | "add";
@@ -204,7 +72,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (authenticated) {
-      setFaqs(mergeFAQs());
+      setFaqs(loadStoredFAQs());
     }
   }, [authenticated]);
 

@@ -1,13 +1,38 @@
 import { ComicCard } from "@/components/ui/ComicCard";
 import { Button } from "@/components/ui/button";
+import { useListComicsQuery, useListProgress } from "@/hooks/useBackend";
 import { useAppStore } from "@/store";
 import { Link } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
 
 export default function LibraryPage() {
-  const { comics, readingProgress } = useAppStore();
+  const { currentUser, readingProgress: localProgress } = useAppStore();
+  const userId = currentUser?.id ?? null;
 
-  const continueReadingComics = readingProgress
+  const { data: backendComics = [] } = useListComicsQuery();
+  const { data: backendProgress = [] } = useListProgress(userId);
+
+  const comics = backendComics.map((c) => ({
+    id: String(c.id),
+    title: c.title,
+    coverImage: c.coverUrl,
+    author: c.author,
+    chapters: [] as { id: string; chapterNumber: number; title: string }[],
+  }));
+
+  // Use backend progress if available, fall back to local store
+  const mergedProgress =
+    backendProgress.length > 0
+      ? backendProgress.map((p) => ({
+          comicId: String(p.comicId),
+          chapterId: String(p.chapterId),
+          scrollPosition: Number(p.scrollPosition),
+          lastReadAt: Number(p.lastReadAt),
+          chapterNumber: 0,
+        }))
+      : localProgress;
+
+  const continueReadingItems = mergedProgress
     .sort((a, b) => b.lastReadAt - a.lastReadAt)
     .map((p) => {
       const comic = comics.find((c) => c.id === p.comicId);
@@ -34,7 +59,7 @@ export default function LibraryPage() {
         </div>
       </div>
 
-      {continueReadingComics.length === 0 ? (
+      {continueReadingItems.length === 0 ? (
         <div
           className="text-center py-20 bg-card rounded-2xl border border-border"
           data-ocid="library.empty_state"
@@ -54,9 +79,40 @@ export default function LibraryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {continueReadingComics.map((item, i) =>
+          {continueReadingItems.map((item, i) =>
             item ? (
-              <ComicCard key={item.comic.id} comic={item.comic} index={i} />
+              <Link
+                key={item.comic.id}
+                to="/read/$comicId/$chapterId"
+                params={{
+                  comicId: item.comic.id,
+                  chapterId: item.progress.chapterId,
+                }}
+                className="group block"
+                data-ocid={`library.item.${i + 1}`}
+              >
+                <div className="relative">
+                  <img
+                    src={item.comic.coverImage}
+                    alt={item.comic.title}
+                    className="w-full aspect-[3/4] object-cover rounded-2xl group-hover:scale-105 transition-smooth"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-0 inset-x-0 rounded-b-2xl bg-gradient-to-t from-black/80 to-transparent p-3">
+                    <p className="text-xs font-semibold text-white line-clamp-2">
+                      {item.comic.title}
+                    </p>
+                    <p className="text-[10px] text-white/70 mt-0.5">
+                      {item.comic.author}
+                    </p>
+                  </div>
+                  <div className="absolute top-2 right-2">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/80 text-white font-medium backdrop-blur-sm">
+                      Resume
+                    </span>
+                  </div>
+                </div>
+              </Link>
             ) : null,
           )}
         </div>

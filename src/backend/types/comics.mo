@@ -1,6 +1,10 @@
 import Common "common";
 
 module {
+  public type ChapterStatus = { #draft; #published };
+  public type ChapterError = { #notFound; #unauthorized; #invalidImages };
+
+
   public type Comic = {
     id : Common.ComicId;
     title : Text;
@@ -8,6 +12,7 @@ module {
     author : Text;
     genres : [Text];
     coverUrl : Text;
+    creatorId : Common.UserId;
     var likesCount : Nat;
     var viewsCount : Nat;
     var isFeatured : Bool;
@@ -15,6 +20,7 @@ module {
     var isPremium : Bool;
     var isPinned : Bool;
     var ownerUploaded : Bool;
+    var deleted : Bool;
     createdAt : Common.Timestamp;
   };
 
@@ -26,6 +32,7 @@ module {
     author : Text;
     genres : [Text];
     coverUrl : Text;
+    creatorId : Common.UserId;
     likesCount : Nat;
     viewsCount : Nat;
     isFeatured : Bool;
@@ -41,7 +48,13 @@ module {
     comicId : Common.ComicId;
     title : Text;
     chapterNumber : Nat;
-    images : [Text]; // image URLs
+    images : [Text]; // legacy image URLs (kept for backward compat)
+    imageKeys : [Text]; // object-storage asset keys (permanent, cross-device)
+    imageOrder : [Nat]; // explicit ordering of image indices
+    creatorId : Common.UserId;
+    var chapterStatus : ChapterStatus;
+    var publishedAt : ?Common.Timestamp;
+    var deleted : Bool;
     createdAt : Common.Timestamp;
     var updatedAt : Common.Timestamp;
   };
@@ -52,6 +65,11 @@ module {
     title : Text;
     chapterNumber : Nat;
     images : [Text];
+    imageKeys : [Text]; // object-storage asset keys
+    imageOrder : [Nat];
+    creatorId : Common.UserId;
+    chapterStatus : ChapterStatus;
+    publishedAt : ?Common.Timestamp;
     createdAt : Common.Timestamp;
     updatedAt : Common.Timestamp;
   };
@@ -62,6 +80,7 @@ module {
     author : Text;
     genres : [Text];
     coverUrl : Text;
+    creatorId : Common.UserId;
     isFeatured : Bool;
     isTrending : Bool;
     isPremium : Bool;
@@ -74,5 +93,9 @@ module {
     title : Text;
     chapterNumber : Nat;
     images : [Text];
+    imageKeys : [Text]; // object-storage asset keys
+    imageOrder : [Nat];
+    creatorId : Common.UserId;
+    chapterStatus : ChapterStatus;
   };
 };

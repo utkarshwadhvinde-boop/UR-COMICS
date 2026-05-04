@@ -33,9 +33,19 @@ export function ComicCard({
   const isBookmarked = currentUser?.bookmarks.includes(comic.id) ?? false;
   const isLiked = currentUser?.likedComics.includes(comic.id) ?? false;
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const chapterCount = comic.chapters.length;
   const ocidBase = `comic.item.${index + 1}`;
   const firstChapterId = comic.chapters[0]?.id ?? "";
+
+  // Hide the entire card if the cover URL is missing/invalid or failed to load
+  const hasCover =
+    typeof comic.coverImage === "string" &&
+    comic.coverImage.length > 0 &&
+    (comic.coverImage.startsWith("http://") ||
+      comic.coverImage.startsWith("https://"));
+
+  if (!hasCover || imageError) return null;
 
   function handleCardClick(e: React.MouseEvent) {
     if (
@@ -63,6 +73,7 @@ export function ComicCard({
             alt={comic.title}
             className="w-14 h-20 object-cover rounded-lg shrink-0 group-hover:scale-105 transition-smooth"
             loading="lazy"
+            onError={() => setImageError(true)}
           />
         </Link>
         <div className="flex-1 min-w-0">
@@ -131,6 +142,7 @@ export function ComicCard({
             alt={comic.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-smooth duration-300"
             loading="lazy"
+            onError={() => setImageError(true)}
           />
 
           {/* Hover gradient overlay */}

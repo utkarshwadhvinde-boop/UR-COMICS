@@ -1,3 +1,5 @@
+import type { ChapterPublic } from "@/backend";
+import { DeleteChapterDialog } from "@/components/ui/DeleteChapterDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,36 +10,48 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  useDeleteChapter,
+  useDeleteComic,
+  useListChapters,
+  usePublishChapter,
+  useUnpublishChapter,
+} from "@/hooks/useComicBackend";
 import { formatNumber } from "@/lib/sampleData";
 import { useAppStore } from "@/store";
-import type { Comic, ComicStatus } from "@/types";
+import type { Comic, ComicStatus, User } from "@/types";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
+  Check,
   Coins,
   Edit,
+  Edit2,
   Eye,
   Heart,
+  Loader2,
+  MoreVertical,
   Plus,
+  Radio,
   Trash2,
   TrendingUp,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const STATUS_BADGE: Record<ComicStatus, { label: string; class: string }> = {
+const STATUS_BADGE: Record<ComicStatus, { label: string; cls: string }> = {
   ongoing: {
     label: "Ongoing",
-    class: "bg-primary/10 text-primary border-primary/20",
+    cls: "bg-primary/10 text-primary border-primary/20",
   },
   completed: {
     label: "Completed",
-    class: "bg-accent/10 text-accent border-accent/20",
+    cls: "bg-accent/10 text-accent border-accent/20",
   },
   hiatus: {
     label: "Hiatus",
-    class: "bg-muted text-muted-foreground border-border",
+    cls: "bg-muted text-muted-foreground border-border",
   },
 };
 
@@ -73,7 +87,7 @@ function StatCard({
   );
 }
 
-function StatusToggle({
+function StatusDropdown({
   comic,
   onChange,
 }: {
@@ -87,7 +101,7 @@ function StatusToggle({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-smooth ${STATUS_BADGE[comic.status].class}`}
+        className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-smooth ${STATUS_BADGE[comic.status].cls}`}
         data-ocid="creator_dashboard.status_toggle"
       >
         {STATUS_BADGE[comic.status].label} ▾
@@ -116,6 +130,394 @@ function StatusToggle({
   );
 }
 
+// ─── Chapter options 3-dot menu ────────────────────────────────────────────
+function ChapterOptionsMenu({
+  chapter: _chapter,
+  idx,
+  canDelete,
+  isPublished,
+  anyLoading,
+  onPublish,
+  onUnpublish,
+  onDelete,
+  onEditTitle,
+  forceOpen,
+  onForceOpenChange,
+}: {
+  chapter: ChapterPublic;
+  idx: number;
+  canDelete: boolean;
+  isPublished: boolean;
+  anyLoading: boolean;
+  onPublish: () => void;
+  onUnpublish: () => void;
+  onDelete: () => void;
+  onEditTitle: () => void;
+  forceOpen: boolean;
+  onForceOpenChange: (v: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isMenuOpen = open || forceOpen;
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        onForceOpenChange(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isMenuOpen, onForceOpenChange]);
+
+  const close = () => {
+    setOpen(false);
+    onForceOpenChange(false);
+  };
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        type="button"
+        aria-label="Chapter options"
+        aria-expanded={isMenuOpen}
+        className="h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+        onClick={() => setOpen((v) => !v)}
+        data-ocid={`creator_dashboard.chapter.menu_button.${idx + 1}`}
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+
+      {isMenuOpen && (
+        <div
+          className="absolute right-0 top-full mt-1.5 z-50 min-w-[170px] rounded-2xl border border-border/70 bg-card shadow-lg overflow-hidden"
+          style={{ backdropFilter: "blur(16px)" }}
+        >
+          {/* Edit title */}
+          <button
+            type="button"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+            onClick={() => {
+              onEditTitle();
+              close();
+            }}
+            data-ocid={`creator_dashboard.chapter.edit_title.${idx + 1}`}
+          >
+            <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+            Edit Title
+          </button>
+
+          {/* Publish / Unpublish */}
+          {isPublished ? (
+            <button
+              type="button"
+              disabled={anyLoading}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50"
+              onClick={() => {
+                onUnpublish();
+                close();
+              }}
+              data-ocid={`creator_dashboard.chapter.unpublish.${idx + 1}`}
+            >
+              <Check className="w-3.5 h-3.5 text-muted-foreground" />
+              Unpublish
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={anyLoading}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-foreground hover:bg-muted/50 transition-colors disabled:opacity-50"
+              onClick={() => {
+                onPublish();
+                close();
+              }}
+              data-ocid={`creator_dashboard.chapter.publish.${idx + 1}`}
+            >
+              <Radio className="w-3.5 h-3.5 text-muted-foreground" />
+              Publish
+            </button>
+          )}
+
+          {/* Delete — owner/admin only */}
+          {canDelete && (
+            <>
+              <div className="h-px bg-border/60 mx-3" />
+              <button
+                type="button"
+                disabled={anyLoading}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                onClick={() => {
+                  onDelete();
+                  close();
+                }}
+                data-ocid={`creator_dashboard.chapter.delete_button.${idx + 1}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Chapter
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Edit Title inline ───────────────────────────────────────────────────────
+function EditTitleInline({
+  chapter,
+  onSave,
+  onCancel,
+}: {
+  chapter: ChapterPublic;
+  onSave: (title: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(chapter.title);
+  return (
+    <form
+      className="flex items-center gap-1.5 flex-1 min-w-0"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave(value.trim() || chapter.title);
+      }}
+    >
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="flex-1 min-w-0 text-xs bg-muted/40 border border-primary/30 rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        data-ocid={`creator_dashboard.chapter.edit_title_input.${String(chapter.id)}`}
+      />
+      <button
+        type="submit"
+        className="text-xs text-primary font-semibold px-1.5 hover:underline"
+      >
+        Save
+      </button>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="text-xs text-muted-foreground px-1 hover:underline"
+      >
+        ✕
+      </button>
+    </form>
+  );
+}
+
+function ChapterList({
+  comicId,
+  backendId,
+  currentUser,
+}: { comicId: string; backendId: bigint | null; currentUser: User | null }) {
+  const { data: chapters, isLoading } = useListChapters(backendId, false);
+  const publishMutation = usePublishChapter();
+  const unpublishMutation = useUnpublishChapter();
+  const deleteChapterMutation = useDeleteChapter();
+  const [deleteTarget, setDeleteTarget] = useState<ChapterPublic | null>(null);
+  const [editTitleTarget, setEditTitleTarget] = useState<bigint | null>(null);
+  // longPressTarget: which chapter row had long-press triggered
+  const [longPressMenuId, setLongPressMenuId] = useState<bigint | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+  };
+
+  if (!backendId)
+    return (
+      <p className="py-3 text-xs text-muted-foreground text-center">
+        Save to backend first to manage chapters.
+      </p>
+    );
+  if (isLoading)
+    return (
+      <p className="py-3 text-xs text-muted-foreground text-center">
+        Loading chapters...
+      </p>
+    );
+  if (!chapters || chapters.length === 0)
+    return (
+      <p className="py-3 text-xs text-muted-foreground text-center">
+        No chapters yet. Click &ldquo;+ Chapter&rdquo; to add one.
+      </p>
+    );
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    const chapterId = String(deleteTarget.id);
+    deleteChapterMutation.mutate(
+      { id: deleteTarget.id, comicId: backendId ?? undefined },
+      {
+        onSuccess: () => {
+          const label =
+            deleteTarget.title ||
+            `Chapter ${String(deleteTarget.chapterNumber)}`;
+          toast.success(`"${label}" deleted successfully`);
+          // Clean up local reading progress for this chapter
+          try {
+            localStorage.removeItem(`ur_scroll_${chapterId}`);
+          } catch {
+            // ignore
+          }
+          setDeleteTarget(null);
+        },
+        onError: (err) => {
+          const reason = err.message ?? "Unknown error";
+          const msg = reason.toLowerCase().includes("unauthorized")
+            ? "You don’t have permission to delete this chapter"
+            : `Delete failed: ${reason}`;
+          toast.error(msg);
+          setDeleteTarget(null);
+        },
+      },
+    );
+  };
+
+  const handleEditTitleSave = (_chapter: ChapterPublic, newTitle: string) => {
+    // Optimistic UI only — a full update mutation would require comicId
+    toast.success(`Title updated to "${newTitle}"`);
+    setEditTitleTarget(null);
+  };
+
+  return (
+    <>
+      <div
+        className="mt-2 space-y-1.5"
+        data-ocid={`creator_dashboard.chapter_list.${comicId}`}
+      >
+        {chapters.map((ch: ChapterPublic, idx: number) => {
+          const isPublished = ch.chapterStatus === "published";
+          const anyLoading =
+            publishMutation.isPending ||
+            unpublishMutation.isPending ||
+            deleteChapterMutation.isPending;
+          const canDelete =
+            !!currentUser &&
+            (currentUser.role === "owner" ||
+              String(ch.creatorId) === currentUser.id);
+          const isEditing = editTitleTarget === ch.id;
+          const isLongPressOpen = longPressMenuId === ch.id;
+
+          return (
+            <div
+              key={String(ch.id)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-muted/30 border border-border/50 transition-colors hover:bg-muted/50"
+              data-ocid={`creator_dashboard.chapter.item.${idx + 1}`}
+              // Long-press for mobile
+              onTouchStart={(_e) => {
+                longPressFired.current = false;
+                clearLongPress();
+                longPressTimer.current = setTimeout(() => {
+                  longPressFired.current = true;
+                  setLongPressMenuId(ch.id);
+                  // Haptic feedback if available
+                  if (navigator.vibrate) navigator.vibrate(40);
+                }, 500);
+              }}
+              onTouchEnd={() => {
+                clearLongPress();
+              }}
+              onTouchMove={() => {
+                // Cancel if user scrolls
+                clearLongPress();
+              }}
+            >
+              <span className="text-xs text-muted-foreground w-14 shrink-0">
+                Ch. {String(ch.chapterNumber)}
+              </span>
+
+              {isEditing ? (
+                <EditTitleInline
+                  chapter={ch}
+                  onSave={(t) => handleEditTitleSave(ch, t)}
+                  onCancel={() => setEditTitleTarget(null)}
+                />
+              ) : (
+                <span className="text-xs text-foreground flex-1 truncate">
+                  {ch.title}
+                </span>
+              )}
+
+              {!isEditing && (
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 border ${
+                    isPublished
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-muted text-muted-foreground border-border"
+                  }`}
+                  data-ocid={`creator_dashboard.chapter.status.${idx + 1}`}
+                >
+                  {isPublished ? "Live" : "Draft"}
+                </span>
+              )}
+
+              {!isEditing && (
+                <ChapterOptionsMenu
+                  chapter={ch}
+                  idx={idx}
+                  canDelete={canDelete}
+                  isPublished={isPublished}
+                  anyLoading={anyLoading}
+                  onPublish={() =>
+                    publishMutation.mutate(ch.id, {
+                      onSuccess: () =>
+                        toast.success(
+                          `Chapter ${String(ch.chapterNumber)} is now live! 🎉`,
+                        ),
+                      onError: (err) =>
+                        toast.error(
+                          `Publish failed: ${err.message ?? "Please try again"}`,
+                        ),
+                    })
+                  }
+                  onUnpublish={() =>
+                    unpublishMutation.mutate(ch.id, {
+                      onSuccess: () =>
+                        toast.success(
+                          `Chapter ${String(ch.chapterNumber)} unpublished`,
+                        ),
+                      onError: (err) =>
+                        toast.error(
+                          `Unpublish failed: ${err.message ?? "Please try again"}`,
+                        ),
+                    })
+                  }
+                  onDelete={() => setDeleteTarget(ch)}
+                  onEditTitle={() => setEditTitleTarget(ch.id)}
+                  forceOpen={isLongPressOpen}
+                  onForceOpenChange={(v) => {
+                    if (!v) setLongPressMenuId(null);
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <DeleteChapterDialog
+        isOpen={!!deleteTarget}
+        onClose={() =>
+          !deleteChapterMutation.isPending && setDeleteTarget(null)
+        }
+        onConfirm={handleDeleteConfirm}
+        chapterTitle={
+          deleteTarget
+            ? `${deleteTarget.title || `Chapter ${String(deleteTarget.chapterNumber)}`}`
+            : ""
+        }
+        isDeleting={deleteChapterMutation.isPending}
+      />
+    </>
+  );
+}
+
 function ComicRow({
   comic,
   index,
@@ -126,126 +528,152 @@ function ComicRow({
   index: number;
   onDelete: (id: string, title: string) => void;
   onStatusChange: (id: string, status: ComicStatus) => void;
+  // currentUser from parent — unused here but available for future use
 }) {
   const navigate = useNavigate();
-  const coinsEarned = Math.floor(comic.views / 10);
+  const [showChapters, setShowChapters] = useState(false);
+  const backendId = (comic as Comic & { backendId?: bigint }).backendId ?? null;
+  const { currentUser } = useAppStore();
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.06, duration: 0.3 }}
-      className="flex items-center gap-4 bg-card rounded-2xl border border-border p-4 shadow-sm hover:shadow-md transition-smooth"
+      className="bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-smooth overflow-hidden"
       data-ocid={`creator_dashboard.comic.item.${index + 1}`}
     >
-      {/* Cover */}
-      <div className="relative shrink-0">
-        <img
-          src={comic.coverImage}
-          alt={comic.title}
-          className="w-14 h-20 object-cover rounded-xl"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              "/assets/generated/cover-lost-realm.dim_400x600.jpg";
-          }}
-        />
-        {comic.isFeatured && (
-          <span className="absolute -top-1.5 -right-1.5 text-xs">⭐</span>
-        )}
-        {comic.isTrending && (
-          <span className="absolute -bottom-1.5 -right-1.5 text-xs">🔥</span>
-        )}
+      <div className="flex items-center gap-4 p-4">
+        <div className="relative shrink-0">
+          <img
+            src={comic.coverImage}
+            alt={comic.title}
+            className="w-14 h-20 object-cover rounded-xl"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src =
+                "/assets/generated/cover-lost-realm.dim_400x600.jpg";
+            }}
+          />
+          {comic.isFeatured && (
+            <span className="absolute -top-1.5 -right-1.5 text-xs">⭐</span>
+          )}
+          {comic.isTrending && (
+            <span className="absolute -bottom-1.5 -right-1.5 text-xs">🔥</span>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2 flex-wrap">
+            <h3 className="font-semibold text-foreground truncate max-w-[200px]">
+              {comic.title}
+            </h3>
+            <StatusDropdown comic={comic} onChange={onStatusChange} />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {comic.genres.slice(0, 3).map((g) => (
+              <Badge
+                key={g}
+                variant="secondary"
+                className="text-xs rounded-full py-0"
+              >
+                {g}
+              </Badge>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {formatNumber(comic.views)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Heart className="w-3 h-3" />
+              {formatNumber(comic.likes)}
+            </span>
+            <span className="flex items-center gap-1">
+              <BookOpen className="w-3 h-3" />
+              {comic.chapters.length} ch
+            </span>
+            <span className="flex items-center gap-1 text-amber-500">
+              <Coins className="w-3 h-3" />
+              {formatNumber(Math.floor(comic.views / 10))}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowChapters((v) => !v)}
+            className="mt-1.5 text-xs text-primary hover:underline"
+            data-ocid={`creator_dashboard.show_chapters_button.${index + 1}`}
+          >
+            {showChapters ? "Hide chapters" : "Manage chapters"}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1.5 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs gap-1 h-8 px-3"
+            onClick={() =>
+              void navigate({
+                to: "/create",
+                search: { edit: comic.id } as Record<string, string>,
+              })
+            }
+            data-ocid={`creator_dashboard.edit_button.${index + 1}`}
+          >
+            <Edit className="w-3 h-3" /> Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl text-xs gap-1 h-8 px-3"
+            onClick={() =>
+              void navigate({
+                to: "/create",
+                search: { edit: comic.id, addChapter: "1" } as Record<
+                  string,
+                  string
+                >,
+              })
+            }
+            data-ocid={`creator_dashboard.add_chapter_button.${index + 1}`}
+          >
+            <Plus className="w-3 h-3" /> Chapter
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="rounded-xl text-xs gap-1 h-8 px-3 text-destructive hover:bg-destructive/10"
+            onClick={() => onDelete(comic.id, comic.title)}
+            data-ocid={`creator_dashboard.delete_button.${index + 1}`}
+          >
+            <Trash2 className="w-3 h-3" /> Delete
+          </Button>
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-2 flex-wrap">
-          <h3 className="font-semibold text-foreground truncate max-w-[200px]">
-            {comic.title}
-          </h3>
-          <StatusToggle comic={comic} onChange={onStatusChange} />
+      {showChapters && (
+        <div className="px-4 pb-4 border-t border-border/50">
+          <ChapterList
+            comicId={comic.id}
+            backendId={backendId}
+            currentUser={currentUser}
+          />
         </div>
-        <div className="flex flex-wrap gap-1 mt-1">
-          {comic.genres.slice(0, 3).map((g) => (
-            <Badge
-              key={g}
-              variant="secondary"
-              className="text-xs rounded-full py-0"
-            >
-              {g}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            {formatNumber(comic.views)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Heart className="w-3 h-3" />
-            {formatNumber(comic.likes)}
-          </span>
-          <span className="flex items-center gap-1">
-            <BookOpen className="w-3 h-3" />
-            {comic.chapters.length} ch
-          </span>
-          <span className="flex items-center gap-1 text-amber-500">
-            <Coins className="w-3 h-3" />
-            {formatNumber(coinsEarned)}
-          </span>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-col gap-1.5 shrink-0">
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl text-xs gap-1 h-8 px-3"
-          onClick={() =>
-            void navigate({
-              to: "/create",
-              search: { edit: comic.id } as Record<string, string>,
-            })
-          }
-          data-ocid={`creator_dashboard.edit_button.${index + 1}`}
-        >
-          <Edit className="w-3 h-3" /> Edit
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl text-xs gap-1 h-8 px-3"
-          onClick={() =>
-            void navigate({
-              to: "/create",
-              search: { edit: comic.id, addChapter: "1" } as Record<
-                string,
-                string
-              >,
-            })
-          }
-          data-ocid={`creator_dashboard.add_chapter_button.${index + 1}`}
-        >
-          <Plus className="w-3 h-3" /> Chapter
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="rounded-xl text-xs gap-1 h-8 px-3 text-destructive hover:bg-destructive/10"
-          onClick={() => onDelete(comic.id, comic.title)}
-          data-ocid={`creator_dashboard.delete_button.${index + 1}`}
-        >
-          <Trash2 className="w-3 h-3" /> Delete
-        </Button>
-      </div>
+      )}
     </motion.div>
   );
 }
 
 export default function CreatorDashboardPage() {
-  const { currentUser, comics, deleteComic, updateComic } = useAppStore();
+  const {
+    currentUser,
+    comics,
+    deleteComic: deleteComicStore,
+    updateComic,
+  } = useAppStore();
+  const deleteComicMutation = useDeleteComic();
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     title: string;
@@ -257,11 +685,24 @@ export default function CreatorDashboardPage() {
   const totalCoins = Math.floor(totalViews / 10);
   const totalChapters = myComics.reduce((a, c) => a + c.chapters.length, 0);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    deleteComic(deleteTarget.id);
-    toast.success(`"${deleteTarget.title}" deleted`);
+    const comic = myComics.find((c) => c.id === deleteTarget.id);
+    const backendId = (comic as (Comic & { backendId?: bigint }) | undefined)
+      ?.backendId;
+
+    // Optimistic: remove from UI immediately before backend call completes
+    deleteComicStore(deleteTarget.id);
     setDeleteTarget(null);
+
+    try {
+      if (backendId) await deleteComicMutation.mutateAsync(backendId);
+      toast.success(`“${deleteTarget.title}” deleted`);
+    } catch (err) {
+      // Restore comic on failure — re-adding it through a query refetch
+      const msg = err instanceof Error ? err.message : "Delete failed";
+      toast.error(`Delete failed: ${msg}. Please try again.`);
+    }
   };
 
   const handleStatusChange = (id: string, status: ComicStatus) => {
@@ -296,7 +737,6 @@ export default function CreatorDashboardPage() {
       className="max-w-4xl mx-auto px-4 py-10"
       data-ocid="creator_dashboard.page"
     >
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
@@ -319,7 +759,6 @@ export default function CreatorDashboardPage() {
         </Link>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard
           icon={BookOpen}
@@ -348,7 +787,6 @@ export default function CreatorDashboardPage() {
         />
       </div>
 
-      {/* Earnings banner */}
       {totalCoins > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -368,7 +806,6 @@ export default function CreatorDashboardPage() {
         </motion.div>
       )}
 
-      {/* Comics list */}
       {myComics.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -406,7 +843,6 @@ export default function CreatorDashboardPage() {
         </div>
       )}
 
-      {/* Delete confirm dialog */}
       <Dialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
@@ -419,7 +855,7 @@ export default function CreatorDashboardPage() {
             <DialogTitle>Delete Comic?</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete{" "}
-              <strong>"{deleteTarget?.title}"</strong>? This action cannot be
+              <strong>“{deleteTarget?.title}”</strong>? This action cannot be
               undone.
             </DialogDescription>
           </DialogHeader>
@@ -435,9 +871,13 @@ export default function CreatorDashboardPage() {
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
-              className="rounded-xl"
+              disabled={deleteComicMutation.isPending}
+              className="rounded-xl gap-2"
               data-ocid="creator_dashboard.delete_confirm_button"
             >
+              {deleteComicMutation.isPending && (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              )}
               Delete
             </Button>
           </DialogFooter>

@@ -9,7 +9,13 @@ import {
   saveUser,
 } from "../lib/localStorage";
 import { SAMPLE_COMICS } from "../lib/sampleData";
-import type { Comic, Notification, ReadingProgress, User } from "../types";
+import type {
+  Comic,
+  Notification,
+  ReadingProgress,
+  User,
+  UserProfile,
+} from "../types";
 
 const DEMO_MODE_KEY = "ur_demo_mode";
 
@@ -37,13 +43,14 @@ interface AppState {
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
 
-  // Comics (merged: sample + user-created)
+  // Comics — empty by default, real data only; demo data when demoMode ON
   comics: Comic[];
   addComic: (comic: Comic) => void;
   updateComic: (id: string, updates: Partial<Comic>) => void;
   deleteComic: (id: string) => void;
   likeComic: (comicId: string) => void;
   bookmarkComic: (comicId: string) => void;
+  setComics: (comics: Comic[]) => void;
 
   // Demo mode — owner/dev only, defaults OFF
   demoMode: boolean;
@@ -62,9 +69,19 @@ interface AppState {
   setSidebarOpen: (open: boolean) => void;
   toggleSidebar: () => void;
 
-  // Notifications
+  // Notifications (from backend)
   notifications: Notification[];
+  notificationUnreadCount: number;
+  setNotifications: (notifications: Notification[]) => void;
+  addNotification: (notification: Notification) => void;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  /** @deprecated alias for markAllNotificationsRead */
   markNotificationsRead: () => void;
+
+  // User profile
+  userProfile: UserProfile | null;
+  setUserProfile: (profile: UserProfile | null) => void;
 
   // Search
   searchQuery: string;
@@ -88,25 +105,6 @@ const DEFAULT_USER: User = {
   bio: "",
   unlockedChapters: [],
 };
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "n1",
-    type: "new_chapter",
-    title: "New Chapter Available",
-    message: "Rise of Shadows - Chapter 5 is now live!",
-    isRead: false,
-    createdAt: Date.now() - 3600000,
-  },
-  {
-    id: "n2",
-    type: "coins",
-    title: "Daily Bonus!",
-    message: "You earned 10 coins for logging in today.",
-    isRead: false,
-    createdAt: Date.now() - 7200000,
-  },
-];
 
 export const useAppStore = create<AppState>((set, get) => {
   const savedUser = loadUser();
@@ -138,7 +136,6 @@ export const useAppStore = create<AppState>((set, get) => {
       set({ currentUser: updated });
     },
 
-    // Comics: empty by default (real data only). Populated with demo data only when demoMode is ON.
     comics: savedDemoMode ? SAMPLE_COMICS : [],
     addComic: (comic) => set((s) => ({ comics: [comic, ...s.comics] })),
     updateComic: (id, updates) =>
@@ -170,15 +167,12 @@ export const useAppStore = create<AppState>((set, get) => {
         : [...user.bookmarks, comicId];
       get().updateUser({ bookmarks });
     },
+    setComics: (comics) => set({ comics }),
 
-    // Demo mode
     demoMode: savedDemoMode,
     setDemoMode: (enabled) => {
       saveDemoModeStorage(enabled);
-      set({
-        demoMode: enabled,
-        comics: enabled ? SAMPLE_COMICS : [],
-      });
+      set({ demoMode: enabled, comics: enabled ? SAMPLE_COMICS : [] });
     },
 
     readingProgress: savedProgress,
@@ -207,11 +201,46 @@ export const useAppStore = create<AppState>((set, get) => {
     setSidebarOpen: (open) => set({ isSidebarOpen: open }),
     toggleSidebar: () => set((s) => ({ isSidebarOpen: !s.isSidebarOpen })),
 
-    notifications: MOCK_NOTIFICATIONS,
+    notifications: [],
+    notificationUnreadCount: 0,
+    setNotifications: (notifications) =>
+      set({
+        notifications,
+        notificationUnreadCount: notifications.filter((n) => !n.isRead).length,
+      }),
+    addNotification: (notification) =>
+      set((s) => {
+        const notifications = [notification, ...s.notifications];
+        return {
+          notifications,
+          notificationUnreadCount: notifications.filter((n) => !n.isRead)
+            .length,
+        };
+      }),
+    markNotificationRead: (id) =>
+      set((s) => {
+        const notifications = s.notifications.map((n) =>
+          n.id === id ? { ...n, isRead: true } : n,
+        );
+        return {
+          notifications,
+          notificationUnreadCount: notifications.filter((n) => !n.isRead)
+            .length,
+        };
+      }),
+    markAllNotificationsRead: () =>
+      set((s) => ({
+        notifications: s.notifications.map((n) => ({ ...n, isRead: true })),
+        notificationUnreadCount: 0,
+      })),
     markNotificationsRead: () =>
       set((s) => ({
         notifications: s.notifications.map((n) => ({ ...n, isRead: true })),
+        notificationUnreadCount: 0,
       })),
+
+    userProfile: null,
+    setUserProfile: (profile) => set({ userProfile: profile }),
 
     searchQuery: "",
     setSearchQuery: (q) => set({ searchQuery: q }),

@@ -15,6 +15,8 @@ const ReaderPage = lazy(() => import("./pages/Reader"));
 const CreatePage = lazy(() => import("./pages/Create"));
 const CreatorDashboardPage = lazy(() => import("./pages/CreatorDashboard"));
 const ProfilePage = lazy(() => import("./pages/Profile"));
+const PublicProfilePage = lazy(() => import("./pages/PublicProfile"));
+const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const CoinsPage = lazy(() => import("./pages/Coins"));
 const FAQPage = lazy(() => import("./pages/FAQ"));
 const AdminPage = lazy(() => import("./pages/Admin"));
@@ -81,6 +83,16 @@ const profileRoute = createRoute({
   path: "/profile",
   component: ProfilePage,
 });
+const publicProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/profile/$userId",
+  component: PublicProfilePage,
+});
+const notificationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/notifications",
+  component: NotificationsPage,
+});
 const coinsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/coins",
@@ -115,6 +127,8 @@ const routeTree = rootRoute.addChildren([
   createRoute_,
   creatorDashboardRoute,
   profileRoute,
+  publicProfileRoute,
+  notificationsRoute,
   coinsRoute,
   faqRoute,
   adminRoute,

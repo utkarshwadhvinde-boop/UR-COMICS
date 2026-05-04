@@ -1,27 +1,27 @@
 {
-  "overview": "UR Comics is a full-scale, production-ready comic platform designed to rival top platforms like Webtoon. It features a premium purple glassmorphism design, vertical scroll reader, creator upload system with professional image stitching, hidden owner panel, community engagement features, and a coin-based monetization system — all optimized for mobile and desktop.",
+  "overview": "UR Comics is a premium manhwa/webtoon reading platform where creators upload and publish comics, and readers enjoy them in a beautiful vertical scroll reader. Features permanent cloud storage, real-time global content visibility, mobile-first design, and a polished creator dashboard.",
   "features": [
-    "Homepage with hero banner, genre explorer, trending, and continue reading",
-    "Vertical scroll comic reader with auto-saved position",
-    "Creator upload system with image stitching modal for manhwa chapters",
-    "Drag-and-drop image reordering and canvas-based vertical stitching",
-    "Auto-upload stitched chapters and download option",
-    "Hidden owner panel with stealth mode and priority placement",
-    "Coin shop simulation with premium chapter unlocking",
-    "Community features: likes, bookmarks, comments, follow creators",
-    "FAQ page with upvoting and admin management panel",
-    "Empty state handling — real-data only, no fake comics"
+    "Chapter upload with drag-and-drop reordering",
+    "Vertical webtoon-style reader with lazy loading",
+    "Real chapter preview before publishing",
+    "Delete chapter with confirmation",
+    "Next/Previous chapter navigation",
+    "Reading progress auto-save",
+    "Creator dashboard with chapter management",
+    "Permanent cloud storage for images",
+    "Mobile-first Android-optimized design",
+    "Dark purple glassmorphism brand theme"
   ],
   "category": "entertainment",
   "tags": [
-    "comics",
-    "webtoon",
     "manhwa",
-    "creator-tools",
-    "image-stitching",
-    "mobile-first",
-    "dark-theme",
-    "glassmorphism"
+    "webtoon",
+    "comics",
+    "manga",
+    "creator-platform",
+    "reading",
+    "vertical-scroll",
+    "mobile-first"
   ],
-  "last_updated": "2026-04-29T15:57:54.701Z"
+  "last_updated": "2026-05-02T11:08:16.470Z"
 }

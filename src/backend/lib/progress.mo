@@ -43,4 +43,18 @@ module {
       .map<(Text, Types.ReadingProgress), Types.ReadingProgress>(func((_k, v) : (Text, Types.ReadingProgress)) : Types.ReadingProgress { v })
       .toArray();
   };
+  // Removes all reading progress entries for a specific chapterId across all users.
+  // Called after chapter deletion to prevent ghost continue-reading entries.
+  public func deleteProgressForChapter(
+    progressMap : Map.Map<Text, Types.ReadingProgress>,
+    chapterId : Common.ChapterId,
+  ) {
+    let keysToRemove = progressMap.entries()
+      .filter(func((_k, v) : (Text, Types.ReadingProgress)) : Bool { v.chapterId == chapterId })
+      .map(func((k, _v) : (Text, Types.ReadingProgress)) : Text { k })
+      .toArray();
+    keysToRemove.forEach(func(k : Text) {
+      progressMap.remove(k);
+    });
+  };
 };

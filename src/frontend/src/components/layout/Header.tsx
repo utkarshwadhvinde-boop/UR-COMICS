@@ -1,39 +1,17 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  useGetNotifications,
+  useGetUnreadCount,
+  useMarkAllRead,
+} from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  BookOpen,
-  Coins,
-  Heart,
-  Menu,
-  Moon,
-  Search,
-  Sun,
-  X,
-  Zap,
-} from "lucide-react";
+import { Bell, Coins, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
-
-const NOTIF_ICONS: Record<string, React.ReactNode> = {
-  new_chapter: <BookOpen className="w-4 h-4 text-primary" />,
-  coins: <Coins className="w-4 h-4 text-amber-500" />,
-  like: <Heart className="w-4 h-4 text-rose-500" />,
-  follow: <Zap className="w-4 h-4 text-green-500" />,
-};
-
-function timeAgo(ts: number) {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 export function Header() {
   const {
@@ -42,8 +20,6 @@ export function Header() {
     toggleDarkMode,
     toggleSidebar,
     isSidebarOpen,
-    notifications,
-    markNotificationsRead,
     setSearchQuery,
     searchQuery,
   } = useAppStore();
@@ -52,7 +28,12 @@ export function Header() {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const userId = currentUser?.id ?? null;
+  const { data: notifications = [] } = useGetNotifications(userId);
+  const { data: unreadBigint = BigInt(0) } = useGetUnreadCount(userId);
+  const markAllRead = useMarkAllRead();
+  const unreadCount = Number(unreadBigint);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -67,23 +48,19 @@ export function Header() {
         setNotifOpen(false);
       }
     }
-    if (notifOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    if (notifOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [notifOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      void navigate({ to: "/" });
-    }
+    if (searchQuery.trim()) void navigate({ to: "/" });
   };
 
   function handleOpenNotif() {
     setNotifOpen((v) => !v);
-    if (!notifOpen && unreadCount > 0) {
-      markNotificationsRead();
+    if (!notifOpen && unreadCount > 0 && userId) {
+      markAllRead.mutate(userId);
     }
   }
 
@@ -143,7 +120,6 @@ export function Header() {
           </div>
         </form>
 
-        {/* Spacer */}
         <div className="flex-1 md:flex-none" />
 
         {/* Mobile Search Toggle */}
@@ -186,68 +162,89 @@ export function Header() {
           </Button>
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-primary text-primary-foreground rounded-full flex items-center justify-center pointer-events-none">
-              {unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
 
-          {/* Notification dropdown */}
           {notifOpen && (
             <div
-              className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-2xl shadow-lg overflow-hidden z-50 animate-scale-in"
+              className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-card border border-border rounded-2xl shadow-lg overflow-hidden z-50 animate-scale-in"
               data-ocid="header.notifications.popover"
             >
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                <h3 className="font-semibold text-sm text-foreground">
-                  Notifications
-                </h3>
-                {unreadCount > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {unreadCount} new
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm text-foreground">
+                    Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                <Link
+                  to="/notifications"
+                  onClick={() => setNotifOpen(false)}
+                  className="text-xs text-primary hover:text-primary/80 transition-smooth"
+                  data-ocid="header.notifications.view_all_link"
+                >
+                  View all
+                </Link>
               </div>
-              <div className="max-h-72 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="py-8 text-center text-sm text-muted-foreground">
+                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     No notifications yet
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
+                  notifications.slice(0, 10).map((n, i) => (
+                    <Link
+                      key={String(n.id)}
+                      to="/notifications"
+                      onClick={() => setNotifOpen(false)}
                       className={cn(
-                        "flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-smooth border-b border-border/40 last:border-0",
-                        !n.isRead && "bg-primary/5",
+                        "flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-smooth border-b border-border/30 last:border-0",
+                        !n.isRead &&
+                          "bg-primary/5 border-l-2 border-l-primary pl-[14px]",
                       )}
-                      data-ocid="header.notification.item"
+                      data-ocid={`header.notification.item.${i + 1}`}
                     >
-                      <div className="shrink-0 w-8 h-8 rounded-xl bg-muted flex items-center justify-center mt-0.5">
-                        {NOTIF_ICONS[n.type] ?? (
-                          <Bell className="w-4 h-4 text-muted-foreground" />
-                        )}
+                      <div className="shrink-0 w-8 h-8 rounded-xl gradient-primary flex items-center justify-center text-primary-foreground text-xs font-bold">
+                        {n.actorName[0]?.toUpperCase() ?? "?"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-foreground line-clamp-1">
-                          {n.title}
+                        <p className="text-xs text-foreground line-clamp-2">
+                          {n.notifType === "follow"
+                            ? `${n.actorName} followed you`
+                            : n.notifType === "like"
+                              ? `${n.actorName} liked your chapter`
+                              : `${n.actorName} commented on your comic`}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {n.message}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground/60 mt-1">
-                          {timeAgo(n.createdAt)}
+                        <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                          {(() => {
+                            const diff =
+                              Date.now() - Number(n.createdAt) / 1_000_000;
+                            const m = Math.floor(diff / 60000);
+                            return m < 60
+                              ? `${m}m ago`
+                              : m < 1440
+                                ? `${Math.floor(m / 60)}h ago`
+                                : `${Math.floor(m / 1440)}d ago`;
+                          })()}
                         </p>
                       </div>
                       {!n.isRead && (
                         <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
                       )}
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
               <div className="px-4 py-2 border-t border-border">
                 <button
                   type="button"
-                  className="w-full text-xs text-primary hover:text-primary/80 transition-smooth py-1"
+                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-smooth py-1"
                   onClick={() => setNotifOpen(false)}
                   data-ocid="header.notifications.close_button"
                 >

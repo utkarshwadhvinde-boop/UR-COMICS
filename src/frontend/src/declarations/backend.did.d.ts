@@ -10,26 +10,41 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export type ChapterError = { 'invalidImages' : null } |
+  { 'notFound' : null } |
+  { 'unauthorized' : null };
 export type ChapterId = bigint;
 export interface ChapterInput {
   'title' : string,
   'chapterNumber' : bigint,
+  'imageKeys' : Array<string>,
+  'imageOrder' : Array<bigint>,
+  'creatorId' : UserId,
   'comicId' : ComicId,
+  'chapterStatus' : ChapterStatus,
   'images' : Array<string>,
 }
 export interface ChapterPublic {
   'id' : ChapterId,
   'title' : string,
   'chapterNumber' : bigint,
+  'imageKeys' : Array<string>,
+  'imageOrder' : Array<bigint>,
   'createdAt' : Timestamp,
+  'creatorId' : UserId,
+  'publishedAt' : [] | [Timestamp],
   'comicId' : ComicId,
   'updatedAt' : Timestamp,
+  'chapterStatus' : ChapterStatus,
   'images' : Array<string>,
 }
+export type ChapterStatus = { 'published' : null } |
+  { 'draft' : null };
 export type ComicId = bigint;
 export interface ComicInput {
   'title' : string,
   'isPremium' : boolean,
+  'creatorId' : UserId,
   'description' : string,
   'author' : string,
   'ownerUploaded' : boolean,
@@ -44,6 +59,7 @@ export interface ComicPublic {
   'title' : string,
   'isPremium' : boolean,
   'createdAt' : Timestamp,
+  'creatorId' : UserId,
   'description' : string,
   'author' : string,
   'ownerUploaded' : boolean,
@@ -63,6 +79,14 @@ export interface Comment {
   'chapterId' : [] | [ChapterId],
   'comicId' : ComicId,
 }
+export interface CommentReply {
+  'id' : bigint,
+  'username' : string,
+  'parentCommentId' : bigint,
+  'userId' : UserId,
+  'createdAt' : Timestamp,
+  'text' : string,
+}
 export interface FAQInput {
   'question' : string,
   'answer' : string,
@@ -79,46 +103,109 @@ export interface FAQPublic {
   'category' : string,
   'isUserQuestion' : boolean,
 }
+export interface NotificationPublic {
+  'id' : bigint,
+  'actorName' : string,
+  'notifType' : NotificationType,
+  'userId' : UserId,
+  'createdAt' : Timestamp,
+  'chapterId' : [] | [ChapterId],
+  'isRead' : boolean,
+  'actorId' : UserId,
+  'comicId' : [] | [ComicId],
+  'commentPreview' : [] | [string],
+}
+export type NotificationType = { 'like' : null } |
+  { 'comment' : null } |
+  { 'reply' : null } |
+  { 'follow' : null };
 export interface ReadingProgress {
   'scrollPosition' : bigint,
   'chapterId' : ChapterId,
   'comicId' : ComicId,
   'lastReadAt' : Timestamp,
 }
+export type Result = { 'ok' : boolean } |
+  { 'err' : ChapterError };
 export type Timestamp = bigint;
 export type UserId = string;
+export interface UserProfilePublic {
+  'id' : UserId,
+  'bio' : [] | [string],
+  'username' : string,
+  'totalSeries' : bigint,
+  'createdAt' : Timestamp,
+  'avatarUrl' : [] | [string],
+  'totalCommentsReceived' : bigint,
+  'followerCount' : bigint,
+  'followingCount' : bigint,
+  'totalLikesReceived' : bigint,
+}
 export interface _SERVICE {
   'addComment' : ActorMethod<
     [UserId, ComicId, [] | [ChapterId], string],
     bigint
   >,
+  'addReply' : ActorMethod<[bigint, UserId, string, string], CommentReply>,
   'approveFAQ' : ActorMethod<[bigint], boolean>,
   'bookmarkComic' : ActorMethod<[ComicId], boolean>,
+  'cleanupAllDeletedComics' : ActorMethod<[], undefined>,
+  'clearNotifications' : ActorMethod<[UserId], undefined>,
   'createChapter' : ActorMethod<[ChapterInput], ChapterId>,
   'createComic' : ActorMethod<[ComicInput], ComicId>,
   'createFAQ' : ActorMethod<[FAQInput], bigint>,
-  'deleteChapter' : ActorMethod<[ChapterId], boolean>,
-  'deleteComic' : ActorMethod<[ComicId], boolean>,
+  'createOrUpdateProfile' : ActorMethod<
+    [UserId, string, [] | [string], [] | [string]],
+    UserProfilePublic
+  >,
+  'deleteChapter' : ActorMethod<[ChapterId], Result>,
+  'deleteComic' : ActorMethod<[ComicId], Result>,
   'deleteFAQ' : ActorMethod<[bigint], boolean>,
+  'deleteReadingHistoryEntry' : ActorMethod<[ChapterId], undefined>,
+  'followUser' : ActorMethod<[UserId, UserId], boolean>,
   'getChapter' : ActorMethod<[ChapterId], [] | [ChapterPublic]>,
+  'getChapterLikeCount' : ActorMethod<[ChapterId], bigint>,
   'getComic' : ActorMethod<[ComicId], [] | [ComicPublic]>,
+  'getFirstPublishedChapter' : ActorMethod<[ComicId], [] | [ChapterPublic]>,
+  'getFollowers' : ActorMethod<[UserId], Array<string>>,
+  'getFollowing' : ActorMethod<[UserId], Array<string>>,
   'getLikes' : ActorMethod<[ComicId], [] | [bigint]>,
+  'getNotifications' : ActorMethod<[UserId], Array<NotificationPublic>>,
+  'getProfile' : ActorMethod<[UserId], [] | [UserProfilePublic]>,
   'getProgress' : ActorMethod<[UserId, ComicId], [] | [ReadingProgress]>,
+  'getReadingProgress' : ActorMethod<[ComicId, UserId], [] | [ReadingProgress]>,
   'getTrending' : ActorMethod<[bigint], Array<ComicPublic>>,
+  'getUnreadCount' : ActorMethod<[UserId], bigint>,
   'getViews' : ActorMethod<[ComicId], [] | [bigint]>,
+  'isChapterLiked' : ActorMethod<[UserId, ChapterId], boolean>,
+  'isFollowing' : ActorMethod<[UserId, UserId], boolean>,
+  'likeChapter' : ActorMethod<[UserId, ComicId, ChapterId], boolean>,
   'likeComic' : ActorMethod<[ComicId], boolean>,
-  'listChapters' : ActorMethod<[ComicId], Array<ChapterPublic>>,
+  'listChapters' : ActorMethod<[ComicId, boolean], Array<ChapterPublic>>,
   'listComics' : ActorMethod<[], Array<ComicPublic>>,
   'listComments' : ActorMethod<[ComicId], Array<Comment>>,
+  'listCreatorProfiles' : ActorMethod<[bigint], Array<UserProfilePublic>>,
   'listFAQs' : ActorMethod<[boolean], Array<FAQPublic>>,
   'listProgress' : ActorMethod<[UserId], Array<ReadingProgress>>,
+  'listReplies' : ActorMethod<[bigint], Array<CommentReply>>,
+  'markAllRead' : ActorMethod<[UserId], undefined>,
+  'markRead' : ActorMethod<[UserId, bigint], boolean>,
+  'publishChapter' : ActorMethod<[ChapterId], Result>,
   'saveProgress' : ActorMethod<[UserId, ReadingProgress], undefined>,
   'submitFAQ' : ActorMethod<[FAQInput], bigint>,
   'unbookmarkComic' : ActorMethod<[ComicId], boolean>,
+  'unfollowUser' : ActorMethod<[UserId, UserId], boolean>,
+  'unlikeChapter' : ActorMethod<[UserId, ChapterId], boolean>,
   'unlikeComic' : ActorMethod<[ComicId], boolean>,
-  'updateChapter' : ActorMethod<[ChapterId, ChapterInput], boolean>,
+  'unpublishChapter' : ActorMethod<[ChapterId], Result>,
+  'updateChapter' : ActorMethod<[ChapterId, ChapterInput], Result>,
+  'updateChapterOrder' : ActorMethod<[ChapterId, Array<bigint>], Result>,
   'updateComic' : ActorMethod<[ComicId, ComicInput], boolean>,
   'updateFAQ' : ActorMethod<[bigint, FAQInput], boolean>,
+  'updateReadingProgress' : ActorMethod<
+    [ComicId, ChapterId, UserId],
+    undefined
+  >,
   'viewComic' : ActorMethod<[ComicId], boolean>,
   'voteFAQ' : ActorMethod<[bigint], boolean>,
 }

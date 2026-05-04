@@ -4,9 +4,16 @@ import { SkeletonCard, SkeletonRow } from "@/components/ui/SkeletonCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  type ComicPublic,
+  useGetTrending,
+  useListComicsQuery,
+} from "@/hooks/useBackend";
+import { useDeleteComic } from "@/hooks/useComicBackend";
 import { formatNumber } from "@/lib/sampleData";
 import { useAppStore } from "@/store";
 import type { Comic, Genre } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   BookOpen,
@@ -21,6 +28,15 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+/** Returns true only when a comic has a real HTTP cover URL — hides ghost/orphan entries */
+function isValidComic(comic: { coverImage: string }): boolean {
+  return (
+    typeof comic.coverImage === "string" &&
+    comic.coverImage.length > 0 &&
+    (comic.coverImage.startsWith("http://") ||
+      comic.coverImage.startsWith("https://"))
+  );
+}
 const ITEMS_PER_PAGE = 20;
 
 const SKELETON_KEYS_10 = [
@@ -217,21 +233,108 @@ function HeroBanner({ comic }: { comic: Comic }) {
 }
 
 export default function HomePage() {
-  const { comics, searchQuery, readingProgress, currentUser } = useAppStore();
+  const { searchQuery, readingProgress, currentUser, setComics } =
+    useAppStore();
   const [activeGenre, setActiveGenre] = useState<Genre | "All">("All");
-  const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const qc = useQueryClient();
 
-  const hasComics = comics.length > 0;
-  const heroComic = comics.find((c) => c.isFeatured) ?? comics[0];
-  const streak = currentUser?.dailyStreak ?? 0;
+  // Backend queries
+  const { data: backendComics = [], isLoading } = useListComicsQuery();
+  const { data: trendingBackend = [] } = useGetTrending(5);
 
-  // Simulate async initial load
+  // On first mount: scrub any ghost/orphan entries from the React Query caches
+  // by filtering out comics that have no valid cover URL. This is a fire-and-forget
+  // frontend cleanup — no backend call needed (backend listComics already returns live data).
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
+    const timer = setTimeout(() => {
+      qc.setQueryData<ComicPublic[]>(["backend", "comics"], (prev) =>
+        prev
+          ? prev.filter(
+              (c) =>
+                typeof c.coverUrl === "string" &&
+                c.coverUrl.length > 0 &&
+                (c.coverUrl.startsWith("http://") ||
+                  c.coverUrl.startsWith("https://")),
+            )
+          : prev,
+      );
+      qc.setQueryData<ComicPublic[]>(["backend", "trending", 5], (prev) =>
+        prev
+          ? prev.filter(
+              (c) =>
+                typeof c.coverUrl === "string" &&
+                c.coverUrl.length > 0 &&
+                (c.coverUrl.startsWith("http://") ||
+                  c.coverUrl.startsWith("https://")),
+            )
+          : prev,
+      );
+    }, 500);
+    return () => clearTimeout(timer);
+    // qc is stable (QueryClient never changes), so this runs exactly once on mount
+  }, [qc]);
+
+  // Sync backend comics into the Zustand store so child components (ComicCard, etc) can reference them
+  useEffect(() => {
+    if (backendComics.length > 0) {
+      const mapped = backendComics
+        .filter((c) => !!c.coverUrl) // never sync ghost/orphan entries without a cover
+        .map((c) => ({
+          id: String(c.id),
+          title: c.title,
+          description: c.description,
+          author: c.author,
+          coverImage: c.coverUrl,
+          genres: c.genres as Genre[],
+          status: "ongoing" as const,
+          likes: Number(c.likesCount),
+          views: Number(c.viewsCount),
+          rating: 0,
+          chapters: [],
+          createdAt: Number(c.createdAt),
+          updatedAt: Number(c.createdAt),
+          isFeatured: c.isFeatured,
+          isTrending: c.isTrending,
+          isPremium: c.isPremium,
+          isPinned: c.isPinned,
+          creatorId: c.creatorId,
+          isOwnerComic: c.ownerUploaded,
+        }));
+      setComics(mapped);
+    }
+  }, [backendComics, setComics]);
+
+  const comics = backendComics.map((c) => ({
+    id: String(c.id),
+    title: c.title,
+    description: c.description,
+    author: c.author,
+    coverImage: c.coverUrl,
+    genres: c.genres as Genre[],
+    status: "ongoing" as const,
+    likes: Number(c.likesCount),
+    views: Number(c.viewsCount),
+    rating: 0,
+    chapters: [] as Comic["chapters"],
+    createdAt: Number(c.createdAt),
+    updatedAt: Number(c.createdAt),
+    isFeatured: c.isFeatured,
+    isTrending: c.isTrending,
+    isPremium: c.isPremium,
+    isPinned: c.isPinned,
+    creatorId: c.creatorId,
+    isOwnerComic: c.ownerUploaded,
+  }));
+
+  // ORPHAN FILTER: only show comics with a real permanent HTTP cover URL
+  // This prevents ghost cards from deleted/incomplete entries appearing
+  const visibleComics = comics.filter(isValidComic);
+
+  const hasComics = visibleComics.length > 0;
+  const heroComic = visibleComics.find((c) => c.isFeatured) ?? visibleComics[0];
+  const streak = currentUser?.dailyStreak ?? 0;
 
   // Infinite scroll
   useEffect(() => {
@@ -239,9 +342,8 @@ export default function HomePage() {
     if (!el) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting)
           setVisibleCount((prev) => prev + ITEMS_PER_PAGE);
-        }
       },
       { rootMargin: "200px" },
     );
@@ -257,7 +359,7 @@ export default function HomePage() {
     setVisibleCount(ITEMS_PER_PAGE);
   }
 
-  const filtered = comics.filter((c) => {
+  const filtered = visibleComics.filter((c) => {
     const matchesGenre =
       activeGenre === "All" || c.genres.includes(activeGenre as Genre);
     const matchesSearch =
@@ -277,36 +379,62 @@ export default function HomePage() {
   const continueReadingItems = readingProgress
     .sort((a, b) => b.lastReadAt - a.lastReadAt)
     .map((p) => {
-      const comic = comics.find((c) => c.id === p.comicId);
+      const comic = visibleComics.find((c) => c.id === p.comicId);
       return comic ? { comic, progress: p } : null;
     })
     .filter(Boolean)
     .slice(0, 4) as { comic: Comic; progress: (typeof readingProgress)[0] }[];
 
-  const trendingComics = [...comics]
-    .sort((a, b) => trendingScore(b) - trendingScore(a))
-    .slice(0, 5);
+  const trendingComics =
+    trendingBackend.length > 0
+      ? trendingBackend
+          .filter(
+            (c) =>
+              typeof c.coverUrl === "string" &&
+              c.coverUrl.length > 0 &&
+              (c.coverUrl.startsWith("http://") ||
+                c.coverUrl.startsWith("https://")),
+          )
+          .map((c) => ({
+            id: String(c.id),
+            title: c.title,
+            description: c.description,
+            author: c.author,
+            coverImage: c.coverUrl,
+            genres: c.genres as Genre[],
+            status: "ongoing" as const,
+            likes: Number(c.likesCount),
+            views: Number(c.viewsCount),
+            rating: 0,
+            chapters: [] as Comic["chapters"],
+            createdAt: Number(c.createdAt),
+            updatedAt: Number(c.createdAt),
+            isFeatured: c.isFeatured,
+            isTrending: c.isTrending,
+            isPremium: c.isPremium,
+            isPinned: c.isPinned,
+            creatorId: c.creatorId,
+            isOwnerComic: c.ownerUploaded,
+          }))
+      : [...visibleComics]
+          .sort((a, b) => trendingScore(b) - trendingScore(a))
+          .slice(0, 5);
 
-  const popularThisWeek = [...comics]
+  const popularThisWeek = [...visibleComics]
     .sort((a, b) => b.likes - a.likes)
     .slice(0, 3);
-
-  const recentlyUpdated = [...comics]
+  const recentlyUpdated = [...visibleComics]
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, 6);
 
   const getRecommended = useCallback(() => {
-    const bookmarkedGenres = comics
+    const bookmarkedGenres = visibleComics
       .filter((c) => readingProgress.some((p) => p.comicId === c.id))
       .flatMap((c) => c.genres);
-    if (bookmarkedGenres.length === 0) {
-      return comics.slice(0, 4);
-    }
+    if (bookmarkedGenres.length === 0) return visibleComics.slice(0, 4);
     const genreCount: Record<string, number> = {};
-    for (const g of bookmarkedGenres) {
-      genreCount[g] = (genreCount[g] ?? 0) + 1;
-    }
-    return [...comics]
+    for (const g of bookmarkedGenres) genreCount[g] = (genreCount[g] ?? 0) + 1;
+    return [...visibleComics]
       .sort(
         (a, b) =>
           b.genres.reduce((s, g) => s + (genreCount[g] ?? 0), 0) -
@@ -314,16 +442,15 @@ export default function HomePage() {
       )
       .filter((c) => !readingProgress.some((p) => p.comicId === c.id))
       .slice(0, 4);
-  }, [comics, readingProgress]);
+  }, [visibleComics, readingProgress]);
 
   const recommended = getRecommended();
   const hasReadingHistory = readingProgress.length > 0;
 
-  // ─── Platform empty state (no comics at all) ────────────────────────────────
-  if (!loading && !hasComics) {
+  // Platform empty state
+  if (!isLoading && !hasComics) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Minimal hero with branding */}
         <section className="relative overflow-hidden" data-ocid="hero.section">
           <div
             className="absolute inset-0 bg-cover bg-center scale-105"
@@ -354,8 +481,6 @@ export default function HomePage() {
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
         </section>
-
-        {/* Big empty state */}
         <div className="max-w-2xl mx-auto px-4 py-16">
           <ComicsEmptyState />
         </div>
@@ -365,11 +490,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ===== HERO BANNER ===== */}
       {heroComic && <HeroBanner comic={heroComic} />}
-
       <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-14">
-        {/* ===== STREAK BANNER ===== */}
         {streak > 0 && (
           <div
             className="flex items-center justify-center"
@@ -385,7 +507,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* ===== CONTINUE READING ===== */}
+        {/* Continue Reading */}
         {continueReadingItems.length > 0 ? (
           <section data-ocid="continue_reading.section">
             <SectionHeader
@@ -483,12 +605,12 @@ export default function HomePage() {
                 Your reading history and progress will appear once you begin a
                 comic.
               </p>
-              {comics.length > 0 && (
+              {visibleComics.length > 0 && (
                 <Link
                   to="/read/$comicId/$chapterId"
                   params={{
-                    comicId: comics[0]?.id ?? "",
-                    chapterId: comics[0]?.chapters[0]?.id ?? "",
+                    comicId: visibleComics[0]?.id ?? "",
+                    chapterId: visibleComics[0]?.chapters[0]?.id ?? "",
                   }}
                 >
                   <Button
@@ -503,7 +625,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ===== GENRE EXPLORER ===== */}
+        {/* Genre Explorer */}
         <section data-ocid="genre.section">
           <SectionHeader
             title="Browse by Genre"
@@ -526,7 +648,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ===== COMIC GRID ===== */}
+        {/* Comic Grid */}
         <section data-ocid="comics.section">
           <SectionHeader
             title={
@@ -538,14 +660,13 @@ export default function HomePage() {
             }
             icon={<span className="text-lg">📚</span>}
           />
-          {loading ? (
+          {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
               {SKELETON_KEYS_10.map((k) => (
                 <SkeletonCard key={k} />
               ))}
             </div>
           ) : sorted.length === 0 ? (
-            /* State B: Comics exist but none match the active filter */
             <div
               className="text-center py-16 bg-card rounded-2xl mt-4 border border-border"
               data-ocid="comics.filter_empty_state"
@@ -591,7 +712,7 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* ===== TRENDING NOW ===== */}
+        {/* Trending Now */}
         {trendingComics.length > 0 && (
           <section
             className="bg-muted/30 -mx-4 px-4 py-8 rounded-3xl"
@@ -621,7 +742,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ===== POPULAR THIS WEEK ===== */}
+        {/* Popular This Week */}
         {popularThisWeek.length > 0 && (
           <section data-ocid="popular.section">
             <SectionHeader
@@ -682,14 +803,14 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ===== RECENTLY UPDATED ===== */}
+        {/* Recently Updated */}
         {recentlyUpdated.length > 0 && (
           <section data-ocid="recent.section">
             <SectionHeader
               title="Recently Updated"
               icon={<Clock className="w-5 h-5 text-blue-500" />}
             />
-            {loading ? (
+            {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                 {SKELETON_KEYS_6.map((k) => (
                   <SkeletonRow key={k} />
@@ -710,7 +831,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ===== RECOMMENDED FOR YOU ===== */}
+        {/* Recommended */}
         {recommended.length > 0 && (
           <section
             className="bg-muted/20 -mx-4 px-4 py-8 rounded-3xl border border-border/30"
@@ -733,7 +854,6 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Spacer */}
         <div className="h-4" />
       </div>
     </div>

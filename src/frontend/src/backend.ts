@@ -89,8 +89,6 @@ export class ExternalBlob {
         return this;
     }
 }
-export type UserId = string;
-export type Timestamp = bigint;
 export interface FAQPublic {
     id: bigint;
     upvotes: bigint;
@@ -101,6 +99,7 @@ export interface FAQPublic {
     category: string;
     isUserQuestion: boolean;
 }
+export type Timestamp = bigint;
 export interface Comment {
     id: bigint;
     userId: UserId;
@@ -109,48 +108,14 @@ export interface Comment {
     chapterId?: ChapterId;
     comicId: ComicId;
 }
-export interface ComicPublic {
-    id: ComicId;
-    title: string;
-    isPremium: boolean;
-    createdAt: Timestamp;
-    description: string;
-    author: string;
-    ownerUploaded: boolean;
-    isFeatured: boolean;
-    genres: Array<string>;
-    coverUrl: string;
-    likesCount: bigint;
-    isPinned: boolean;
-    isTrending: boolean;
-    viewsCount: bigint;
-}
-export interface ComicInput {
-    title: string;
-    isPremium: boolean;
-    description: string;
-    author: string;
-    ownerUploaded: boolean;
-    isFeatured: boolean;
-    genres: Array<string>;
-    coverUrl: string;
-    isPinned: boolean;
-    isTrending: boolean;
-}
-export type ComicId = bigint;
-export interface ChapterPublic {
-    id: ChapterId;
-    title: string;
-    chapterNumber: bigint;
-    createdAt: Timestamp;
-    comicId: ComicId;
-    updatedAt: Timestamp;
-    images: Array<string>;
-}
 export interface ChapterInput {
     title: string;
     chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    creatorId: UserId;
     comicId: ComicId;
+    chapterStatus: ChapterStatus;
     images: Array<string>;
 }
 export interface ReadingProgress {
@@ -165,40 +130,167 @@ export interface FAQInput {
     category: string;
     isUserQuestion: boolean;
 }
+export interface UserProfilePublic {
+    id: UserId;
+    bio?: string;
+    username: string;
+    totalSeries: bigint;
+    createdAt: Timestamp;
+    avatarUrl?: string;
+    totalCommentsReceived: bigint;
+    followerCount: bigint;
+    followingCount: bigint;
+    totalLikesReceived: bigint;
+}
 export type ChapterId = bigint;
+export type UserId = string;
+export type Result = {
+    __kind__: "ok";
+    ok: boolean;
+} | {
+    __kind__: "err";
+    err: ChapterError;
+};
+export interface CommentReply {
+    id: bigint;
+    username: string;
+    parentCommentId: bigint;
+    userId: UserId;
+    createdAt: Timestamp;
+    text: string;
+}
+export interface ComicPublic {
+    id: ComicId;
+    title: string;
+    isPremium: boolean;
+    createdAt: Timestamp;
+    creatorId: UserId;
+    description: string;
+    author: string;
+    ownerUploaded: boolean;
+    isFeatured: boolean;
+    genres: Array<string>;
+    coverUrl: string;
+    likesCount: bigint;
+    isPinned: boolean;
+    isTrending: boolean;
+    viewsCount: bigint;
+}
+export interface ComicInput {
+    title: string;
+    isPremium: boolean;
+    creatorId: UserId;
+    description: string;
+    author: string;
+    ownerUploaded: boolean;
+    isFeatured: boolean;
+    genres: Array<string>;
+    coverUrl: string;
+    isPinned: boolean;
+    isTrending: boolean;
+}
+export type ComicId = bigint;
+export interface ChapterPublic {
+    id: ChapterId;
+    title: string;
+    chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    createdAt: Timestamp;
+    creatorId: UserId;
+    publishedAt?: Timestamp;
+    comicId: ComicId;
+    updatedAt: Timestamp;
+    chapterStatus: ChapterStatus;
+    images: Array<string>;
+}
+export interface NotificationPublic {
+    id: bigint;
+    actorName: string;
+    notifType: NotificationType;
+    userId: UserId;
+    createdAt: Timestamp;
+    chapterId?: ChapterId;
+    isRead: boolean;
+    actorId: UserId;
+    comicId?: ComicId;
+    commentPreview?: string;
+}
+export enum ChapterError {
+    invalidImages = "invalidImages",
+    notFound = "notFound",
+    unauthorized = "unauthorized"
+}
+export enum ChapterStatus {
+    published = "published",
+    draft = "draft"
+}
+export enum NotificationType {
+    like = "like",
+    comment = "comment",
+    reply = "reply",
+    follow = "follow"
+}
 export interface backendInterface {
     addComment(userId: UserId, comicId: ComicId, chapterId: ChapterId | null, text: string): Promise<bigint>;
+    addReply(parentCommentId: bigint, userId: UserId, username: string, text: string): Promise<CommentReply>;
     approveFAQ(id: bigint): Promise<boolean>;
     bookmarkComic(_id: ComicId): Promise<boolean>;
+    cleanupAllDeletedComics(): Promise<void>;
+    clearNotifications(userId: UserId): Promise<void>;
     createChapter(input: ChapterInput): Promise<ChapterId>;
     createComic(input: ComicInput): Promise<ComicId>;
     createFAQ(input: FAQInput): Promise<bigint>;
-    deleteChapter(id: ChapterId): Promise<boolean>;
-    deleteComic(id: ComicId): Promise<boolean>;
+    createOrUpdateProfile(userId: UserId, username: string, avatarUrl: string | null, bio: string | null): Promise<UserProfilePublic>;
+    deleteChapter(id: ChapterId): Promise<Result>;
+    deleteComic(id: ComicId): Promise<Result>;
     deleteFAQ(id: bigint): Promise<boolean>;
+    deleteReadingHistoryEntry(chapterId: ChapterId): Promise<void>;
+    followUser(followerId: UserId, followeeId: UserId): Promise<boolean>;
     getChapter(id: ChapterId): Promise<ChapterPublic | null>;
+    getChapterLikeCount(chapterId: ChapterId): Promise<bigint>;
     getComic(id: ComicId): Promise<ComicPublic | null>;
+    getFirstPublishedChapter(comicId: ComicId): Promise<ChapterPublic | null>;
+    getFollowers(userId: UserId): Promise<Array<string>>;
+    getFollowing(userId: UserId): Promise<Array<string>>;
     getLikes(id: ComicId): Promise<bigint | null>;
+    getNotifications(userId: UserId): Promise<Array<NotificationPublic>>;
+    getProfile(userId: UserId): Promise<UserProfilePublic | null>;
     getProgress(userId: UserId, comicId: ComicId): Promise<ReadingProgress | null>;
+    getReadingProgress(comicId: ComicId, userId: UserId): Promise<ReadingProgress | null>;
     getTrending(limit: bigint): Promise<Array<ComicPublic>>;
+    getUnreadCount(userId: UserId): Promise<bigint>;
     getViews(id: ComicId): Promise<bigint | null>;
+    isChapterLiked(userId: UserId, chapterId: ChapterId): Promise<boolean>;
+    isFollowing(followerId: UserId, followeeId: UserId): Promise<boolean>;
+    likeChapter(userId: UserId, comicId: ComicId, chapterId: ChapterId): Promise<boolean>;
     likeComic(id: ComicId): Promise<boolean>;
-    listChapters(comicId: ComicId): Promise<Array<ChapterPublic>>;
+    listChapters(comicId: ComicId, publishedOnly: boolean): Promise<Array<ChapterPublic>>;
     listComics(): Promise<Array<ComicPublic>>;
     listComments(comicId: ComicId): Promise<Array<Comment>>;
+    listCreatorProfiles(limit: bigint): Promise<Array<UserProfilePublic>>;
     listFAQs(approvedOnly: boolean): Promise<Array<FAQPublic>>;
     listProgress(userId: UserId): Promise<Array<ReadingProgress>>;
+    listReplies(parentCommentId: bigint): Promise<Array<CommentReply>>;
+    markAllRead(userId: UserId): Promise<void>;
+    markRead(userId: UserId, notificationId: bigint): Promise<boolean>;
+    publishChapter(id: ChapterId): Promise<Result>;
     saveProgress(userId: UserId, progress: ReadingProgress): Promise<void>;
     submitFAQ(input: FAQInput): Promise<bigint>;
     unbookmarkComic(_id: ComicId): Promise<boolean>;
+    unfollowUser(followerId: UserId, followeeId: UserId): Promise<boolean>;
+    unlikeChapter(userId: UserId, chapterId: ChapterId): Promise<boolean>;
     unlikeComic(id: ComicId): Promise<boolean>;
-    updateChapter(id: ChapterId, input: ChapterInput): Promise<boolean>;
+    unpublishChapter(id: ChapterId): Promise<Result>;
+    updateChapter(id: ChapterId, input: ChapterInput): Promise<Result>;
+    updateChapterOrder(id: ChapterId, newImageOrder: Array<bigint>): Promise<Result>;
     updateComic(id: ComicId, input: ComicInput): Promise<boolean>;
     updateFAQ(id: bigint, input: FAQInput): Promise<boolean>;
+    updateReadingProgress(comicId: ComicId, chapterId: ChapterId, userId: UserId): Promise<void>;
     viewComic(id: ComicId): Promise<boolean>;
     voteFAQ(id: bigint): Promise<boolean>;
 }
-import type { ChapterId as _ChapterId, ChapterPublic as _ChapterPublic, ComicId as _ComicId, ComicPublic as _ComicPublic, Comment as _Comment, ReadingProgress as _ReadingProgress, Timestamp as _Timestamp, UserId as _UserId } from "./declarations/backend.did.d.ts";
+import type { ChapterError as _ChapterError, ChapterId as _ChapterId, ChapterInput as _ChapterInput, ChapterPublic as _ChapterPublic, ChapterStatus as _ChapterStatus, ComicId as _ComicId, ComicPublic as _ComicPublic, Comment as _Comment, NotificationPublic as _NotificationPublic, NotificationType as _NotificationType, ReadingProgress as _ReadingProgress, Result as _Result, Timestamp as _Timestamp, UserId as _UserId, UserProfilePublic as _UserProfilePublic } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async addComment(arg0: UserId, arg1: ComicId, arg2: ChapterId | null, arg3: string): Promise<bigint> {
@@ -212,6 +304,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addComment(arg0, arg1, to_candid_opt_n1(this._uploadFile, this._downloadFile, arg2), arg3);
+            return result;
+        }
+    }
+    async addReply(arg0: bigint, arg1: UserId, arg2: string, arg3: string): Promise<CommentReply> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addReply(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addReply(arg0, arg1, arg2, arg3);
             return result;
         }
     }
@@ -243,17 +349,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createChapter(arg0: ChapterInput): Promise<ChapterId> {
+    async cleanupAllDeletedComics(): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createChapter(arg0);
+                const result = await this.actor.cleanupAllDeletedComics();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createChapter(arg0);
+            const result = await this.actor.cleanupAllDeletedComics();
+            return result;
+        }
+    }
+    async clearNotifications(arg0: UserId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearNotifications(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearNotifications(arg0);
+            return result;
+        }
+    }
+    async createChapter(arg0: ChapterInput): Promise<ChapterId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createChapter(to_candid_ChapterInput_n2(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createChapter(to_candid_ChapterInput_n2(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -285,32 +419,46 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteChapter(arg0: ChapterId): Promise<boolean> {
+    async createOrUpdateProfile(arg0: UserId, arg1: string, arg2: string | null, arg3: string | null): Promise<UserProfilePublic> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createOrUpdateProfile(arg0, arg1, to_candid_opt_n6(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n6(this._uploadFile, this._downloadFile, arg3));
+                return from_candid_UserProfilePublic_n7(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createOrUpdateProfile(arg0, arg1, to_candid_opt_n6(this._uploadFile, this._downloadFile, arg2), to_candid_opt_n6(this._uploadFile, this._downloadFile, arg3));
+            return from_candid_UserProfilePublic_n7(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async deleteChapter(arg0: ChapterId): Promise<Result> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteChapter(arg0);
-                return result;
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.deleteChapter(arg0);
-            return result;
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async deleteComic(arg0: ComicId): Promise<boolean> {
+    async deleteComic(arg0: ComicId): Promise<Result> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteComic(arg0);
-                return result;
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.deleteComic(arg0);
-            return result;
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async deleteFAQ(arg0: bigint): Promise<boolean> {
@@ -327,60 +475,186 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteReadingHistoryEntry(arg0: ChapterId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteReadingHistoryEntry(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteReadingHistoryEntry(arg0);
+            return result;
+        }
+    }
+    async followUser(arg0: UserId, arg1: UserId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.followUser(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.followUser(arg0, arg1);
+            return result;
+        }
+    }
     async getChapter(arg0: ChapterId): Promise<ChapterPublic | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getChapter(arg0);
-                return from_candid_opt_n2(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getChapter(arg0);
-            return from_candid_opt_n2(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getChapterLikeCount(arg0: ChapterId): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getChapterLikeCount(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getChapterLikeCount(arg0);
+            return result;
         }
     }
     async getComic(arg0: ComicId): Promise<ComicPublic | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getComic(arg0);
-                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getComic(arg0);
-            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n20(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getFirstPublishedChapter(arg0: ComicId): Promise<ChapterPublic | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFirstPublishedChapter(arg0);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFirstPublishedChapter(arg0);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getFollowers(arg0: UserId): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFollowers(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFollowers(arg0);
+            return result;
+        }
+    }
+    async getFollowing(arg0: UserId): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getFollowing(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getFollowing(arg0);
+            return result;
         }
     }
     async getLikes(arg0: ComicId): Promise<bigint | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getLikes(arg0);
-                return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getLikes(arg0);
-            return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getNotifications(arg0: UserId): Promise<Array<NotificationPublic>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getNotifications(arg0);
+                return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getNotifications(arg0);
+            return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getProfile(arg0: UserId): Promise<UserProfilePublic | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getProfile(arg0);
+                return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getProfile(arg0);
+            return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
         }
     }
     async getProgress(arg0: UserId, arg1: ComicId): Promise<ReadingProgress | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getProgress(arg0, arg1);
-                return from_candid_opt_n5(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getProgress(arg0, arg1);
-            return from_candid_opt_n5(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getReadingProgress(arg0: ComicId, arg1: UserId): Promise<ReadingProgress | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getReadingProgress(arg0, arg1);
+                return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getReadingProgress(arg0, arg1);
+            return from_candid_opt_n30(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTrending(arg0: bigint): Promise<Array<ComicPublic>> {
@@ -397,18 +671,74 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getUnreadCount(arg0: UserId): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUnreadCount(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUnreadCount(arg0);
+            return result;
+        }
+    }
     async getViews(arg0: ComicId): Promise<bigint | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getViews(arg0);
-                return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getViews(arg0);
-            return from_candid_opt_n4(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n21(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async isChapterLiked(arg0: UserId, arg1: ChapterId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isChapterLiked(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isChapterLiked(arg0, arg1);
+            return result;
+        }
+    }
+    async isFollowing(arg0: UserId, arg1: UserId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isFollowing(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isFollowing(arg0, arg1);
+            return result;
+        }
+    }
+    async likeChapter(arg0: UserId, arg1: ComicId, arg2: ChapterId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.likeChapter(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.likeChapter(arg0, arg1, arg2);
+            return result;
         }
     }
     async likeComic(arg0: ComicId): Promise<boolean> {
@@ -425,18 +755,18 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async listChapters(arg0: ComicId): Promise<Array<ChapterPublic>> {
+    async listChapters(arg0: ComicId, arg1: boolean): Promise<Array<ChapterPublic>> {
         if (this.processError) {
             try {
-                const result = await this.actor.listChapters(arg0);
-                return result;
+                const result = await this.actor.listChapters(arg0, arg1);
+                return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.listChapters(arg0);
-            return result;
+            const result = await this.actor.listChapters(arg0, arg1);
+            return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
         }
     }
     async listComics(): Promise<Array<ComicPublic>> {
@@ -457,14 +787,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.listComments(arg0);
-                return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.listComments(arg0);
-            return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async listCreatorProfiles(arg0: bigint): Promise<Array<UserProfilePublic>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listCreatorProfiles(arg0);
+                return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listCreatorProfiles(arg0);
+            return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
         }
     }
     async listFAQs(arg0: boolean): Promise<Array<FAQPublic>> {
@@ -493,6 +837,62 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.listProgress(arg0);
             return result;
+        }
+    }
+    async listReplies(arg0: bigint): Promise<Array<CommentReply>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listReplies(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listReplies(arg0);
+            return result;
+        }
+    }
+    async markAllRead(arg0: UserId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markAllRead(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markAllRead(arg0);
+            return result;
+        }
+    }
+    async markRead(arg0: UserId, arg1: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markRead(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markRead(arg0, arg1);
+            return result;
+        }
+    }
+    async publishChapter(arg0: ChapterId): Promise<Result> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.publishChapter(arg0);
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.publishChapter(arg0);
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async saveProgress(arg0: UserId, arg1: ReadingProgress): Promise<void> {
@@ -537,6 +937,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async unfollowUser(arg0: UserId, arg1: UserId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.unfollowUser(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.unfollowUser(arg0, arg1);
+            return result;
+        }
+    }
+    async unlikeChapter(arg0: UserId, arg1: ChapterId): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.unlikeChapter(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.unlikeChapter(arg0, arg1);
+            return result;
+        }
+    }
     async unlikeComic(arg0: ComicId): Promise<boolean> {
         if (this.processError) {
             try {
@@ -551,18 +979,46 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateChapter(arg0: ChapterId, arg1: ChapterInput): Promise<boolean> {
+    async unpublishChapter(arg0: ChapterId): Promise<Result> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateChapter(arg0, arg1);
-                return result;
+                const result = await this.actor.unpublishChapter(arg0);
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateChapter(arg0, arg1);
-            return result;
+            const result = await this.actor.unpublishChapter(arg0);
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async updateChapter(arg0: ChapterId, arg1: ChapterInput): Promise<Result> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateChapter(arg0, to_candid_ChapterInput_n2(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateChapter(arg0, to_candid_ChapterInput_n2(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async updateChapterOrder(arg0: ChapterId, arg1: Array<bigint>): Promise<Result> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateChapterOrder(arg0, arg1);
+                return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateChapterOrder(arg0, arg1);
+            return from_candid_Result_n10(this._uploadFile, this._downloadFile, result);
         }
     }
     async updateComic(arg0: ComicId, arg1: ComicInput): Promise<boolean> {
@@ -590,6 +1046,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateFAQ(arg0, arg1);
+            return result;
+        }
+    }
+    async updateReadingProgress(arg0: ComicId, arg1: ChapterId, arg2: UserId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateReadingProgress(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateReadingProgress(arg0, arg1, arg2);
             return result;
         }
     }
@@ -622,25 +1092,136 @@ export class Backend implements backendInterface {
         }
     }
 }
-function from_candid_Comment_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Comment): Comment {
+function from_candid_ChapterError_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ChapterError): ChapterError {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
+}
+function from_candid_ChapterPublic_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ChapterPublic): ChapterPublic {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
+}
+function from_candid_ChapterStatus_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ChapterStatus): ChapterStatus {
+    return from_candid_variant_n19(_uploadFile, _downloadFile, value);
+}
+function from_candid_Comment_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Comment): Comment {
+    return from_candid_record_n34(_uploadFile, _downloadFile, value);
+}
+function from_candid_NotificationPublic_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _NotificationPublic): NotificationPublic {
+    return from_candid_record_n24(_uploadFile, _downloadFile, value);
+}
+function from_candid_NotificationType_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _NotificationType): NotificationType {
+    return from_candid_variant_n26(_uploadFile, _downloadFile, value);
+}
+function from_candid_Result_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Result): Result {
+    return from_candid_variant_n11(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserProfilePublic_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfilePublic): UserProfilePublic {
     return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChapterPublic]): ChapterPublic | null {
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChapterPublic]): ChapterPublic | null {
+    return value.length === 0 ? null : from_candid_ChapterPublic_n15(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Timestamp]): Timestamp | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ComicPublic]): ComicPublic | null {
+function from_candid_opt_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ComicPublic]): ComicPublic | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
+function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ReadingProgress]): ReadingProgress | null {
+function from_candid_opt_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChapterId]): ChapterId | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChapterId]): ChapterId | null {
+function from_candid_opt_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ComicId]): ComicId | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfilePublic]): UserProfilePublic | null {
+    return value.length === 0 ? null : from_candid_UserProfilePublic_n7(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ReadingProgress]): ReadingProgress | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: _ChapterId;
+    title: string;
+    chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    createdAt: _Timestamp;
+    creatorId: _UserId;
+    publishedAt: [] | [_Timestamp];
+    comicId: _ComicId;
+    updatedAt: _Timestamp;
+    chapterStatus: _ChapterStatus;
+    images: Array<string>;
+}): {
+    id: ChapterId;
+    title: string;
+    chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    createdAt: Timestamp;
+    creatorId: UserId;
+    publishedAt?: Timestamp;
+    comicId: ComicId;
+    updatedAt: Timestamp;
+    chapterStatus: ChapterStatus;
+    images: Array<string>;
+} {
+    return {
+        id: value.id,
+        title: value.title,
+        chapterNumber: value.chapterNumber,
+        imageKeys: value.imageKeys,
+        imageOrder: value.imageOrder,
+        createdAt: value.createdAt,
+        creatorId: value.creatorId,
+        publishedAt: record_opt_to_undefined(from_candid_opt_n17(_uploadFile, _downloadFile, value.publishedAt)),
+        comicId: value.comicId,
+        updatedAt: value.updatedAt,
+        chapterStatus: from_candid_ChapterStatus_n18(_uploadFile, _downloadFile, value.chapterStatus),
+        images: value.images
+    };
+}
+function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    actorName: string;
+    notifType: _NotificationType;
+    userId: _UserId;
+    createdAt: _Timestamp;
+    chapterId: [] | [_ChapterId];
+    isRead: boolean;
+    actorId: _UserId;
+    comicId: [] | [_ComicId];
+    commentPreview: [] | [string];
+}): {
+    id: bigint;
+    actorName: string;
+    notifType: NotificationType;
+    userId: UserId;
+    createdAt: Timestamp;
+    chapterId?: ChapterId;
+    isRead: boolean;
+    actorId: UserId;
+    comicId?: ComicId;
+    commentPreview?: string;
+} {
+    return {
+        id: value.id,
+        actorName: value.actorName,
+        notifType: from_candid_NotificationType_n25(_uploadFile, _downloadFile, value.notifType),
+        userId: value.userId,
+        createdAt: value.createdAt,
+        chapterId: record_opt_to_undefined(from_candid_opt_n27(_uploadFile, _downloadFile, value.chapterId)),
+        isRead: value.isRead,
+        actorId: value.actorId,
+        comicId: record_opt_to_undefined(from_candid_opt_n28(_uploadFile, _downloadFile, value.comicId)),
+        commentPreview: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.commentPreview))
+    };
+}
+function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     userId: _UserId;
     createdAt: _Timestamp;
@@ -660,15 +1241,156 @@ function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint
         userId: value.userId,
         createdAt: value.createdAt,
         text: value.text,
-        chapterId: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.chapterId)),
+        chapterId: record_opt_to_undefined(from_candid_opt_n27(_uploadFile, _downloadFile, value.chapterId)),
         comicId: value.comicId
     };
 }
-function from_candid_vec_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Comment>): Array<Comment> {
-    return value.map((x)=>from_candid_Comment_n7(_uploadFile, _downloadFile, x));
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: _UserId;
+    bio: [] | [string];
+    username: string;
+    totalSeries: bigint;
+    createdAt: _Timestamp;
+    avatarUrl: [] | [string];
+    totalCommentsReceived: bigint;
+    followerCount: bigint;
+    followingCount: bigint;
+    totalLikesReceived: bigint;
+}): {
+    id: UserId;
+    bio?: string;
+    username: string;
+    totalSeries: bigint;
+    createdAt: Timestamp;
+    avatarUrl?: string;
+    totalCommentsReceived: bigint;
+    followerCount: bigint;
+    followingCount: bigint;
+    totalLikesReceived: bigint;
+} {
+    return {
+        id: value.id,
+        bio: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.bio)),
+        username: value.username,
+        totalSeries: value.totalSeries,
+        createdAt: value.createdAt,
+        avatarUrl: record_opt_to_undefined(from_candid_opt_n9(_uploadFile, _downloadFile, value.avatarUrl)),
+        totalCommentsReceived: value.totalCommentsReceived,
+        followerCount: value.followerCount,
+        followingCount: value.followingCount,
+        totalLikesReceived: value.totalLikesReceived
+    };
+}
+function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    ok: boolean;
+} | {
+    err: _ChapterError;
+}): {
+    __kind__: "ok";
+    ok: boolean;
+} | {
+    __kind__: "err";
+    err: ChapterError;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: value.ok
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_ChapterError_n12(_uploadFile, _downloadFile, value.err)
+    } : value;
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    invalidImages: null;
+} | {
+    notFound: null;
+} | {
+    unauthorized: null;
+}): ChapterError {
+    return "invalidImages" in value ? ChapterError.invalidImages : "notFound" in value ? ChapterError.notFound : "unauthorized" in value ? ChapterError.unauthorized : value;
+}
+function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    published: null;
+} | {
+    draft: null;
+}): ChapterStatus {
+    return "published" in value ? ChapterStatus.published : "draft" in value ? ChapterStatus.draft : value;
+}
+function from_candid_variant_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    like: null;
+} | {
+    comment: null;
+} | {
+    reply: null;
+} | {
+    follow: null;
+}): NotificationType {
+    return "like" in value ? NotificationType.like : "comment" in value ? NotificationType.comment : "reply" in value ? NotificationType.reply : "follow" in value ? NotificationType.follow : value;
+}
+function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_NotificationPublic>): Array<NotificationPublic> {
+    return value.map((x)=>from_candid_NotificationPublic_n23(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ChapterPublic>): Array<ChapterPublic> {
+    return value.map((x)=>from_candid_ChapterPublic_n15(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Comment>): Array<Comment> {
+    return value.map((x)=>from_candid_Comment_n33(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_UserProfilePublic>): Array<UserProfilePublic> {
+    return value.map((x)=>from_candid_UserProfilePublic_n7(_uploadFile, _downloadFile, x));
+}
+function to_candid_ChapterInput_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ChapterInput): _ChapterInput {
+    return to_candid_record_n3(_uploadFile, _downloadFile, value);
+}
+function to_candid_ChapterStatus_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ChapterStatus): _ChapterStatus {
+    return to_candid_variant_n5(_uploadFile, _downloadFile, value);
 }
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ChapterId | null): [] | [_ChapterId] {
     return value === null ? candid_none() : candid_some(value);
+}
+function to_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
+    return value === null ? candid_none() : candid_some(value);
+}
+function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    title: string;
+    chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    creatorId: UserId;
+    comicId: ComicId;
+    chapterStatus: ChapterStatus;
+    images: Array<string>;
+}): {
+    title: string;
+    chapterNumber: bigint;
+    imageKeys: Array<string>;
+    imageOrder: Array<bigint>;
+    creatorId: _UserId;
+    comicId: _ComicId;
+    chapterStatus: _ChapterStatus;
+    images: Array<string>;
+} {
+    return {
+        title: value.title,
+        chapterNumber: value.chapterNumber,
+        imageKeys: value.imageKeys,
+        imageOrder: value.imageOrder,
+        creatorId: value.creatorId,
+        comicId: value.comicId,
+        chapterStatus: to_candid_ChapterStatus_n4(_uploadFile, _downloadFile, value.chapterStatus),
+        images: value.images
+    };
+}
+function to_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ChapterStatus): {
+    published: null;
+} | {
+    draft: null;
+} {
+    return value == ChapterStatus.published ? {
+        published: null
+    } : value == ChapterStatus.draft ? {
+        draft: null
+    } : value;
 }
 export interface CreateActorOptions {
     agent?: Agent;

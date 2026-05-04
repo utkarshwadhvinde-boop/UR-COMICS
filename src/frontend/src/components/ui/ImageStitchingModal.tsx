@@ -17,15 +17,13 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type StitchState =
-  | "idle"
-  | "selecting"
-  | "reordering"
-  | "stitching"
-  | "preview"
-  | "done";
+type StitchState = "idle" | "reordering" | "stitching" | "preview" | "done";
 
-interface ImageItem {
+/**
+ * files[] is NEVER reordered — it stores images in the exact selection order.
+ * orderIndices[] is the user-controlled display/stitch order: indices into files[].
+ */
+interface ImageEntry {
   id: string;
   file: File;
   previewUrl: string;
@@ -45,34 +43,33 @@ export function ImageStitchingModal({
   chapterIndex,
 }: Props) {
   const [state, setState] = useState<StitchState>("idle");
-  const [images, setImages] = useState<ImageItem[]>([]);
+  const [files, setFiles] = useState<ImageEntry[]>([]);
+  const [orderIndices, setOrderIndices] = useState<number[]>([]);
   const [stitchedUrl, setStitchedUrl] = useState<string | null>(null);
   const [stitchedBlob, setStitchedBlob] = useState<Blob | null>(null);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dragOrderPos, setDragOrderPos] = useState<number | null>(null);
+  const [dragOverPos, setDragOverPos] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Touch reorder state
-  const touchDragIndex = useRef<number | null>(null);
+  const touchOrderPos = useRef<number | null>(null);
   const touchStartY = useRef(0);
-  const itemHeight = useRef(0);
+  const itemHeightRef = useRef(0);
 
   const handleReset = () => {
-    // Revoke old preview URLs
-    for (const img of images) URL.revokeObjectURL(img.previewUrl);
+    for (const f of files) URL.revokeObjectURL(f.previewUrl);
     if (stitchedUrl) URL.revokeObjectURL(stitchedUrl);
-    setImages([]);
+    setFiles([]);
+    setOrderIndices([]);
     setStitchedUrl(null);
     setStitchedBlob(null);
     setProgress(0);
     setProgressLabel("");
     setError(null);
-    setDragIndex(null);
-    setDragOverIndex(null);
+    setDragOrderPos(null);
+    setDragOverPos(null);
     setState("idle");
   };
 
@@ -81,18 +78,24 @@ export function ImageStitchingModal({
     onClose();
   };
 
-  const addFiles = useCallback((files: File[]) => {
-    const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+  // Add files in exact selection order — NEVER sort internally
+  const addFiles = useCallback((newFiles: File[]) => {
+    const imageFiles = newFiles.filter((f) => f.type.startsWith("image/"));
     if (!imageFiles.length) return;
-    const newItems: ImageItem[] = imageFiles.map((f) => ({
-      id: `${f.name}-${Date.now()}-${Math.random()}`,
-      file: f,
-      previewUrl: URL.createObjectURL(f),
-    }));
-    setImages((prev) => {
-      const updated = [...prev, ...newItems];
-      if (updated.length > 0) setState("reordering");
-      return updated;
+    setFiles((prev) => {
+      const startIdx = prev.length;
+      const entries: ImageEntry[] = imageFiles.map((f, j) => ({
+        id: `${f.name}-${Date.now()}-${j}`,
+        file: f,
+        previewUrl: URL.createObjectURL(f),
+      }));
+      setOrderIndices((prevOrder) => [
+        ...prevOrder,
+        ...imageFiles.map((_, j) => startIdx + j),
+      ]);
+      const next = [...prev, ...entries];
+      if (next.length > 0) setState("reordering");
+      return next;
     });
     setError(null);
   }, []);
@@ -108,119 +111,115 @@ export function ImageStitchingModal({
     addFiles(Array.from(e.dataTransfer.files));
   };
 
-  const removeImage = (id: string) => {
-    setImages((prev) => {
-      const removed = prev.find((img) => img.id === id);
-      if (removed) URL.revokeObjectURL(removed.previewUrl);
-      const next = prev.filter((img) => img.id !== id);
+  // Remove by display position — leaves files[] intact to avoid index shifts
+  const removeByOrderPos = (pos: number) => {
+    setOrderIndices((prev) => {
+      const next = prev.filter((_, i) => i !== pos);
       if (next.length === 0) setState("idle");
       return next;
     });
   };
 
-  // HTML5 Drag-and-drop reorder
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDragIndex(index);
+  // Reorder — only mutates orderIndices, never files[]
+  const handleDragStart = (e: React.DragEvent, pos: number) => {
+    setDragOrderPos(pos);
     e.dataTransfer.effectAllowed = "move";
   };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent, pos: number) => {
     e.preventDefault();
-    setDragOverIndex(index);
+    setDragOverPos(pos);
   };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = (e: React.DragEvent, dropPos: number) => {
     e.preventDefault();
-    if (dragIndex === null || dragIndex === dropIndex) {
-      setDragIndex(null);
-      setDragOverIndex(null);
+    if (dragOrderPos === null || dragOrderPos === dropPos) {
+      setDragOrderPos(null);
+      setDragOverPos(null);
       return;
     }
-    setImages((prev) => {
+    setOrderIndices((prev) => {
       const next = [...prev];
-      const [moved] = next.splice(dragIndex, 1);
-      next.splice(dropIndex, 0, moved);
+      const [moved] = next.splice(dragOrderPos, 1);
+      next.splice(dropPos, 0, moved);
       return next;
     });
-    setDragIndex(null);
-    setDragOverIndex(null);
+    setDragOrderPos(null);
+    setDragOverPos(null);
   };
-
   const handleDragEnd = () => {
-    setDragIndex(null);
-    setDragOverIndex(null);
+    setDragOrderPos(null);
+    setDragOverPos(null);
   };
 
-  // Touch reorder
-  const handleTouchStart = (e: React.TouchEvent, index: number) => {
-    touchDragIndex.current = index;
+  const handleTouchStart = (e: React.TouchEvent, pos: number) => {
+    touchOrderPos.current = pos;
     touchStartY.current = e.touches[0].clientY;
-    const el = e.currentTarget as HTMLElement;
-    itemHeight.current = el.getBoundingClientRect().height;
+    itemHeightRef.current = (
+      e.currentTarget as HTMLElement
+    ).getBoundingClientRect().height;
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchDragIndex.current === null) return;
+    if (touchOrderPos.current === null) return;
     e.preventDefault();
     const deltaY = e.touches[0].clientY - touchStartY.current;
-    const steps = Math.round(deltaY / (itemHeight.current || 80));
-    const newIndex = Math.max(
-      0,
-      Math.min(images.length - 1, touchDragIndex.current + steps),
+    const steps = Math.round(deltaY / (itemHeightRef.current || 80));
+    setDragOverPos(
+      Math.max(
+        0,
+        Math.min(orderIndices.length - 1, touchOrderPos.current + steps),
+      ),
     );
-    setDragOverIndex(newIndex);
   };
-
   const handleTouchEnd = () => {
     if (
-      touchDragIndex.current !== null &&
-      dragOverIndex !== null &&
-      touchDragIndex.current !== dragOverIndex
+      touchOrderPos.current !== null &&
+      dragOverPos !== null &&
+      touchOrderPos.current !== dragOverPos
     ) {
-      const from = touchDragIndex.current;
-      const to = dragOverIndex;
-      setImages((prev) => {
+      const from = touchOrderPos.current;
+      const to = dragOverPos;
+      setOrderIndices((prev) => {
         const next = [...prev];
         const [moved] = next.splice(from, 1);
         next.splice(to, 0, moved);
         return next;
       });
     }
-    touchDragIndex.current = null;
-    setDragIndex(null);
-    setDragOverIndex(null);
+    touchOrderPos.current = null;
+    setDragOrderPos(null);
+    setDragOverPos(null);
   };
 
+  // Stitch uses orderIndices to define final page sequence
   const stitchImages = async () => {
-    if (images.length === 0) return;
+    if (orderIndices.length === 0) return;
     setState("stitching");
     setProgress(0);
     setError(null);
-
     try {
-      // Load all images
       const loaded: HTMLImageElement[] = await Promise.all(
-        images.map(
-          (item, i) =>
+        orderIndices.map(
+          (fileIdx, i) =>
             new Promise<HTMLImageElement>((resolve, reject) => {
               const img = new window.Image();
               img.onload = () => {
-                setProgress(Math.round(((i + 1) / images.length) * 40));
-                setProgressLabel(`Loading image ${i + 1}/${images.length}...`);
+                setProgress(Math.round(((i + 1) / orderIndices.length) * 40));
+                setProgressLabel(
+                  `Loading image ${i + 1}/${orderIndices.length}...`,
+                );
                 resolve(img);
               };
               img.onerror = () =>
                 reject(new Error(`Failed to load image ${i + 1}`));
-              img.src = item.previewUrl;
+              img.src = files[fileIdx]?.previewUrl ?? "";
             }),
         ),
       );
 
-      // Calculate canvas dimensions
       const maxWidth = Math.max(...loaded.map((img) => img.naturalWidth));
       const totalHeight = loaded.reduce((sum, img) => {
-        const scale = maxWidth / img.naturalWidth;
-        return sum + Math.round(img.naturalHeight * scale);
+        return (
+          sum + Math.round(img.naturalHeight * (maxWidth / img.naturalWidth))
+        );
       }, 0);
 
       const canvas = document.createElement("canvas");
@@ -228,35 +227,31 @@ export function ImageStitchingModal({
       canvas.height = totalHeight;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas context unavailable");
-
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, maxWidth, totalHeight);
 
       let yOffset = 0;
       for (let i = 0; i < loaded.length; i++) {
         const img = loaded[i];
-        const scale = maxWidth / img.naturalWidth;
-        const drawHeight = Math.round(img.naturalHeight * scale);
+        const drawHeight = Math.round(
+          img.naturalHeight * (maxWidth / img.naturalWidth),
+        );
         ctx.drawImage(img, 0, yOffset, maxWidth, drawHeight);
         yOffset += drawHeight;
-        const pct = 40 + Math.round(((i + 1) / loaded.length) * 50);
-        setProgress(pct);
+        setProgress(40 + Math.round(((i + 1) / loaded.length) * 50));
         setProgressLabel(`Stitching panel ${i + 1}/${loaded.length}...`);
-        // Yield to allow UI update
         await new Promise((r) => setTimeout(r, 0));
       }
 
       setProgress(95);
       setProgressLabel("Finalizing...");
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
+      const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob(
           (b) => (b ? resolve(b) : reject(new Error("Canvas export failed"))),
           "image/jpeg",
           0.92,
-        );
-      });
-
+        ),
+      );
       const url = URL.createObjectURL(blob);
       setStitchedBlob(blob);
       setStitchedUrl(url);
@@ -318,10 +313,11 @@ export function ImageStitchingModal({
               <X className="w-4 h-4" />
             </button>
           </div>
-          {images.length > 0 && !isStitching && !isPreview && !isDone && (
+          {orderIndices.length > 0 && !isStitching && !isPreview && !isDone && (
             <p className="text-sm text-muted-foreground mt-1">
               <span className="text-primary font-semibold">
-                {images.length} image{images.length !== 1 ? "s" : ""}
+                {orderIndices.length} image
+                {orderIndices.length !== 1 ? "s" : ""}
               </span>{" "}
               selected — drag to reorder
             </p>
@@ -329,7 +325,6 @@ export function ImageStitchingModal({
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
-          {/* Drop Zone — shown when not stitching/done */}
           {!isStitching && !isPreview && !isDone && (
             <div
               className={`relative rounded-2xl border-2 border-dashed transition-smooth ${
@@ -378,7 +373,6 @@ export function ImageStitchingModal({
             </div>
           )}
 
-          {/* Error state */}
           {error && (
             <div
               className="rounded-xl bg-destructive/10 border border-destructive/30 px-4 py-3 text-sm text-destructive"
@@ -388,21 +382,23 @@ export function ImageStitchingModal({
             </div>
           )}
 
-          {/* Thumbnail grid with drag reorder */}
-          {isReordering && images.length > 0 && (
+          {/* Thumbnail list — ordered by orderIndices, not files[] */}
+          {isReordering && orderIndices.length > 0 && (
             <div className="space-y-2" data-ocid="stitch.image_list">
-              {images.map((img, index) => {
-                const isActive = dragIndex === index;
-                const isOver = dragOverIndex === index && dragIndex !== index;
+              {orderIndices.map((fileIdx, pos) => {
+                const entry = files[fileIdx];
+                if (!entry) return null;
+                const isActive = dragOrderPos === pos;
+                const isOver = dragOverPos === pos && dragOrderPos !== pos;
                 return (
                   <div
-                    key={img.id}
+                    key={`${entry.id}-${pos}`}
                     draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDrop={(e) => handleDrop(e, index)}
+                    onDragStart={(e) => handleDragStart(e, pos)}
+                    onDragOver={(e) => handleDragOver(e, pos)}
+                    onDrop={(e) => handleDrop(e, pos)}
                     onDragEnd={handleDragEnd}
-                    onTouchStart={(e) => handleTouchStart(e, index)}
+                    onTouchStart={(e) => handleTouchStart(e, pos)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                     className={`flex items-center gap-3 rounded-xl border p-2 transition-smooth cursor-grab active:cursor-grabbing ${
@@ -412,30 +408,34 @@ export function ImageStitchingModal({
                           ? "border-primary bg-primary/5"
                           : "border-border bg-card hover:bg-muted/20"
                     }`}
-                    data-ocid={`stitch.image_item.${index + 1}`}
+                    data-ocid={`stitch.image_item.${pos + 1}`}
                   >
                     <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-muted">
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-muted">
                       <img
-                        src={img.previewUrl}
-                        alt={`Panel ${index + 1}`}
+                        src={entry.previewUrl}
+                        alt={`Page ${pos + 1}`}
                         className="w-full h-full object-cover"
                       />
+                      {/* Page number badge — updates in real-time as user drags */}
+                      <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center shadow">
+                        {pos + 1}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
-                        Panel {index + 1}
+                        Page {pos + 1}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {img.file.name}
+                        {entry.file.name}
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeImage(img.id)}
+                      onClick={() => removeByOrderPos(pos)}
                       className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-smooth shrink-0"
-                      aria-label={`Remove panel ${index + 1}`}
-                      data-ocid={`stitch.remove_image_button.${index + 1}`}
+                      aria-label={`Remove page ${pos + 1}`}
+                      data-ocid={`stitch.remove_image_button.${pos + 1}`}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -445,25 +445,22 @@ export function ImageStitchingModal({
             </div>
           )}
 
-          {/* Stitching progress */}
           {isStitching && (
             <div className="py-6 space-y-5" data-ocid="stitch.loading_state">
-              {/* Mini thumbnail grid preview */}
               <div className="grid grid-cols-3 gap-1.5">
-                {images.slice(0, 6).map((img) => (
+                {orderIndices.slice(0, 6).map((fileIdx, _i) => (
                   <div
-                    key={img.id}
+                    key={fileIdx}
                     className="aspect-[3/4] rounded-lg overflow-hidden bg-muted"
                   >
                     <img
-                      src={img.previewUrl}
+                      src={files[fileIdx]?.previewUrl}
                       alt=""
                       className="w-full h-full object-cover"
                     />
                   </div>
                 ))}
               </div>
-
               <div className="space-y-3 text-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
                 <div>
@@ -472,7 +469,6 @@ export function ImageStitchingModal({
                       className="h-full rounded-full gradient-primary transition-all duration-300 ease-out"
                       style={{ width: `${progress}%` }}
                     />
-                    {/* Shimmer overlay */}
                     <div
                       className="absolute inset-0 opacity-40 animate-[progress-shimmer_2s_linear_infinite] [background-size:200px_100%]"
                       style={{
@@ -492,10 +488,8 @@ export function ImageStitchingModal({
             </div>
           )}
 
-          {/* Preview */}
           {(isPreview || isDone) && stitchedUrl && (
             <div className="space-y-4">
-              {/* Success banner */}
               <div
                 className="flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/30 px-4 py-3"
                 data-ocid="stitch.success_state"
@@ -506,28 +500,27 @@ export function ImageStitchingModal({
                     Stitched Successfully
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {images.length} panels merged into one page
+                    {orderIndices.length} panels merged in your chosen order
                   </p>
                 </div>
               </div>
-
-              {/* Mini panel grid */}
               <div className="grid grid-cols-3 gap-1.5">
-                {images.map((img, i) => (
+                {orderIndices.map((fileIdx, i) => (
                   <div
-                    key={img.id}
-                    className="aspect-[3/4] rounded-lg overflow-hidden bg-muted"
+                    key={fileIdx}
+                    className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted"
                   >
                     <img
-                      src={img.previewUrl}
+                      src={files[fileIdx]?.previewUrl}
                       alt={`Panel ${i + 1}`}
                       className="w-full h-full object-cover"
                     />
+                    <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center shadow">
+                      {i + 1}
+                    </span>
                   </div>
                 ))}
               </div>
-
-              {/* Stitched preview */}
               <div className="rounded-xl overflow-hidden border border-border/40 bg-muted max-h-56">
                 <img
                   src={stitchedUrl}
@@ -536,7 +529,6 @@ export function ImageStitchingModal({
                   data-ocid="stitch.preview_image"
                 />
               </div>
-
               {isDone && (
                 <p className="text-sm text-center text-muted-foreground">
                   Chapter updated. You can stitch another batch or close.
@@ -546,10 +538,8 @@ export function ImageStitchingModal({
           )}
         </div>
 
-        {/* Footer actions */}
         <div className="px-5 pb-5 pt-4 border-t border-border/40 shrink-0 space-y-3">
-          {/* Reordering actions */}
-          {isReordering && images.length > 0 && (
+          {isReordering && orderIndices.length > 0 && (
             <div className="flex gap-2">
               <label
                 htmlFor="stitch-file-input"
@@ -565,12 +555,12 @@ export function ImageStitchingModal({
                 data-ocid="stitch.stitch_button"
               >
                 <Upload className="w-4 h-4" />
-                Stitch {images.length} Panel{images.length !== 1 ? "s" : ""}
+                Stitch {orderIndices.length} Panel
+                {orderIndices.length !== 1 ? "s" : ""}
               </Button>
             </div>
           )}
 
-          {/* Preview/Done actions */}
           {(isPreview || isDone) && (
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
@@ -609,7 +599,6 @@ export function ImageStitchingModal({
             </Button>
           )}
 
-          {/* Idle state CTA */}
           {isIdle && (
             <label
               htmlFor="stitch-file-input"

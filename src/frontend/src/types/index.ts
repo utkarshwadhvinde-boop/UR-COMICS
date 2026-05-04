@@ -16,6 +16,10 @@ export interface Chapter {
   title: string;
   chapterNumber: number;
   pages: string[];
+  imageOrder: number[];
+  chapterStatus: "draft" | "published";
+  publishedAt: number | null;
+  creatorId: string;
   createdAt: number;
   updatedAt: number;
   isPremium: boolean;
@@ -108,9 +112,47 @@ export interface CoinPackage {
 
 export interface Notification {
   id: string;
-  type: "new_chapter" | "like" | "comment" | "follow" | "coins";
-  title: string;
-  message: string;
+  type: "follow" | "like" | "comment" | "reply";
+  actorId: string;
+  actorName: string;
+  comicId?: string;
+  chapterId?: string;
+  commentPreview?: string;
+  createdAt: number;
   isRead: boolean;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  bio?: string;
+  createdAt: number;
+  followerCount: number;
+  followingCount: number;
+  totalSeries: number;
+  totalLikesReceived: number;
+  totalCommentsReceived: number;
+}
+
+export interface Follow {
+  followerId: string;
+  followeeId: string;
+  createdAt: number;
+}
+
+export interface ChapterLike {
+  userId: string;
+  comicId: string;
+  chapterId: string;
+  createdAt: number;
+}
+
+export interface CommentReply {
+  id: string;
+  parentCommentId: string;
+  userId: string;
+  username: string;
+  text: string;
   createdAt: number;
 }
