@@ -1,87 +1,57 @@
-import {
-  ChapterError,
-  type ChapterInput,
-  type ChapterPublic,
-  ChapterStatus,
-  type ComicInput,
-  type ComicPublic,
-  type ReadingProgress,
-  type Result,
-  createActor,
-} from "@/backend";
-import { useActor } from "@caffeineai/core-infrastructure";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-export { ChapterStatus, ChapterError };
-export type { ChapterPublic, ComicPublic, Result };
-
-/** Unwrap a Result<Bool, ChapterError> — throws with a human message on #err */
-function unwrapResult(result: Result, context: string): boolean {
+import { y as useActor, z as useQuery, b as useQueryClient, A as useMutation, D as ChapterError, m as createActor } from "./index-B-vfLtPB.js";
+function unwrapResult(result, context) {
   if (result.__kind__ === "ok") return result.ok;
-  const reason =
-    result.err === ChapterError.notFound
-      ? "Chapter not found"
-      : result.err === ChapterError.unauthorized
-        ? "You don't have permission to do that"
-        : "Unknown error";
+  const reason = result.err === ChapterError.notFound ? "Chapter not found" : result.err === ChapterError.unauthorized ? "You don't have permission to do that" : "Unknown error";
   throw new Error(`${context}: ${reason}`);
 }
-
-export function useListComics() {
+function useListComics() {
   const { actor, isFetching } = useActor(createActor);
-  return useQuery<ComicPublic[]>({
+  return useQuery({
     queryKey: ["comics"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.listComics();
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching
   });
 }
-
-export function useListChapters(
-  comicId: bigint | null,
-  publishedOnly: boolean,
-) {
+function useListChapters(comicId, publishedOnly) {
   const { actor, isFetching } = useActor(createActor);
-  return useQuery<ChapterPublic[]>({
-    queryKey: ["chapters", comicId?.toString(), publishedOnly],
+  return useQuery({
+    queryKey: ["chapters", comicId == null ? void 0 : comicId.toString(), publishedOnly],
     queryFn: async () => {
       if (!actor || comicId === null) return [];
       return actor.listChapters(comicId, publishedOnly);
     },
-    enabled: !!actor && !isFetching && comicId !== null,
+    enabled: !!actor && !isFetching && comicId !== null
   });
 }
-
-export function useCreateComic() {
+function useCreateComic() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<bigint, Error, ComicInput>({
+  return useMutation({
     mutationFn: async (input) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.createComic(input);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] })
   });
 }
-
-export function useUpdateComic() {
+function useUpdateComic() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, { id: bigint; input: ComicInput }>({
+  return useMutation({
     mutationFn: async ({ id, input }) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.updateComic(id, input);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] })
   });
 }
-
-export function useDeleteComic() {
+function useDeleteComic() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, bigint>({
+  return useMutation({
     mutationFn: async (id) => {
       if (!actor) throw new Error("Actor not ready");
       const result = await actor.deleteComic(id);
@@ -89,24 +59,19 @@ export function useDeleteComic() {
     },
     onSuccess: (_, id) => {
       const idStr = id.toString();
-
-      // Optimistically remove from ALL comics caches so card disappears instantly
-      qc.setQueryData<ComicPublic[]>(["backend", "comics"], (prev) =>
-        prev ? prev.filter((c) => c.id.toString() !== idStr) : prev,
+      qc.setQueryData(
+        ["backend", "comics"],
+        (prev) => prev ? prev.filter((c) => c.id.toString() !== idStr) : prev
       );
-      qc.setQueryData<ComicPublic[]>(["comics"], (prev) =>
-        prev ? prev.filter((c) => c.id.toString() !== idStr) : prev,
+      qc.setQueryData(
+        ["comics"],
+        (prev) => prev ? prev.filter((c) => c.id.toString() !== idStr) : prev
       );
-      // Remove from ALL trending cache entries (any limit)
-      qc.setQueriesData<ComicPublic[]>(
+      qc.setQueriesData(
         { queryKey: ["backend", "trending"] },
-        (prev) => (prev ? prev.filter((c) => c.id.toString() !== idStr) : prev),
+        (prev) => prev ? prev.filter((c) => c.id.toString() !== idStr) : prev
       );
-
-      // Clear chapters for the deleted comic
       qc.removeQueries({ queryKey: ["chapters", idStr] });
-
-      // Clean up localStorage continue-reading references
       try {
         const CR_KEY = "ur_reading_progress";
         const raw = localStorage.getItem(CR_KEY);
@@ -114,107 +79,84 @@ export function useDeleteComic() {
           const entries = JSON.parse(raw);
           if (Array.isArray(entries)) {
             const cleaned = entries.filter(
-              (e: { comicId?: string }) => e.comicId !== idStr,
+              (e) => e.comicId !== idStr
             );
             localStorage.setItem(CR_KEY, JSON.stringify(cleaned));
           }
         }
       } catch {
-        // ignore localStorage errors
       }
-
-      // Full refetch to confirm server state
       qc.invalidateQueries({ queryKey: ["backend", "comics"] });
       qc.invalidateQueries({ queryKey: ["backend", "trending"] });
-    },
+    }
   });
 }
-
-export function useCreateChapter() {
+function useCreateChapter() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<bigint, Error, ChapterInput>({
+  return useMutation({
     mutationFn: async (input) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.createChapter(input);
     },
-    onSuccess: (_, vars) =>
-      qc.invalidateQueries({ queryKey: ["chapters", vars.comicId.toString()] }),
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["chapters", vars.comicId.toString()] })
   });
 }
-
-export function useUpdateChapter() {
+function useUpdateChapter() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, { id: bigint; input: ChapterInput }>({
+  return useMutation({
     mutationFn: async ({ id, input }) => {
       if (!actor) throw new Error("Actor not ready");
       const result = await actor.updateChapter(id, input);
       return unwrapResult(result, "updateChapter");
     },
-    onSuccess: (_, vars) =>
-      qc.invalidateQueries({
-        queryKey: ["chapters", vars.input.comicId.toString()],
-      }),
+    onSuccess: (_, vars) => qc.invalidateQueries({
+      queryKey: ["chapters", vars.input.comicId.toString()]
+    })
   });
 }
-
-export function useUpdateChapterOrder() {
-  const { actor } = useActor(createActor);
-  return useMutation<boolean, Error, { id: bigint; newImageOrder: bigint[] }>({
-    mutationFn: async ({ id, newImageOrder }) => {
-      if (!actor) throw new Error("Actor not ready");
-      const result = await actor.updateChapterOrder(id, newImageOrder);
-      return unwrapResult(result, "updateChapterOrder");
-    },
-  });
-}
-
-export function usePublishChapter() {
+function usePublishChapter() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, bigint>({
+  return useMutation({
     mutationFn: async (id) => {
       if (!actor) throw new Error("Actor not ready");
       const result = await actor.publishChapter(id);
       return unwrapResult(result, "publishChapter");
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["chapters"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["chapters"] })
   });
 }
-
-export function useUnpublishChapter() {
+function useUnpublishChapter() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, bigint>({
+  return useMutation({
     mutationFn: async (id) => {
       if (!actor) throw new Error("Actor not ready");
       const result = await actor.unpublishChapter(id);
       return unwrapResult(result, "unpublishChapter");
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["chapters"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["chapters"] })
   });
 }
-
-export function useDeleteChapter() {
+function useDeleteChapter() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<boolean, Error, { id: bigint; comicId?: bigint }>({
+  return useMutation({
     mutationFn: async ({ id }) => {
       if (!actor) throw new Error("Actor not ready");
       const result = await actor.deleteChapter(id);
       return unwrapResult(result, "deleteChapter");
     },
     onSuccess: (_, vars) => {
+      var _a;
       const idStr = vars.id.toString();
-      const comicIdStr = vars.comicId?.toString();
-
-      // Optimistically remove chapter from all chapter list caches
-      qc.setQueriesData<ChapterPublic[]>({ queryKey: ["chapters"] }, (prev) =>
-        prev ? prev.filter((ch) => ch.id.toString() !== idStr) : prev,
+      const comicIdStr = (_a = vars.comicId) == null ? void 0 : _a.toString();
+      qc.setQueriesData(
+        { queryKey: ["chapters"] },
+        (prev) => prev ? prev.filter((ch) => ch.id.toString() !== idStr) : prev
       );
-
-      // Also clean up localStorage reading-progress for this chapter
       try {
         const CR_KEY = "ur_reading_progress";
         const raw = localStorage.getItem(CR_KEY);
@@ -222,16 +164,13 @@ export function useDeleteChapter() {
           const entries = JSON.parse(raw);
           if (Array.isArray(entries)) {
             const cleaned = entries.filter(
-              (e: { chapterId?: string }) => e.chapterId !== idStr,
+              (e) => e.chapterId !== idStr
             );
             localStorage.setItem(CR_KEY, JSON.stringify(cleaned));
           }
         }
       } catch {
-        // ignore
       }
-
-      // Full refetch to confirm server state
       if (comicIdStr) {
         qc.invalidateQueries({ queryKey: ["chapters", comicIdStr, true] });
         qc.invalidateQueries({ queryKey: ["chapters", comicIdStr, false] });
@@ -241,42 +180,45 @@ export function useDeleteChapter() {
       qc.invalidateQueries({ queryKey: ["comics"] });
       qc.invalidateQueries({ queryKey: ["backend", "comics"] });
       qc.invalidateQueries({ queryKey: ["backend", "trending"] });
-    },
+    }
   });
 }
-
-export function useUpdateReadingProgress() {
+function useUpdateReadingProgress() {
   const { actor } = useActor(createActor);
   const qc = useQueryClient();
-  return useMutation<
-    void,
-    Error,
-    { comicId: bigint; chapterId: bigint; userId: string }
-  >({
+  return useMutation({
     mutationFn: async ({ comicId, chapterId, userId }) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.updateReadingProgress(comicId, chapterId, userId);
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["backend", "progress", vars.userId] });
-    },
+    }
   });
 }
-
-export function useGetReadingProgress(
-  comicId: bigint | null,
-  userId: string | null,
-) {
+function useGetReadingProgress(comicId, userId) {
   const { actor, isFetching } = useActor(createActor);
-  return useQuery<ReadingProgress | null>({
-    queryKey: ["readingProgress", comicId?.toString(), userId],
+  return useQuery({
+    queryKey: ["readingProgress", comicId == null ? void 0 : comicId.toString(), userId],
     queryFn: async () => {
       if (!actor || comicId === null || !userId) return null;
       return actor.getReadingProgress(comicId, userId);
     },
     enabled: !!actor && !isFetching && comicId !== null && !!userId,
-    staleTime: 30_000,
+    staleTime: 3e4
   });
 }
-
-export type { ReadingProgress };
+export {
+  useUpdateReadingProgress as a,
+  useDeleteChapter as b,
+  useGetReadingProgress as c,
+  useCreateComic as d,
+  useUpdateComic as e,
+  useCreateChapter as f,
+  useUpdateChapter as g,
+  usePublishChapter as h,
+  useDeleteComic as i,
+  useUnpublishChapter as j,
+  useListComics as k,
+  useListChapters as u
+};
