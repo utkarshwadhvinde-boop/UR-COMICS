@@ -38,8 +38,6 @@ import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ImageUploadState = "idle" | "uploading" | "done" | "error";
-
 type PendingImage = {
   /** blob: URL for local preview — valid only in current session */
   preview: string;
@@ -47,10 +45,6 @@ type PendingImage = {
   file: File | null;
   /** Permanent storage URL once uploaded — null until then */
   permanentUrl: string | null;
-  /** Per-image background upload state */
-  uploadState: ImageUploadState;
-  /** Error message if uploadState === 'error' */
-  uploadError?: string;
 };
 
 type ChapterDraft = {
@@ -149,13 +143,11 @@ function PageThumbnailRow({
   imageOrder,
   locked,
   onDrop,
-  onRetry,
 }: {
   images: PendingImage[];
   imageOrder: number[];
   locked: boolean;
   onDrop: (fromPos: number, toPos: number) => void;
-  onRetry: (imgIdx: number) => void;
 }) {
   const [dragging, setDragging] = useState<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
@@ -167,87 +159,54 @@ function PageThumbnailRow({
       className="flex gap-2 overflow-x-auto pb-2 mt-3"
       data-ocid="create.chapter.page_thumbnails"
     >
-      {imageOrder.map((imgIdx, pos) => {
-        const img = images[imgIdx];
-        const state = img?.uploadState ?? "idle";
-        return (
-          <div
-            key={`${pos}-${imgIdx}`}
-            draggable={!locked && state !== "uploading"}
-            onDragStart={() =>
-              !locked && state !== "uploading" && setDragging(pos)
-            }
-            onDragOver={(e) => {
-              if (locked || state === "uploading") return;
-              e.preventDefault();
-              setOver(pos);
-            }}
-            onDrop={(e) => {
-              if (locked || state === "uploading") return;
-              e.preventDefault();
-              if (dragging !== null && dragging !== pos) onDrop(dragging, pos);
-              setDragging(null);
-              setOver(null);
-            }}
-            onDragEnd={() => {
-              setDragging(null);
-              setOver(null);
-            }}
-            className={`relative shrink-0 w-16 h-24 rounded-xl overflow-hidden border-2 transition-smooth ${
-              locked
-                ? "cursor-default border-border"
-                : dragging === pos
-                  ? "opacity-40 border-primary cursor-grab"
-                  : over === pos
-                    ? "border-primary scale-105 cursor-grab"
-                    : state === "error"
-                      ? "border-destructive cursor-grab"
-                      : "border-border cursor-grab"
-            }`}
-            data-ocid={`create.chapter.thumbnail.${pos + 1}`}
-          >
-            <img
-              src={img.preview}
-              alt={`Page ${pos + 1}`}
-              className="w-full h-full object-cover"
+      {imageOrder.map((imgIdx, pos) => (
+        <div
+          key={`${pos}-${imgIdx}`}
+          draggable={!locked}
+          onDragStart={() => !locked && setDragging(pos)}
+          onDragOver={(e) => {
+            if (locked) return;
+            e.preventDefault();
+            setOver(pos);
+          }}
+          onDrop={(e) => {
+            if (locked) return;
+            e.preventDefault();
+            if (dragging !== null && dragging !== pos) onDrop(dragging, pos);
+            setDragging(null);
+            setOver(null);
+          }}
+          onDragEnd={() => {
+            setDragging(null);
+            setOver(null);
+          }}
+          className={`relative shrink-0 w-16 h-24 rounded-xl overflow-hidden border-2 transition-smooth ${
+            locked
+              ? "cursor-default border-border"
+              : dragging === pos
+                ? "opacity-40 border-primary cursor-grab"
+                : over === pos
+                  ? "border-primary scale-105 cursor-grab"
+                  : "border-border cursor-grab"
+          }`}
+          data-ocid={`create.chapter.thumbnail.${pos + 1}`}
+        >
+          <img
+            src={images[imgIdx].preview}
+            alt={`Page ${pos + 1}`}
+            className="w-full h-full object-cover"
+          />
+          <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center shadow">
+            {pos + 1}
+          </span>
+          {images[imgIdx].permanentUrl && (
+            <span
+              className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 shadow"
+              title="Uploaded"
             />
-            <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-primary/90 text-primary-foreground text-xs font-bold flex items-center justify-center shadow">
-              {pos + 1}
-            </span>
-            {/* Upload state indicator */}
-            {state === "uploading" && (
-              <span
-                className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-background/80 flex items-center justify-center"
-                title="Uploading…"
-              >
-                <span className="w-3 h-3 border-2 border-muted-foreground/40 border-t-primary rounded-full animate-spin" />
-              </span>
-            )}
-            {state === "done" && (
-              <span
-                className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 shadow"
-                title="Uploaded"
-              />
-            )}
-            {state === "error" && (
-              <button
-                type="button"
-                className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-destructive flex items-center justify-center shadow"
-                title={img.uploadError ?? "Upload failed — tap to retry"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRetry(imgIdx);
-                }}
-                data-ocid={`create.chapter.thumbnail_retry.${pos + 1}`}
-              >
-                <span className="text-destructive-foreground text-[8px] font-bold leading-none">
-                  !
-                </span>
-              </button>
-            )}
-          </div>
-        );
-      })}
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -382,7 +341,6 @@ function ChapterEditor({
   onThumbnailDrop,
   onImageUpload,
   onPreview,
-  onRetryImageUpload,
 }: {
   chapters: ChapterDraft[];
   isPublishing: boolean;
@@ -393,7 +351,6 @@ function ChapterEditor({
   onThumbnailDrop: (chapterIdx: number, fromPos: number, toPos: number) => void;
   onImageUpload: (chapterIdx: number, files: File[]) => void;
   onPreview: (chapterIdx: number) => void;
-  onRetryImageUpload: (chapterIdx: number, imgIdx: number) => void;
 }) {
   const [expanded, setExpanded] = useState<number | null>(0);
 
@@ -533,7 +490,6 @@ function ChapterEditor({
                   imageOrder={ch.imageOrder}
                   locked={ch.orderLocked}
                   onDrop={(from, to) => onThumbnailDrop(i, from, to)}
-                  onRetry={(imgIdx) => onRetryImageUpload(i, imgIdx)}
                 />
 
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -610,9 +566,6 @@ export default function CreatePage() {
         preview: url,
         file: null,
         permanentUrl: url.startsWith("blob:") ? null : url,
-        uploadState: (url.startsWith("blob:")
-          ? "idle"
-          : "done") as ImageUploadState,
       })),
       imageOrder: ch.imageOrder ?? (ch.pages ?? []).map((_, idx) => idx),
       orderLocked: false,
@@ -627,7 +580,7 @@ export default function CreatePage() {
         orderLocked: false,
         backendId: null,
         chapterNumber: 1,
-        status: "draft" as const,
+        status: "draft",
       },
     ],
   );
@@ -655,10 +608,6 @@ export default function CreatePage() {
   );
   const hasUnsavedRef = useRef(false);
   const isPublishingRef = useRef(false);
-  // Track active background upload keys for cleanup
-  const activeUploadsRef = useRef<Set<string>>(new Set());
-  // Track all blob URLs created so we can revoke them on unmount / after publish
-  const blobUrlsRef = useRef<string[]>([]);
 
   const createComicMutation = useCreateComic();
   const updateComicMutation = useUpdateComic();
@@ -692,15 +641,6 @@ export default function CreatePage() {
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, []);
-
-  // Revoke blob URLs on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      for (const url of blobUrlsRef.current) {
-        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
-      }
-    };
   }, []);
 
   const toggleGenre = (genre: Genre | "All") => {
@@ -741,7 +681,7 @@ export default function CreatePage() {
         orderLocked: false,
         backendId: null,
         chapterNumber: prev.length + 1,
-        status: "draft" as const,
+        status: "draft",
       },
     ]);
 
@@ -765,12 +705,7 @@ export default function CreatePage() {
       ),
     );
 
-  /**
-   * 1. Validate files (Android-safe via validateAndCoerceImageFile)
-   * 2. Create blob URLs for instant preview — thumbnails appear immediately
-   * 3. Append PendingImage entries with uploadState: 'uploading'
-   * 4. Fire background parallel uploads; update permanentUrl and uploadState per image
-   */
+  /** Validate then append new images as PendingImage entries (Android-safe) */
   const handleImageUpload = (chapterIdx: number, files: File[]) => {
     const valid: File[] = [];
     const invalid: string[] = [];
@@ -789,88 +724,26 @@ export default function CreatePage() {
     }
     if (valid.length === 0) return;
 
-    // Step 1: create blob previews synchronously — thumbnails appear immediately
-    const newEntries: PendingImage[] = valid.map((f) => {
-      const blobUrl = URL.createObjectURL(f);
-      blobUrlsRef.current.push(blobUrl);
-      return {
-        preview: blobUrl,
-        // CRITICAL: Keep File reference alive — never nullify until publish is done
-        file: f,
-        permanentUrl: null,
-        uploadState: "uploading" as ImageUploadState,
-      };
-    });
-
-    // Step 2: append to chapter state; capture starting index for background uploads
-    let startIdx = 0;
     setChapters((prev) =>
       prev.map((ch, i) => {
         if (i !== chapterIdx) return ch;
-        startIdx = ch.images.length;
+        const start = ch.images.length;
+        const newEntries: PendingImage[] = valid.map((f) => ({
+          preview: URL.createObjectURL(f),
+          // CRITICAL: Keep File reference alive — never nullify until publish is done
+          file: f,
+          permanentUrl: null,
+        }));
         return {
           ...ch,
           images: [...ch.images, ...newEntries],
           imageOrder: [
             ...ch.imageOrder,
-            ...newEntries.map((_, j) => startIdx + j),
+            ...newEntries.map((_, j) => start + j),
           ],
         };
       }),
     );
-
-    // Step 3: fire background uploads in parallel — one failure doesn't block others
-    valid.forEach((file, j) => {
-      const imgIdx = startIdx + j;
-      const uploadKey = `${chapterIdx}-${imgIdx}-${Date.now()}`;
-      activeUploadsRef.current.add(uploadKey);
-
-      void (async () => {
-        try {
-          const permanentUrl = await uploadFileToStorage(file);
-          // Update this specific image entry with permanent URL
-          setChapters((prev) =>
-            prev.map((ch, i) => {
-              if (i !== chapterIdx) return ch;
-              const updated = ch.images.map((img, k) => {
-                if (k !== imgIdx) return img;
-                return {
-                  ...img,
-                  // Replace blob preview with permanent URL
-                  preview: permanentUrl,
-                  permanentUrl,
-                  uploadState: "done" as ImageUploadState,
-                  uploadError: undefined,
-                };
-              });
-              return { ...ch, images: updated };
-            }),
-          );
-        } catch (err) {
-          const reason = err instanceof Error ? err.message : String(err);
-          console.error(
-            `[BgUpload] Chapter ${chapterIdx} image ${imgIdx} failed: ${reason}`,
-          );
-          // Mark image with error state so user can see and tap to retry
-          setChapters((prev) =>
-            prev.map((ch, i) => {
-              if (i !== chapterIdx) return ch;
-              const updated = ch.images.map((img, k) => {
-                if (k !== imgIdx) return img;
-                return {
-                  ...img,
-                  uploadState: "error" as ImageUploadState,
-                  uploadError: reason,
-                };
-              });
-              return { ...ch, images: updated };
-            }),
-          );
-        } finally {
-          activeUploadsRef.current.delete(uploadKey);
-        }
-      })();
-    });
   };
 
   const handleThumbnailDrop = (
@@ -889,86 +762,6 @@ export default function CreatePage() {
     );
   };
 
-  /**
-   * Retry background upload for a single image that previously failed.
-   * Resets to 'uploading' state immediately, then fires the upload.
-   */
-  const handleRetryImageUpload = (chapterIdx: number, imgIdx: number) => {
-    // Snapshot file reference before async work
-    const chapter = chapters[chapterIdx];
-    const img = chapter?.images[imgIdx];
-    if (!img?.file) {
-      toast.error(
-        `Cannot retry image ${imgIdx + 1}: file reference is lost. Please re-upload.`,
-      );
-      return;
-    }
-    const file = img.file;
-
-    // Reset to uploading state immediately
-    setChapters((prev) =>
-      prev.map((ch, i) => {
-        if (i !== chapterIdx) return ch;
-        const updated = ch.images.map((m, k) =>
-          k === imgIdx
-            ? {
-                ...m,
-                uploadState: "uploading" as ImageUploadState,
-                uploadError: undefined,
-              }
-            : m,
-        );
-        return { ...ch, images: updated };
-      }),
-    );
-
-    const uploadKey = `retry-${chapterIdx}-${imgIdx}-${Date.now()}`;
-    activeUploadsRef.current.add(uploadKey);
-
-    void (async () => {
-      try {
-        const permanentUrl = await uploadFileToStorage(file);
-        setChapters((prev) =>
-          prev.map((ch, i) => {
-            if (i !== chapterIdx) return ch;
-            const updated = ch.images.map((m, k) =>
-              k === imgIdx
-                ? {
-                    ...m,
-                    preview: permanentUrl,
-                    permanentUrl,
-                    uploadState: "done" as ImageUploadState,
-                    uploadError: undefined,
-                  }
-                : m,
-            );
-            return { ...ch, images: updated };
-          }),
-        );
-      } catch (err) {
-        const reason = err instanceof Error ? err.message : String(err);
-        setChapters((prev) =>
-          prev.map((ch, i) => {
-            if (i !== chapterIdx) return ch;
-            const updated = ch.images.map((m, k) =>
-              k === imgIdx
-                ? {
-                    ...m,
-                    uploadState: "error" as ImageUploadState,
-                    uploadError: reason,
-                  }
-                : m,
-            );
-            return { ...ch, images: updated };
-          }),
-        );
-        toast.error(`Retry failed for image ${imgIdx + 1}: ${reason}`);
-      } finally {
-        activeUploadsRef.current.delete(uploadKey);
-      }
-    })();
-  };
-
   /** Open preview and lock order for that chapter */
   const handlePreviewChapter = (idx: number) => {
     setPreviewChapterIdx(idx);
@@ -982,9 +775,7 @@ export default function CreatePage() {
   };
 
   /**
-   * Upload any remaining pending (non-permanent) images for a single chapter.
-   * Background uploads should have already completed most images; this is a
-   * safety net for edge cases (stitched images, images added after preview lock).
+   * Upload all pending (non-permanent) images for a single chapter.
    * Returns the updated PendingImage array.
    * Throws if any upload fails — caller must handle and abort publish.
    * CRITICAL: File objects are KEPT alive (not nulled) so retries work.
@@ -1039,7 +830,6 @@ export default function CreatePage() {
         updated[imgIdx] = {
           ...img,
           permanentUrl: img.preview,
-          uploadState: "done",
         };
         onProgress(progressOffset + imgIdx + 1);
         continue;
@@ -1052,7 +842,6 @@ export default function CreatePage() {
           preview: permanentUrl,
           file: img.file, // keep original File so retries can re-use it
           permanentUrl,
-          uploadState: "done",
         };
         onProgress(progressOffset + imgIdx + 1);
       } catch (uploadErr) {
@@ -1164,12 +953,7 @@ export default function CreatePage() {
               try {
                 const permanentUrl = await uploadFileToStorage(img.file);
                 // CRITICAL: keep File reference alive — do NOT null it out
-                return {
-                  preview: permanentUrl,
-                  file: img.file,
-                  permanentUrl,
-                  uploadState: "done" as ImageUploadState,
-                };
+                return { preview: permanentUrl, file: img.file, permanentUrl };
               } catch {
                 return img; // keep for now
               }
@@ -1228,10 +1012,8 @@ export default function CreatePage() {
     await doSaveDraft(false);
   };
 
-  const handleOpenPublishConfirm = (e: React.FormEvent | React.MouseEvent) => {
+  const handleOpenPublishConfirm = (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    console.log("PUBLISH: button clicked");
     if (!title.trim()) {
       toast.error("Please enter a title");
       return;
@@ -1251,25 +1033,6 @@ export default function CreatePage() {
       );
       return;
     }
-    // Block publish if any images are still uploading in the background
-    const stillUploading = chapters.some((ch) =>
-      ch.images.some((img) => img.uploadState === "uploading"),
-    );
-    if (stillUploading) {
-      toast.info("Please wait for uploads to finish before publishing.");
-      return;
-    }
-    // Block publish if any images failed upload and need a retry
-    const hasErrors = chapters.some((ch) =>
-      ch.images.some((img) => img.uploadState === "error"),
-    );
-    if (hasErrors) {
-      toast.error(
-        'Some images failed to upload. Tap the red "!" indicator on the thumbnail to retry.',
-      );
-      return;
-    }
-    console.log("PUBLISH: validation passed — opening confirm dialog");
     setPublishConfirmOpen(true);
   };
 
@@ -1393,12 +1156,8 @@ export default function CreatePage() {
         }
       }
 
-      // ── Step 3: Confirm image uploads (background uploads already ran) ────
-      // Background uploads fire immediately on file selection and complete
-      // before publish is allowed (publish is blocked while uploadState===uploading).
-      // This loop handles any edge-case images that still need upload
-      // (e.g., stitched images returned as permanent URLs already).
-      console.log("[Publish] Step 3 — Confirming image uploads…");
+      // ── Step 3: Upload all pending images ────────────────────────────────
+      console.log("[Publish] Step 3 — Uploading images…");
       const totalImages = chapters.reduce(
         (sum, ch) => sum + ch.images.filter((img) => !img.permanentUrl).length,
         0,
@@ -1428,12 +1187,29 @@ export default function CreatePage() {
           failPublish(`Upload images for Chapter ${ch.chapterNumber}`, e);
           return;
         }
+
+        // BUG FIX: Verify every image has a permanent URL before proceeding.
+        // Never send blob: URLs to the backend — they expire on refresh/other devices.
+        const blobImages = uploadedImages
+          .map((img, idx) => ({ img, idx }))
+          .filter(
+            ({ img }) =>
+              !img.permanentUrl || img.permanentUrl.startsWith("blob:"),
+          );
+        if (blobImages.length > 0) {
+          failPublish(
+            `Upload images for Chapter ${ch.chapterNumber}`,
+            new Error(
+              `${blobImages.length} image(s) still have temporary URLs (blob:) and were not uploaded to permanent storage. Affected page(s): ${blobImages.map(({ idx }) => idx + 1).join(", ")}. Please remove and re-upload those images.`,
+            ),
+          );
+          return;
+        }
+
         doneCount += ch.images.filter((img) => !img.permanentUrl).length;
         chaptersWithUploads.push({ ...ch, images: uploadedImages });
       }
-      console.log(
-        `[Publish] Image uploads confirmed (${totalImages} remaining at publish time)`,
-      );
+      console.log(`[Publish] Image uploads complete (${totalImages} total)`);
 
       // ── Step 4: Save chapters to backend (as draft first) ─────────────────
       console.log("[Publish] Step 4 — Saving chapters to backend…");
@@ -1457,10 +1233,19 @@ export default function CreatePage() {
           continue;
         }
 
-        const orderedUrls = ch.imageOrder.map(
-          (idx) =>
-            ch.images[idx]?.permanentUrl ?? ch.images[idx]?.preview ?? "",
-        );
+        // Use permanent URLs only — never send blob: URLs to the backend
+        const orderedUrls = ch.imageOrder.map((idx) => {
+          const img = ch.images[idx];
+          const url = img?.permanentUrl ?? img?.preview ?? "";
+          // Extra safety guard: never send blob: URLs to the backend
+          if (url.startsWith("blob:")) {
+            console.error(
+              `[Publish] BUG: blob URL slipped through for image ${idx} in chapter ${ch.chapterNumber}`,
+            );
+            return "";
+          }
+          return url;
+        });
 
         const input = {
           title: ch.title || `Chapter ${ch.chapterNumber}`,
@@ -1513,16 +1298,10 @@ export default function CreatePage() {
 
       for (const ch of savedChapters) {
         if (!ch.backendId) {
-          const idMissingMsg = `Chapter ${ch.chapterNumber} ID missing — please save as draft first, then publish.`;
-          console.error("[Publish]", idMissingMsg);
-          publishErrors.push(`Chapter ${ch.chapterNumber}: ${idMissingMsg}`);
+          publishErrors.push(`Chapter ${ch.chapterNumber}: no backend ID`);
           continue;
         }
         try {
-          console.log(
-            "PUBLISH: calling publishChapter for chapter",
-            ch.backendId,
-          );
           await publishChapterMutation.mutateAsync(ch.backendId);
           if (!firstPublishedId) firstPublishedId = ch.backendId;
           publishedCount++;
@@ -1557,17 +1336,12 @@ export default function CreatePage() {
         );
       }
 
-      // ── Step 6: Update local state, revoke blob URLs, show success ────────
+      // ── Step 6: Update local state and show success ───────────────────────
       console.log("[Publish] 🎉 Publish complete!");
       const finalChapters = savedChapters.map((ch) => ({
         ...ch,
         status: ch.backendId !== null ? ("published" as const) : ch.status,
       }));
-      // Revoke all tracked blob URLs now that permanent URLs are saved
-      for (const url of blobUrlsRef.current) {
-        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
-      }
-      blobUrlsRef.current = [];
       setChapters(finalChapters);
       hasUnsavedRef.current = false;
 
@@ -1583,13 +1357,19 @@ export default function CreatePage() {
         description: `"${title}" is now live for all readers.`,
       });
     } catch (err) {
+      // Catch-all: ensure isPublishing and ref are always reset
       failPublish("Publish", err);
       return;
+    } finally {
+      // BUG FIX: Always reset publishing state in finally so the button
+      // never stays permanently disabled after an unexpected error.
+      // failPublish() already calls these, so this is a safety net for
+      // cases where an error occurs INSIDE failPublish itself or any
+      // other code path that bypasses the normal reset.
+      setIsPublishing(false);
+      isPublishingRef.current = false;
+      setUploadProgress({ done: 0, total: 0 });
     }
-
-    setIsPublishing(false);
-    isPublishingRef.current = false;
-    setUploadProgress({ done: 0, total: 0 });
   };
 
   const handleStitchedImages = (imageUrls: string[]) => {
@@ -1602,9 +1382,6 @@ export default function CreatePage() {
           file: null,
           // Stitcher returns permanent URLs from storage already
           permanentUrl: url.startsWith("blob:") ? null : url,
-          uploadState: (url.startsWith("blob:")
-            ? "idle"
-            : "done") as ImageUploadState,
         }));
         return {
           ...ch,
@@ -1798,7 +1575,6 @@ export default function CreatePage() {
             onThumbnailDrop={handleThumbnailDrop}
             onImageUpload={handleImageUpload}
             onPreview={handlePreviewChapter}
-            onRetryImageUpload={handleRetryImageUpload}
           />
         </div>
 
@@ -1845,7 +1621,6 @@ export default function CreatePage() {
           </Button>
           <Button
             type="submit"
-            onClick={handleOpenPublishConfirm}
             className="flex-[2] gradient-primary text-primary-foreground border-0 rounded-2xl py-5 text-base font-semibold shadow-glow gap-2"
             disabled={isSaving || isPublishing}
             style={{ touchAction: "manipulation" }}
@@ -1948,7 +1723,7 @@ export default function CreatePage() {
                       orderLocked: false,
                       backendId: null,
                       chapterNumber: chapters.length + 1,
-                      status: "draft" as const,
+                      status: "draft",
                     },
                   ]);
                 }}
