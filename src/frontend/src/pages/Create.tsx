@@ -1,5 +1,5 @@
 import { ChapterStatus } from "@/backend";
-import { supabase } from '../supabase'
+import { supabase } from '../supabase';
 import { ChapterPreviewModal } from "@/components/ui/ChapterPreviewModal";
 import { ALL_GENRES, GenreChip } from "@/components/ui/GenreChip";
 import { ImageStitchingModal } from "@/components/ui/ImageStitchingModal";
