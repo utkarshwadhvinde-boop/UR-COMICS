@@ -59,7 +59,10 @@ export function useCreateComic() {
   const qc = useQueryClient();
   return useMutation<bigint, Error, ComicInput>({
     mutationFn: async (input) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       return actor.createComic(input);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] }),
@@ -71,7 +74,10 @@ export function useUpdateComic() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, { id: bigint; input: ComicInput }>({
     mutationFn: async ({ id, input }) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       return actor.updateComic(id, input);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["comics"] }),
@@ -83,7 +89,10 @@ export function useDeleteComic() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, bigint>({
     mutationFn: async (id) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.deleteComic(id);
       return unwrapResult(result, "deleteComic");
     },
@@ -135,7 +144,10 @@ export function useCreateChapter() {
   const qc = useQueryClient();
   return useMutation<bigint, Error, ChapterInput>({
     mutationFn: async (input) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       return actor.createChapter(input);
     },
     onSuccess: (_, vars) =>
@@ -148,7 +160,10 @@ export function useUpdateChapter() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, { id: bigint; input: ChapterInput }>({
     mutationFn: async ({ id, input }) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.updateChapter(id, input);
       return unwrapResult(result, "updateChapter");
     },
@@ -163,7 +178,10 @@ export function useUpdateChapterOrder() {
   const { actor } = useActor(createActor);
   return useMutation<boolean, Error, { id: bigint; newImageOrder: bigint[] }>({
     mutationFn: async ({ id, newImageOrder }) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.updateChapterOrder(id, newImageOrder);
       return unwrapResult(result, "updateChapterOrder");
     },
@@ -175,7 +193,10 @@ export function usePublishChapter() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, bigint>({
     mutationFn: async (id) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.publishChapter(id);
       return unwrapResult(result, "publishChapter");
     },
@@ -188,7 +209,10 @@ export function useUnpublishChapter() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, bigint>({
     mutationFn: async (id) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.unpublishChapter(id);
       return unwrapResult(result, "unpublishChapter");
     },
@@ -201,7 +225,10 @@ export function useDeleteChapter() {
   const qc = useQueryClient();
   return useMutation<boolean, Error, { id: bigint; comicId?: bigint }>({
     mutationFn: async ({ id }) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       const result = await actor.deleteChapter(id);
       return unwrapResult(result, "deleteChapter");
     },
@@ -254,7 +281,10 @@ export function useUpdateReadingProgress() {
     { comicId: bigint; chapterId: bigint; userId: string }
   >({
     mutationFn: async ({ comicId, chapterId, userId }) => {
-      if (!actor) throw new Error("Actor not ready");
+      if (!actor) {
+  console.warn("Actor not ready yet, retrying...");
+  throw new Error("System is still initializing. Please wait 2–3 seconds and try again.");
+}
       return actor.updateReadingProgress(comicId, chapterId, userId);
     },
     onSuccess: (_, vars) => {
