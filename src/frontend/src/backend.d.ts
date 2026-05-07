@@ -154,6 +154,7 @@ export interface backendInterface {
     addReply(parentCommentId: bigint, userId: UserId, username: string, text: string): Promise<CommentReply>;
     approveFAQ(id: bigint): Promise<boolean>;
     bookmarkComic(_id: ComicId): Promise<boolean>;
+    canisterStatus(): Promise<string>;
     cleanupAllDeletedComics(): Promise<void>;
     clearNotifications(userId: UserId): Promise<void>;
     createChapter(input: ChapterInput): Promise<ChapterId>;

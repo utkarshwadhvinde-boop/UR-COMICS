@@ -53,9 +53,10 @@ export function useGetProfile(userId: string | null) {
 }
 
 export function useCreateOrUpdateProfile() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<
+  const mutation = useMutation<
     UserProfilePublic,
     Error,
     { userId: string; username: string; avatarUrl?: string; bio?: string }
@@ -74,6 +75,7 @@ export function useCreateOrUpdateProfile() {
       qc.invalidateQueries({ queryKey: ["backend", "creatorProfiles"] });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 export function useListCreatorProfiles(limit = 50) {
@@ -131,9 +133,10 @@ export function useGetFollowing(userId: string | null) {
 }
 
 export function useFollowUser() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<
+  const mutation = useMutation<
     boolean,
     Error,
     { followerId: string; followeeId: string }
@@ -157,12 +160,14 @@ export function useFollowUser() {
       });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 export function useUnfollowUser() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<
+  const mutation = useMutation<
     boolean,
     Error,
     { followerId: string; followeeId: string }
@@ -186,6 +191,7 @@ export function useUnfollowUser() {
       });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 // ─── Notifications ─────────────────────────────────────────────────────────
@@ -218,9 +224,14 @@ export function useGetUnreadCount(userId: string | null) {
 }
 
 export function useMarkNotifRead() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<boolean, Error, { userId: string; notifId: bigint }>({
+  const mutation = useMutation<
+    boolean,
+    Error,
+    { userId: string; notifId: bigint }
+  >({
     mutationFn: async ({ userId, notifId }) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.markRead(userId, notifId);
@@ -234,12 +245,14 @@ export function useMarkNotifRead() {
       });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 export function useMarkAllRead() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<void, Error, string>({
+  const mutation = useMutation<void, Error, string>({
     mutationFn: async (userId) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.markAllRead(userId);
@@ -253,12 +266,14 @@ export function useMarkAllRead() {
       });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 export function useClearNotifications() {
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const isActorReady = !!actor && !isFetching;
   const qc = useQueryClient();
-  return useMutation<void, Error, string>({
+  const mutation = useMutation<void, Error, string>({
     mutationFn: async (userId) => {
       if (!actor) throw new Error("Actor not ready");
       return actor.clearNotifications(userId);
@@ -272,6 +287,7 @@ export function useClearNotifications() {
       });
     },
   });
+  return { ...mutation, isActorReady };
 }
 
 // ─── Reading Progress ──────────────────────────────────────────────────────

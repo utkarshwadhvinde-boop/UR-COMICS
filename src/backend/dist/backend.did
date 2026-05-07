@@ -159,6 +159,7 @@ service : {
    text) -> (CommentReply);
   approveFAQ: (id: nat) -> (bool);
   bookmarkComic: (_id: ComicId) -> (bool);
+  canisterStatus: () -> (text) query;
   cleanupAllDeletedComics: () -> ();
   clearNotifications: (userId: UserId) -> ();
   createChapter: (input: ChapterInput) -> (ChapterId);

@@ -149,6 +149,7 @@ export interface _SERVICE {
   'addReply' : ActorMethod<[bigint, UserId, string, string], CommentReply>,
   'approveFAQ' : ActorMethod<[bigint], boolean>,
   'bookmarkComic' : ActorMethod<[ComicId], boolean>,
+  'canisterStatus' : ActorMethod<[], string>,
   'cleanupAllDeletedComics' : ActorMethod<[], undefined>,
   'clearNotifications' : ActorMethod<[UserId], undefined>,
   'createChapter' : ActorMethod<[ChapterInput], ChapterId>,

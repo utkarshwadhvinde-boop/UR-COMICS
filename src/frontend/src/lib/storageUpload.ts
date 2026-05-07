@@ -111,7 +111,8 @@ async function uploadWithRetry(
   label: string,
 ): Promise<string> {
   const MAX_RETRIES = 3;
-  const DELAYS = [500, 1000, 2000];
+  // True exponential backoff: 500ms, 1500ms, 4000ms
+  const DELAYS = [500, 1500, 4000];
 
   let lastErr: unknown;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -124,6 +125,10 @@ async function uploadWithRetry(
           `Zero-byte file detected for "${label}" — skipping upload`,
         );
       }
+
+      console.info(
+        `[storageUpload] Uploading "${label}" — ${bytes.length} bytes, MIME: ${file.type || "(unknown)"}`,
+      );
 
       const hashEncoded = await uploadFile(ExternalBlob.fromBytes(bytes));
 
@@ -148,9 +153,13 @@ async function uploadWithRetry(
 
       // Classify the error for better diagnostics
       let reason = rawMsg;
-      if (/403|forbidden/i.test(rawMsg))
-        reason = `Permission denied (403): ${rawMsg}`;
-      else if (/401|unauthorized/i.test(rawMsg))
+      if (/403|forbidden/i.test(rawMsg)) {
+        reason = `Permission denied (403 Forbidden): ${rawMsg}`;
+        console.error(
+          `[storageUpload] 403 FORBIDDEN — path: "${label}", size: ${file.size} bytes, MIME: "${file.type || "(unknown)"}". This usually means the storage path is invalid (e.g. contains 'new' instead of a real chapter ID) or the auth token has expired.`,
+          err,
+        );
+      } else if (/401|unauthorized/i.test(rawMsg))
         reason = `Auth expired (401): ${rawMsg}`;
       else if (/timeout|timed out/i.test(rawMsg)) reason = `Timeout: ${rawMsg}`;
       else if (/cors/i.test(rawMsg)) reason = `CORS error: ${rawMsg}`;
@@ -158,7 +167,7 @@ async function uploadWithRetry(
         reason = `Invalid MIME type: ${rawMsg}`;
 
       console.error(
-        `[storageUpload] Upload attempt ${attempt}/${MAX_RETRIES} FAILED for "${label}": ${reason}`,
+        `[storageUpload] Upload attempt ${attempt}/${MAX_RETRIES} FAILED for "${label}" (${file.type || "unknown MIME"}, ${file.size} bytes): ${reason}`,
         err,
       );
 

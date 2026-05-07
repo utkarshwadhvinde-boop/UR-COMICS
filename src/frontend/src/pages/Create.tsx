@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  isStoppedCanisterError,
   useCreateChapter,
   useCreateComic,
   useListChapters,
@@ -218,6 +219,7 @@ function PublishConfirmDialog({
   onConfirm,
   onCancel,
   isLoading,
+  isActorReady,
   progress,
   error,
   onDismissError,
@@ -226,11 +228,23 @@ function PublishConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
   isLoading: boolean;
+  isActorReady: boolean;
   progress: UploadProgress;
   error: string | null;
   onDismissError: () => void;
 }) {
   if (!open) return null;
+
+  // Detect IC0508 stopped-canister errors — show a clean, friendly message
+  const isServiceDown =
+    error !== null &&
+    (error.includes("is stopped") ||
+      error.includes("IC0508") ||
+      error.includes("temporarily unavailable") ||
+      (error.includes("reject_code") &&
+        error.includes("5") &&
+        error.includes("stopped")));
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm px-4"
@@ -246,37 +260,84 @@ function PublishConfirmDialog({
           This chapter will be visible to all users immediately.
         </p>
 
-        {/* Prominent error banner — visible, readable, dismissable */}
+        {/* Actor loading indicator */}
+        {!isActorReady && !isLoading && (
+          <div className="flex items-center justify-center gap-2 mb-4 text-sm text-muted-foreground">
+            <span className="animate-spin w-4 h-4 border-2 border-muted-foreground/40 border-t-foreground rounded-full" />
+            Connecting to backend…
+          </div>
+        )}
+
+        {/* Error banner — friendly for service-down, detailed for other errors */}
         {error && (
           <div
             className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3"
             data-ocid="create.publish_error_state"
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+            {isServiceDown ? (
+              // ── Clean service-unavailable message (IC0508 / stopped canister) ──
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-destructive/15 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-destructive" />
+                </div>
                 <div>
-                  <p className="text-sm font-semibold text-destructive mb-0.5">
-                    Publish failed
+                  <p className="text-sm font-semibold text-destructive mb-1">
+                    Publishing service unavailable
                   </p>
-                  <p className="text-xs text-destructive/80 whitespace-pre-wrap break-words">
-                    {error}
+                  <p className="text-xs text-destructive/80 leading-relaxed">
+                    The publishing service is temporarily unavailable. Please
+                    wait a moment and try again.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  className="w-full rounded-lg bg-destructive/15 hover:bg-destructive/25 text-destructive text-sm font-semibold py-2 transition-colors"
+                  onClick={() => {
+                    onDismissError();
+                    onConfirm();
+                  }}
+                  data-ocid="create.publish_retry_button"
+                >
+                  Try Again
+                </button>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={onDismissError}
+                >
+                  Dismiss
+                </button>
               </div>
-              <button
-                type="button"
-                className="text-destructive/60 hover:text-destructive transition-colors shrink-0"
-                onClick={onDismissError}
-                aria-label="Dismiss error"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Your draft and uploaded images are safe. Tap{" "}
-              <strong>Publish Now</strong> to retry.
-            </p>
+            ) : (
+              // ── Standard error banner for all other failures ──
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-destructive mb-0.5">
+                      Publish failed
+                    </p>
+                    <p className="text-xs text-destructive/80 whitespace-pre-wrap break-words">
+                      {error}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="text-destructive/60 hover:text-destructive transition-colors shrink-0"
+                  onClick={onDismissError}
+                  aria-label="Dismiss error"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {!isServiceDown && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Your draft and uploaded images are safe. Tap{" "}
+                <strong>Publish Now</strong> to retry.
+              </p>
+            )}
           </div>
         )}
 
@@ -308,20 +369,26 @@ function PublishConfirmDialog({
             type="button"
             className="flex-1 gradient-primary text-primary-foreground border-0 rounded-xl shadow-glow gap-2"
             onClick={onConfirm}
-            disabled={isLoading}
+            disabled={isLoading || !isActorReady || isServiceDown}
             style={{ touchAction: "manipulation" }}
             data-ocid="create.publish_confirm_button"
           >
             {isLoading ? (
+              <span className="animate-spin w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full" />
+            ) : !isActorReady ? (
               <span className="animate-spin w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full" />
             ) : (
               <Upload className="w-4 h-4" />
             )}
             {isLoading
               ? "Publishing…"
-              : error
-                ? "Retry Publish"
-                : "Publish Now"}
+              : !isActorReady
+                ? "Loading…"
+                : isServiceDown
+                  ? "Unavailable"
+                  : error
+                    ? "Retry Publish"
+                    : "Publish Now"}
           </Button>
         </div>
       </div>
@@ -615,6 +682,10 @@ export default function CreatePage() {
   const updateChapterMutation = useUpdateChapter();
   const publishChapterMutation = usePublishChapter();
 
+  // Actor readiness: all mutations share the same underlying actor.
+  // Use createComicMutation as the single source of truth.
+  const isActorReady = createComicMutation.isActorReady;
+
   const { data: existingChapters } = useListChapters(backendComicId, false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
@@ -804,7 +875,17 @@ export default function CreatePage() {
       // Build a unique file name to avoid overwriting existing files
       const ext = img.file?.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const pageNum = String(imgIdx + 1).padStart(2, "0");
-      const uniqueName = `${comicBackendId}/${chapterBackendId ?? "new"}/${ts}-${randomTag}-page${pageNum}.${ext}`;
+      // CRITICAL: chapterBackendId MUST be a real backend ID — never fall back to "new".
+      // If null here, the caller forgot to create the chapter record first.
+      if (!chapterBackendId) {
+        throw new Error(
+          `Image ${imgIdx + 1} in Chapter "${ch.title}": chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.`,
+        );
+      }
+      const uniqueName = `${comicBackendId}/${chapterBackendId}/${ts}-${randomTag}-page${pageNum}.${ext}`;
+      console.info(
+        `[Publish] Uploading image ${imgIdx + 1}/${ch.images.length} — path: "${uniqueName}", size: ${img.file?.size ?? "unknown"} bytes, MIME: ${img.file?.type || "(unknown)"}`,
+      );
 
       // We must have a File object to upload
       let fileToUpload: File;
@@ -837,6 +918,9 @@ export default function CreatePage() {
 
       try {
         const permanentUrl = await uploadFileToStorage(fileToUpload);
+        console.info(
+          `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
+        );
         updated[imgIdx] = {
           // CRITICAL: Keep original File reference — do NOT nullify file
           preview: permanentUrl,
@@ -848,7 +932,7 @@ export default function CreatePage() {
         const reason =
           uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
         console.error(
-          `[Publish] Upload FAILED for image ${imgIdx + 1} in chapter "${ch.title}":`,
+          `[Publish] ✗ Upload FAILED for image ${imgIdx + 1}/${ch.images.length} in chapter "${ch.title}":`,
           reason,
           uploadErr,
         );
@@ -1009,11 +1093,23 @@ export default function CreatePage() {
 
   const handleSaveDraft = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isActorReady) {
+      setPublishError(
+        "System is still loading, please wait a moment and try again.",
+      );
+      return;
+    }
     await doSaveDraft(false);
   };
 
   const handleOpenPublishConfirm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isActorReady) {
+      setPublishError(
+        "System is still loading, please wait a moment and try again.",
+      );
+      return;
+    }
     if (!title.trim()) {
       toast.error("Please enter a title");
       return;
@@ -1037,6 +1133,13 @@ export default function CreatePage() {
   };
 
   const handlePublishConfirm = async () => {
+    // ── Actor readiness guard ────────────────────────────────────────────────
+    if (!isActorReady) {
+      setPublishError(
+        "System is still loading. Please wait a moment and tap Publish Now again.",
+      );
+      return;
+    }
     // ── Double-click / double-tap guard ─────────────────────────────────────
     if (isPublishingRef.current || isPublishing) {
       console.log("[Publish] Already publishing — ignoring duplicate call");
@@ -1048,9 +1151,14 @@ export default function CreatePage() {
     setUploadProgress({ done: 0, total: 0 });
 
     const failPublish = (step: string, err: unknown) => {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[Publish] FAILED at "${step}":`, msg, err);
-      setPublishError(`${step}\n${msg}`);
+      // Detect IC0508 stopped-canister — show a clean message, not the raw IC rejection
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      const isServiceDown = isStoppedCanisterError(err);
+      const displayMsg = isServiceDown
+        ? "Service temporarily unavailable — please try again in a moment."
+        : rawMsg;
+      console.error(`[Publish] FAILED at "${step}":`, rawMsg, err);
+      setPublishError(`${step}\n${displayMsg}`);
       setIsPublishing(false);
       isPublishingRef.current = false;
       setUploadProgress({ done: 0, total: 0 });
@@ -1077,6 +1185,27 @@ export default function CreatePage() {
         );
         return;
       }
+
+      // ── Step 1b: Pre-validate file references (catches Android "file lost" case) ─
+      console.log("[Publish] Step 1b — Pre-validating file references…");
+      for (const ch of chapters) {
+        for (let imgIdx = 0; imgIdx < ch.images.length; imgIdx++) {
+          const img = ch.images[imgIdx];
+          const hasPermanent =
+            img.permanentUrl && !img.permanentUrl.startsWith("blob:");
+          const hasFile = img.file !== null;
+          if (!hasPermanent && !hasFile) {
+            failPublish(
+              `Validate images for Chapter ${ch.chapterNumber}`,
+              new Error(
+                `Image ${imgIdx + 1} in Chapter "${ch.title}" file reference was lost. Please remove this image and re-select it from your gallery.`,
+              ),
+            );
+            return;
+          }
+        }
+      }
+      console.log("[Publish] Step 1b — All file references valid ✓");
 
       // ── Step 2: Ensure comic exists in backend ───────────────────────────
       console.log("[Publish] Step 2 — Saving comic to backend…");
@@ -1156,9 +1285,91 @@ export default function CreatePage() {
         }
       }
 
-      // ── Step 3: Upload all pending images ────────────────────────────────
-      console.log("[Publish] Step 3 — Uploading images…");
-      const totalImages = chapters.reduce(
+      // ── Step 3: Create chapter records in backend FIRST (get real chapterIds) ──
+      // ROOT CAUSE FIX: Chapter must be created before images upload so that the
+      // storage path uses the real chapterId: "comicId/chapterId/filename.jpg".
+      // The old order (upload first, then create chapter) produced path
+      // "comicId/new/filename.jpg" which is rejected with 403 Forbidden.
+      console.log(
+        "[Publish] Step 3 — Creating chapter records (to obtain real IDs before upload)…",
+      );
+      setUploadProgress({ done: 0, total: 0 });
+      const chaptersWithIds: ChapterDraft[] = [];
+
+      for (const ch of chapters) {
+        const dup = existingChapters?.find(
+          (ec) =>
+            Number(ec.chapterNumber) === ch.chapterNumber &&
+            (ch.backendId === null || ec.id !== ch.backendId),
+        );
+        if (dup) {
+          console.warn(
+            `[Publish] Duplicate chapter number ${ch.chapterNumber} — skipping.`,
+          );
+          toast.warning(
+            `Chapter ${ch.chapterNumber} number already taken — skipped.`,
+          );
+          chaptersWithIds.push(ch);
+          continue;
+        }
+
+        // Create a draft placeholder with empty images to receive the real chapterId.
+        // Image URLs are filled in after upload in Step 4b.
+        const draftInput = {
+          title: ch.title || `Chapter ${ch.chapterNumber}`,
+          chapterNumber: BigInt(ch.chapterNumber),
+          images: [] as string[],
+          imageKeys: [] as string[],
+          imageOrder: ch.imageOrder.map((n) => BigInt(n)),
+          comicId: comicId!,
+          creatorId: currentUser?.id ?? "anonymous",
+          chapterStatus: ChapterStatus.draft,
+        };
+
+        let chapterBackendId = ch.backendId;
+        try {
+          if (!chapterBackendId) {
+            chapterBackendId =
+              await createChapterMutation.mutateAsync(draftInput);
+            console.log(
+              `[Publish] Chapter ${ch.chapterNumber} record created: id=${chapterBackendId}`,
+            );
+          } else {
+            // Existing chapter — update metadata but keep images until after upload
+            await updateChapterMutation.mutateAsync({
+              id: chapterBackendId,
+              input: draftInput,
+            });
+            console.log(
+              `[Publish] Chapter ${ch.chapterNumber} record refreshed: id=${chapterBackendId}`,
+            );
+          }
+        } catch (e) {
+          failPublish(
+            `Create chapter record for Chapter ${ch.chapterNumber}`,
+            e,
+          );
+          return;
+        }
+
+        if (!chapterBackendId) {
+          failPublish(
+            `Create chapter record for Chapter ${ch.chapterNumber}`,
+            new Error("Backend returned no chapter ID. Please try again."),
+          );
+          return;
+        }
+
+        chaptersWithIds.push({ ...ch, backendId: chapterBackendId });
+      }
+
+      // ── Step 4: Upload images using real chapterId paths ──────────────────
+      // Now every chapter has a real backendId — storage path is valid:
+      // "comicId/chapterId/timestamp-random-pageN.jpg" — no more 403 errors.
+      console.log(
+        "[Publish] Step 4 — Uploading images with valid chapter IDs…",
+      );
+      const totalImages = chaptersWithIds.reduce(
         (sum, ch) => sum + ch.images.filter((img) => !img.permanentUrl).length,
         0,
       );
@@ -1167,15 +1378,15 @@ export default function CreatePage() {
       let doneCount = 0;
       const chaptersWithUploads: ChapterDraft[] = [];
 
-      for (let ci = 0; ci < chapters.length; ci++) {
-        const ch = chapters[ci];
+      for (let ci = 0; ci < chaptersWithIds.length; ci++) {
+        const ch = chaptersWithIds[ci];
         let uploadedImages: PendingImage[];
         try {
           uploadedImages = await uploadChapterImages(
             ch,
             ci,
             comicId!,
-            ch.backendId,
+            ch.backendId, // Always a real ID now
             doneCount,
             totalImages,
             (done) => {
@@ -1188,7 +1399,7 @@ export default function CreatePage() {
           return;
         }
 
-        // BUG FIX: Verify every image has a permanent URL before proceeding.
+        // Verify every image has a permanent URL before proceeding.
         // Never send blob: URLs to the backend — they expire on refresh/other devices.
         const blobImages = uploadedImages
           .map((img, idx) => ({ img, idx }))
@@ -1209,35 +1420,26 @@ export default function CreatePage() {
         doneCount += ch.images.filter((img) => !img.permanentUrl).length;
         chaptersWithUploads.push({ ...ch, images: uploadedImages });
       }
-      console.log(`[Publish] Image uploads complete (${totalImages} total)`);
+      console.log(`[Publish] Image uploads complete (${totalImages} total) ✓`);
 
-      // ── Step 4: Save chapters to backend (as draft first) ─────────────────
-      console.log("[Publish] Step 4 — Saving chapters to backend…");
+      // ── Step 4b: Update chapter records with permanent image URLs ─────────
+      console.log(
+        "[Publish] Step 4b — Writing permanent image URLs to chapter records…",
+      );
       setUploadProgress({ done: 0, total: 0 });
       const savedChapters: ChapterDraft[] = [];
 
       for (const ch of chaptersWithUploads) {
-        const dup = existingChapters?.find(
-          (ec) =>
-            Number(ec.chapterNumber) === ch.chapterNumber &&
-            (ch.backendId === null || ec.id !== ch.backendId),
-        );
-        if (dup) {
-          console.warn(
-            `[Publish] Duplicate chapter number ${ch.chapterNumber} — skipping.`,
-          );
-          toast.warning(
-            `Chapter ${ch.chapterNumber} number already taken — skipped.`,
-          );
+        if (!ch.backendId) {
+          // Duplicate-skipped chapter — pass through unchanged
           savedChapters.push(ch);
           continue;
         }
 
-        // Use permanent URLs only — never send blob: URLs to the backend
+        // Build ordered URL arrays — never send blob: URLs to the backend
         const orderedUrls = ch.imageOrder.map((idx) => {
           const img = ch.images[idx];
           const url = img?.permanentUrl ?? img?.preview ?? "";
-          // Extra safety guard: never send blob: URLs to the backend
           if (url.startsWith("blob:")) {
             console.error(
               `[Publish] BUG: blob URL slipped through for image ${idx} in chapter ${ch.chapterNumber}`,
@@ -1247,7 +1449,7 @@ export default function CreatePage() {
           return url;
         });
 
-        const input = {
+        const finalInput = {
           title: ch.title || `Chapter ${ch.chapterNumber}`,
           chapterNumber: BigInt(ch.chapterNumber),
           images: orderedUrls,
@@ -1258,36 +1460,20 @@ export default function CreatePage() {
           chapterStatus: ChapterStatus.draft,
         };
 
-        let chapterBackendId = ch.backendId;
         try {
-          if (!chapterBackendId) {
-            chapterBackendId = await createChapterMutation.mutateAsync(input);
-            console.log(
-              `[Publish] Chapter ${ch.chapterNumber} created: id=${chapterBackendId}`,
-            );
-          } else {
-            await updateChapterMutation.mutateAsync({
-              id: chapterBackendId,
-              input,
-            });
-            console.log(
-              `[Publish] Chapter ${ch.chapterNumber} updated: id=${chapterBackendId}`,
-            );
-          }
-        } catch (e) {
-          failPublish(`Save Chapter ${ch.chapterNumber} to backend`, e);
-          return;
-        }
-
-        if (!chapterBackendId) {
-          failPublish(
-            `Save Chapter ${ch.chapterNumber}`,
-            new Error("Backend returned no chapter ID. Please try again."),
+          await updateChapterMutation.mutateAsync({
+            id: ch.backendId,
+            input: finalInput,
+          });
+          console.log(
+            `[Publish] Chapter ${ch.chapterNumber} updated with ${orderedUrls.filter(Boolean).length} image URLs ✓`,
           );
+        } catch (e) {
+          failPublish(`Update Chapter ${ch.chapterNumber} with image URLs`, e);
           return;
         }
 
-        savedChapters.push({ ...ch, backendId: chapterBackendId });
+        savedChapters.push(ch);
       }
 
       // ── Step 5: Publish each chapter ─────────────────────────────────────
@@ -1596,7 +1782,7 @@ export default function CreatePage() {
             variant="outline"
             className="flex-1 rounded-2xl py-5 text-sm font-semibold gap-2"
             onClick={handleSaveDraft}
-            disabled={isSaving || isPublishing}
+            disabled={isSaving || isPublishing || !isActorReady}
             data-ocid="create.save_draft_button"
           >
             {isSaving ? (
@@ -1614,7 +1800,7 @@ export default function CreatePage() {
               e.preventDefault();
               handlePreviewChapter(0);
             }}
-            disabled={isSaving || isPublishing}
+            disabled={isSaving || isPublishing || !isActorReady}
             data-ocid="create.preview_button"
           >
             <Eye className="w-4 h-4" /> Preview
@@ -1622,7 +1808,7 @@ export default function CreatePage() {
           <Button
             type="submit"
             className="flex-[2] gradient-primary text-primary-foreground border-0 rounded-2xl py-5 text-base font-semibold shadow-glow gap-2"
-            disabled={isSaving || isPublishing}
+            disabled={isSaving || isPublishing || !isActorReady}
             style={{ touchAction: "manipulation" }}
             data-ocid="create.submit_button"
           >
@@ -1631,11 +1817,13 @@ export default function CreatePage() {
             ) : (
               <Upload className="w-5 h-5" />
             )}
-            {isPublishing
-              ? "Publishing…"
-              : existing
-                ? "Publish Changes"
-                : "Publish Comic"}
+            {!isActorReady
+              ? "Loading..."
+              : isPublishing
+                ? "Publishing…"
+                : existing
+                  ? "Publish Changes"
+                  : "Publish Comic"}
           </Button>
         </div>
       </form>
@@ -1652,6 +1840,7 @@ export default function CreatePage() {
         onConfirm={handlePublishConfirm}
         onCancel={() => !isPublishing && setPublishConfirmOpen(false)}
         isLoading={isPublishing}
+        isActorReady={isActorReady}
         progress={uploadProgress}
         error={publishError}
         onDismissError={() => setPublishError(null)}

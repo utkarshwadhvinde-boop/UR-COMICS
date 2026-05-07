@@ -317,6 +317,11 @@ function ChapterList({
   const publishMutation = usePublishChapter();
   const unpublishMutation = useUnpublishChapter();
   const deleteChapterMutation = useDeleteChapter();
+  // Block chapter actions until actor is ready to prevent "Actor not ready" crashes
+  const isActorReady =
+    publishMutation.isActorReady &&
+    unpublishMutation.isActorReady &&
+    deleteChapterMutation.isActorReady;
   const [deleteTarget, setDeleteTarget] = useState<ChapterPublic | null>(null);
   const [editTitleTarget, setEditTitleTarget] = useState<bigint | null>(null);
   // longPressTarget: which chapter row had long-press triggered
@@ -394,6 +399,7 @@ function ChapterList({
         {chapters.map((ch: ChapterPublic, idx: number) => {
           const isPublished = ch.chapterStatus === "published";
           const anyLoading =
+            !isActorReady ||
             publishMutation.isPending ||
             unpublishMutation.isPending ||
             deleteChapterMutation.isPending;

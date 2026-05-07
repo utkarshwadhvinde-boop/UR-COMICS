@@ -236,6 +236,7 @@ export interface backendInterface {
     addReply(parentCommentId: bigint, userId: UserId, username: string, text: string): Promise<CommentReply>;
     approveFAQ(id: bigint): Promise<boolean>;
     bookmarkComic(_id: ComicId): Promise<boolean>;
+    canisterStatus(): Promise<string>;
     cleanupAllDeletedComics(): Promise<void>;
     clearNotifications(userId: UserId): Promise<void>;
     createChapter(input: ChapterInput): Promise<ChapterId>;
@@ -346,6 +347,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.bookmarkComic(arg0);
+            return result;
+        }
+    }
+    async canisterStatus(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.canisterStatus();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.canisterStatus();
             return result;
         }
     }

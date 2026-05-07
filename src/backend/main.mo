@@ -49,6 +49,11 @@ actor {
   // User profiles state
   let userProfiles = Map.empty<Text, UserTypes.UserProfile>();
 
+  // Health-check: frontend polls this before attempting writes
+  public query func canisterStatus() : async Text {
+    "running"
+  };
+
   // Run orphan/ghost-entry cleanup on canister initialization
   ComicsLib.cleanupOrphans(comics, chapters);
 
