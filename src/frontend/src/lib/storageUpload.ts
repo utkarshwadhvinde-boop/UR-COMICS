@@ -130,7 +130,12 @@ async function uploadWithRetry(
         `[storageUpload] Uploading "${label}" — ${bytes.length} bytes, MIME: ${file.type || "(unknown)"}`,
       );
 
-      const hashEncoded = await uploadFile(ExternalBlob.fromBytes(bytes));
+      const hashEncoded = await Promise.race([
+  uploadFile(ExternalBlob.fromBytes(bytes)),
+  new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Upload timeout after 30 seconds")), 30000),
+  ),
+]);
 
       // Validate that the returned hash decodes to a non-empty string
       const hashWithPrefix = new TextDecoder().decode(hashEncoded);
