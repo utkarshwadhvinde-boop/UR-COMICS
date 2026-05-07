@@ -1439,7 +1439,15 @@ export default function CreatePage() {
         // Build ordered URL arrays — never send blob: URLs to the backend
         const orderedUrls = ch.imageOrder.map((idx) => {
           const img = ch.images[idx];
-          const url = img?.permanentUrl ?? img?.preview ?? "";
+          const url = img?.permanentUrl;
+
+if (!url || url.startsWith("blob:")) {
+  throw new Error(
+    `Image ${idx + 1} in Chapter ${ch.chapterNumber} was not uploaded successfully. Please wait for uploads to finish before publishing.`,
+  );
+}
+
+return url;
           if (url.startsWith("blob:")) {
             console.error(
               `[Publish] BUG: blob URL slipped through for image ${idx} in chapter ${ch.chapterNumber}`,
