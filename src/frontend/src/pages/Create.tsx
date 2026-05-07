@@ -1461,7 +1461,7 @@ return url;
           title: ch.title || `Chapter ${ch.chapterNumber}`,
           chapterNumber: BigInt(ch.chapterNumber),
           images: orderedUrls,
-          imageKeys: orderedUrls.filter(Boolean),
+          imageKeys: orderedUrls,
           imageOrder: ch.imageOrder.map((n) => BigInt(n)),
           comicId: comicId!,
           creatorId: currentUser?.id ?? "anonymous",
