@@ -85,7 +85,47 @@ async function getStorageFns(): Promise<StorageFns> {
   // Always re-initialize to ensure a fresh auth token — never return a stale cached actor
   _fns = null;
 
-  return new Promise<StorageFns>((resolve, reject) => {
+async function getStorageFns(): Promise<StorageFns> {
+  _fns = null;
+
+  return Promise.race([
+    new Promise<StorageFns>((resolve, reject) => {
+      const capturingFactory: createActorFunction<
+        ReturnType<typeof baseCreateActor>
+      > = (canisterId, uploadFile, downloadFile, options) => {
+        if (!_fns) {
+          _fns = { uploadFile, downloadFile };
+          resolve(_fns);
+        }
+
+        return baseCreateActor(
+          canisterId,
+          uploadFile,
+          downloadFile,
+          options,
+        );
+      };
+
+      createActorWithConfig(capturingFactory).catch((err) => {
+        console.warn("storageUpload: actor init error", err);
+        reject(err);
+      });
+    }),
+
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              "Storage service initialization timed out after 15 seconds",
+            ),
+          ),
+        15000,
+      ),
+    ),
+  ]);
+}
+
     const capturingFactory: createActorFunction<
       ReturnType<typeof baseCreateActor>
     > = (canisterId, uploadFile, downloadFile, options) => {
