@@ -862,16 +862,33 @@ export default function CreatePage() {
   ): Promise<PendingImage[]> {
     // ── STEP C guard (defensive): chapterId must be real before ANY upload ──
     // This is the canonical error message checked by the error display.
-    if (
-      chapterBackendId === null ||
-      chapterBackendId === undefined ||
-      String(chapterBackendId).trim() === "" ||
-      String(chapterBackendId) === "new"
-    ) {
-      throw new Error(
-        "chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.",
-      );
-    }
+    if (!chapterBackendId || String(chapterBackendId) === "new") {
+  const createdChapter = await createChapterMutation.mutateAsync({
+    input: {
+      title: ch.title || `Chapter ${ch.chapterNumber}`,
+      chapterNumber: BigInt(ch.chapterNumber),
+      comicId: comicId!,
+      creatorId: currentUser?.id ?? "anonymous",
+      images: [],
+      imageKeys: [],
+      imageOrder: [],
+      chapterStatus: ChapterStatus.draft,
+    },
+  });
+
+  chapterBackendId = createdChapter.id;
+}
+
+if (
+  chapterBackendId === null ||
+  chapterBackendId === undefined ||
+  String(chapterBackendId).trim() === "" ||
+  String(chapterBackendId) === "new"
+) {
+  throw new Error(
+    "chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.",
+  );
+}
 
     const updated: PendingImage[] = [...ch.images];
     const ts = Date.now();
