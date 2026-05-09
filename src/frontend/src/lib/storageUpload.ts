@@ -11,6 +11,22 @@ import {
   type createActorFunction,
   createActorWithConfig,
 } from "@caffeineai/core-infrastructure";
+/** Hard-timeout wrapper — rejects with a readable message if promise takes too long. */
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${ms}ms`)),
+        ms,
+      ),
+    ),
+  ]);
+}
 
 const MOTOKO_SENTINEL = "!caf!";
 
@@ -85,47 +101,9 @@ async function getStorageFns(): Promise<StorageFns> {
   // Always re-initialize to ensure a fresh auth token — never return a stale cached actor
   _fns = null;
 
-async function getStorageFns(): Promise<StorageFns> {
-  _fns = null;
+  console.log("[Storage] Init started");
 
-  return Promise.race([
-    new Promise<StorageFns>((resolve, reject) => {
-      const capturingFactory: createActorFunction<
-        ReturnType<typeof baseCreateActor>
-      > = (canisterId, uploadFile, downloadFile, options) => {
-        if (!_fns) {
-          _fns = { uploadFile, downloadFile };
-          resolve(_fns);
-        }
-
-        return baseCreateActor(
-          canisterId,
-          uploadFile,
-          downloadFile,
-          options,
-        );
-      };
-
-      createActorWithConfig(capturingFactory).catch((err) => {
-        console.warn("storageUpload: actor init error", err);
-        reject(err);
-      });
-    }),
-
-    new Promise<never>((_, reject) =>
-      setTimeout(
-        () =>
-          reject(
-            new Error(
-              "Storage service initialization timed out after 15 seconds",
-            ),
-          ),
-        15000,
-      ),
-    ),
-  ]);
-}
-
+  const initPromise = new Promise<StorageFns>((resolve, reject) => {
     const capturingFactory: createActorFunction<
       ReturnType<typeof baseCreateActor>
     > = (canisterId, uploadFile, downloadFile, options) => {
@@ -141,6 +119,15 @@ async function getStorageFns(): Promise<StorageFns> {
       reject(err);
     });
   });
+
+  try {
+    const fns = await withTimeout(initPromise, 15000, "Storage initialization");
+    console.log("[Storage] Init success");
+    return fns;
+  } catch (err) {
+    console.error("[Storage] Init failed:", err);
+    throw err;
+  }
 }
 
 /** Upload a single file with exponential-backoff retry (up to 3 attempts). */
@@ -157,6 +144,10 @@ async function uploadWithRetry(
   let lastErr: unknown;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      console.log(
+        `[Upload] Attempt ${attempt} of ${MAX_RETRIES} for "${label}"`,
+      );
+
       const bytes = new Uint8Array(await file.arrayBuffer());
 
       // Validate non-zero byte array — zero-byte files fail silently on some platforms
@@ -170,12 +161,11 @@ async function uploadWithRetry(
         `[storageUpload] Uploading "${label}" — ${bytes.length} bytes, MIME: ${file.type || "(unknown)"}`,
       );
 
-      const hashEncoded = await Promise.race([
-  uploadFile(ExternalBlob.fromBytes(bytes)),
-  new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Upload timeout after 30 seconds")), 30000),
-  ),
-]);
+      const hashEncoded = await withTimeout(
+        uploadFile(ExternalBlob.fromBytes(bytes)),
+        10000,
+        `Upload attempt ${attempt} for "${label}"`,
+      );
 
       // Validate that the returned hash decodes to a non-empty string
       const hashWithPrefix = new TextDecoder().decode(hashEncoded);
@@ -191,10 +181,17 @@ async function uploadWithRetry(
       const blob = await downloadFile(
         new TextEncoder().encode(MOTOKO_SENTINEL + hash),
       );
+
+      console.log(`[Upload] Completed: "${label}"`);
       return blob.getDirectURL();
     } catch (err) {
       lastErr = err;
       const rawMsg = err instanceof Error ? err.message : String(err);
+
+      // Detect per-attempt timeout and log distinctly
+      if (/timed out after/i.test(rawMsg)) {
+        console.log(`[Upload] Timeout on attempt ${attempt}, retrying...`);
+      }
 
       // Classify the error for better diagnostics
       let reason = rawMsg;
@@ -235,6 +232,11 @@ async function uploadWithRetry(
  * Throws with a human-readable error if all attempts fail.
  */
 export async function uploadFileToStorage(file: File | Blob): Promise<string> {
+  // Determine a meaningful label for logging
+  const fileLabel = file instanceof File ? file.name : "upload.jpg";
+
+  console.log(`[Upload] Started: "${fileLabel}"`);
+
   // Re-initialize storage fns on every call to ensure fresh auth token
   const { uploadFile, downloadFile } = await getStorageFns();
 
@@ -255,12 +257,23 @@ export async function uploadFileToStorage(file: File | Blob): Promise<string> {
     });
   }
 
-  return uploadWithRetry(
-    uploadFile,
-    downloadFile,
-    validatedFile,
-    validatedFile.name,
-  );
+  try {
+    const url = await withTimeout(
+      uploadWithRetry(
+        uploadFile,
+        downloadFile,
+        validatedFile,
+        validatedFile.name,
+      ),
+      30000,
+      `Full upload for "${validatedFile.name}"`,
+    );
+    console.log(`[Upload] Success: ${url}`);
+    return url;
+  } catch (err) {
+    console.error("[Upload] Failed:", err);
+    throw err;
+  }
 }
 
 /**

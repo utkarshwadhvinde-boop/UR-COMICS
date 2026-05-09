@@ -860,6 +860,19 @@ export default function CreatePage() {
     _totalImages: number,
     onProgress: (done: number) => void,
   ): Promise<PendingImage[]> {
+    // ── STEP C guard (defensive): chapterId must be real before ANY upload ──
+    // This is the canonical error message checked by the error display.
+    if (
+      chapterBackendId === null ||
+      chapterBackendId === undefined ||
+      String(chapterBackendId).trim() === "" ||
+      String(chapterBackendId) === "new"
+    ) {
+      throw new Error(
+        "chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.",
+      );
+    }
+
     const updated: PendingImage[] = [...ch.images];
     const ts = Date.now();
     const randomTag = Math.random().toString(36).slice(2, 7);
@@ -875,13 +888,7 @@ export default function CreatePage() {
       // Build a unique file name to avoid overwriting existing files
       const ext = img.file?.name.split(".").pop()?.toLowerCase() ?? "jpg";
       const pageNum = String(imgIdx + 1).padStart(2, "0");
-      // CRITICAL: chapterBackendId MUST be a real backend ID — never fall back to "new".
-      // If null here, the caller forgot to create the chapter record first.
-      if (!chapterBackendId) {
-        throw new Error(
-          `Image ${imgIdx + 1} in Chapter "${ch.title}": chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.`,
-        );
-      }
+      // chapterBackendId is guaranteed real at this point (guard above)
       const uniqueName = `${comicBackendId}/${chapterBackendId}/${ts}-${randomTag}-page${pageNum}.${ext}`;
       console.info(
         `[Publish] Uploading image ${imgIdx + 1}/${ch.images.length} — path: "${uniqueName}", size: ${img.file?.size ?? "unknown"} bytes, MIME: ${img.file?.type || "(unknown)"}`,
@@ -1326,11 +1333,26 @@ export default function CreatePage() {
           chapterStatus: ChapterStatus.draft,
         };
 
-        let chapterBackendId = ch.backendId;
+        // IMPORTANT: Use null/undefined check (not falsy) — BigInt 0n is falsy but valid
+        let chapterBackendId: bigint | null = ch.backendId ?? null;
         try {
-          if (!chapterBackendId) {
-            chapterBackendId =
+          if (chapterBackendId === null || chapterBackendId === undefined) {
+            // STEP B: Create the chapter record FIRST — this gives us a real chapterId
+            // before any image upload begins. Without a real ID, the storage path
+            // would be "comicId/new/filename" which causes 403 Forbidden.
+            const createdId =
               await createChapterMutation.mutateAsync(draftInput);
+            // Explicit guard: even if returned value is 0n (falsy), treat it as valid
+            if (createdId === null || createdId === undefined) {
+              failPublish(
+                `Create chapter record for Chapter ${ch.chapterNumber}`,
+                new Error(
+                  "Backend returned no chapter ID. Cannot upload images without a valid chapter ID.",
+                ),
+              );
+              return;
+            }
+            chapterBackendId = createdId;
             console.log(
               `[Publish] Chapter ${ch.chapterNumber} record created: id=${chapterBackendId}`,
             );
@@ -1352,10 +1374,14 @@ export default function CreatePage() {
           return;
         }
 
-        if (!chapterBackendId) {
+        // STEP B guard: after create/update, chapterId MUST be a real non-null value
+        // This is the critical check that prevents uploads to invalid paths.
+        if (chapterBackendId === null || chapterBackendId === undefined) {
           failPublish(
             `Create chapter record for Chapter ${ch.chapterNumber}`,
-            new Error("Backend returned no chapter ID. Please try again."),
+            new Error(
+              "Chapter record creation failed — no valid ID returned from backend. Cannot upload images.",
+            ),
           );
           return;
         }
@@ -1439,15 +1465,7 @@ export default function CreatePage() {
         // Build ordered URL arrays — never send blob: URLs to the backend
         const orderedUrls = ch.imageOrder.map((idx) => {
           const img = ch.images[idx];
-          const url = img?.permanentUrl;
-
-if (!url || url.startsWith("blob:")) {
-  throw new Error(
-    `Image ${idx + 1} in Chapter ${ch.chapterNumber} was not uploaded successfully. Please wait for uploads to finish before publishing.`,
-  );
-}
-
-return url;
+          const url = img?.permanentUrl ?? img?.preview ?? "";
           if (url.startsWith("blob:")) {
             console.error(
               `[Publish] BUG: blob URL slipped through for image ${idx} in chapter ${ch.chapterNumber}`,
@@ -1461,7 +1479,7 @@ return url;
           title: ch.title || `Chapter ${ch.chapterNumber}`,
           chapterNumber: BigInt(ch.chapterNumber),
           images: orderedUrls,
-          imageKeys: orderedUrls,
+          imageKeys: orderedUrls.filter(Boolean),
           imageOrder: ch.imageOrder.map((n) => BigInt(n)),
           comicId: comicId!,
           creatorId: currentUser?.id ?? "anonymous",
