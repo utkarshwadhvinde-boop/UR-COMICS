@@ -941,6 +941,7 @@ if (
       }
 
       try {
+        console.log("[Publish] Uploading image...");
         const permanentUrl = await uploadFileToStorage(fileToUpload);
         console.info(
           `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
@@ -1171,6 +1172,7 @@ if (
     }
     isPublishingRef.current = true;
     setIsPublishing(true);
+    console.log("[Publish] STARTED");
     setPublishError(null);
     setUploadProgress({ done: 0, total: 0 });
 
@@ -1183,6 +1185,7 @@ if (
         : rawMsg;
       console.error(`[Publish] FAILED at "${step}":`, rawMsg, err);
       setPublishError(`${step}\n${displayMsg}`);
+      console.log("[Publish] FINISHED");
       setIsPublishing(false);
       isPublishingRef.current = false;
       setUploadProgress({ done: 0, total: 0 });
@@ -1358,6 +1361,7 @@ if (
             // before any image upload begins. Without a real ID, the storage path
             // would be "comicId/new/filename" which causes 403 Forbidden.
             const createdId =
+              console.log("[Publish] Creating chapter...");
               await createChapterMutation.mutateAsync(draftInput);
             // Explicit guard: even if returned value is 0n (falsy), treat it as valid
             if (createdId === null || createdId === undefined) {
