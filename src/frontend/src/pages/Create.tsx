@@ -1346,9 +1346,19 @@ if (
             // STEP B: Create the chapter record FIRST — this gives us a real chapterId
             // before any image upload begins. Without a real ID, the storage path
             // would be "comicId/new/filename" which causes 403 Forbidden.
-            const createdId =
-              console.log("[Publish] Creating chapter...");
-              await createChapterMutation.mutateAsync(draftInput);
+            console.log("[Publish] Creating chapter...");
+
+const createdChapter =
+  await createChapterMutation.mutateAsync(draftInput);
+
+console.log(
+  "[DEBUG] Created chapter:",
+  createdChapter
+);
+
+ch.backendId = createdChapter.id;
+
+const createdId = createdChapter.id;
             // Explicit guard: even if returned value is 0n (falsy), treat it as valid
             if (createdId === null || createdId === undefined) {
               failPublish(
