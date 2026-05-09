@@ -851,21 +851,7 @@ export default function CreatePage() {
    * Throws if any upload fails — caller must handle and abort publish.
    * CRITICAL: File objects are KEPT alive (not nulled) so retries work.
    */
-  if (
-  chapterBackendId === null ||
-  chapterBackendId === undefined ||
-  String(chapterBackendId).trim() === "" ||
-  String(chapterBackendId) === "new"
-) {
-  throw new Error(
-    "chapter record was not created before upload. Cannot build a valid storage path. Please retry publish.",
-  );
-  }
-
-  chapterBackendId = createdChapter.id;
-}
-
-if (
+ if (
   chapterBackendId === null ||
   chapterBackendId === undefined ||
   String(chapterBackendId).trim() === "" ||
