@@ -946,11 +946,28 @@ try {
     "[Publish] First upload attempt failed — retrying..."
   );
 
+  let permanentUrl: string;
+
+try {
+  permanentUrl = await uploadFileToStorage(fileToUpload);
+} catch {
+  console.warn(
+    "[Publish] First upload attempt failed — retrying..."
+  );
+
   permanentUrl = await uploadFileToStorage(fileToUpload);
 }
-        console.info(
-          `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
-        );
+
+console.info(
+  `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
+);
+
+updated[imgIdx] = {
+  // CRITICAL: Keep original File reference — do NOT nullify file
+  preview: permanentUrl,
+  file: img.file,
+  permanentUrl,
+};
         updated[imgIdx] = {
           // CRITICAL: Keep original File reference — do NOT nullify file
           preview: permanentUrl,
