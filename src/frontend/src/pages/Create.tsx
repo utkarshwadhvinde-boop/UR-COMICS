@@ -810,6 +810,12 @@ if (!allowedTypes.includes(raw.type)) {
         `Skipped ${invalid.length} invalid file(s): ${invalid.slice(0, 3).join(", ")}`,
       );
     }
+    const currentCount = chapters[chapterIdx]?.images.length ?? 0;
+
+if (currentCount + valid.length > 300) {
+  toast.error("Maximum 300 images allowed per chapter.");
+  return;
+}
     if (valid.length === 0) return;
 
     setChapters((prev) =>
