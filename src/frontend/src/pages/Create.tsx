@@ -937,7 +937,17 @@ if (currentCount + valid.length > 300) {
 
       try {
         console.log("[Publish] Uploading image...");
-        const permanentUrl = await uploadFileToStorage(fileToUpload);
+        let permanentUrl = "";
+
+try {
+  permanentUrl = await uploadFileToStorage(fileToUpload);
+} catch {
+  console.warn(
+    "[Publish] First upload attempt failed — retrying..."
+  );
+
+  permanentUrl = await uploadFileToStorage(fileToUpload);
+}
         console.info(
           `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
         );
@@ -1203,6 +1213,13 @@ if (hasDuplicates) {
       if (!title.trim()) {
         failPublish("Validation", new Error("Please enter a comic title."));
         return;
+      }
+      if (selectedGenres.length === 0) {
+  failPublish(
+    "Validation",
+    new Error("Select at least one genre."),
+  );
+  return;
       }
       if (chapters.length === 0) {
         failPublish("Validation", new Error("Add at least one chapter."));
