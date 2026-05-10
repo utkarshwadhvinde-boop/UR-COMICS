@@ -781,6 +781,23 @@ export default function CreatePage() {
     const valid: File[] = [];
     const invalid: string[] = [];
     for (const raw of files) {
+      
+      const allowedTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+if (!allowedTypes.includes(raw.type)) {
+  invalid.push(`${raw.name} (unsupported format)`);
+  continue;
+}
+      
+      if (raw.size > 15 * 1024 * 1024) {
+  invalid.push(`${raw.name} (too large)`);
+  continue;
+      }
+      
       try {
         const coerced = validateAndCoerceImageFile(raw);
         valid.push(coerced);
@@ -1126,6 +1143,15 @@ export default function CreatePage() {
       );
       return;
     }
+    const nums = chapters.map((c) => c.chapterNumber);
+
+const hasDuplicates =
+  new Set(nums).size !== nums.length;
+
+if (hasDuplicates) {
+  toast.error("Duplicate chapter numbers are not allowed.");
+  return;
+}
     setPublishConfirmOpen(true);
   };
 
@@ -1337,14 +1363,14 @@ export default function CreatePage() {
 const createdChapter =
   await createChapterMutation.mutateAsync(draftInput);
 
-console.log(
-  "[DEBUG] Created chapter:",
-  createdChapter
-);
+const createdId =
+  typeof createdChapter === "bigint"
+    ? createdChapter
+    : createdChapter?.id;
 
-ch.backendId = createdChapter.id;
-
-const createdId = createdChapter.id;
+if (createdId === null || createdId === undefined) {
+  throw new Error("Failed to get valid chapter ID");
+}
             // Explicit guard: even if returned value is 0n (falsy), treat it as valid
             if (createdId === null || createdId === undefined) {
               failPublish(
