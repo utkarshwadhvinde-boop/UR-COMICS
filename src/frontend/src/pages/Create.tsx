@@ -937,16 +937,7 @@ if (currentCount + valid.length > 300) {
 
       try {
         console.log("[Publish] Uploading image...");
-        let permanentUrl = "";
-
-try {
-  permanentUrl = await uploadFileToStorage(fileToUpload);
-} catch {
-  console.warn(
-    "[Publish] First upload attempt failed — retrying..."
-  );
-
-  let permanentUrl: string;
+        let permanentUrl: string;
 
 try {
   permanentUrl = await uploadFileToStorage(fileToUpload);
