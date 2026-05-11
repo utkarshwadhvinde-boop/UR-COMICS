@@ -874,6 +874,16 @@ if (currentCount + valid.length > 300) {
    * Throws if any upload fails — caller must handle and abort publish.
    * CRITICAL: File objects are KEPT alive (not nulled) so retries work.
    */
+  const uploadChapterImages = async (
+  ch: ChapterDraft,
+  chapterIdx: number,
+  comicBackendId: bigint,
+  chapterBackendId: bigint,
+  progressOffset: number,
+  _totalImages: number,
+  onProgress: (done: number) => void,
+): Promise<PendingImage[]> => {
+    
  if (
   chapterBackendId === null ||
   chapterBackendId === undefined ||
