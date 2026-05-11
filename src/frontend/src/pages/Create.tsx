@@ -934,38 +934,31 @@ if (currentCount + valid.length > 300) {
         onProgress(progressOffset + imgIdx + 1);
         continue;
       }
+    try {
 
-      try {
-        console.log("[Publish] Uploading image...");
-        let permanentUrl: string;
+  console.log("[Publish] Uploading image...");  
+  let permanentUrl: string;
 
-try {
-  permanentUrl = await uploadFileToStorage(fileToUpload);
-} catch {
-  console.warn(
-    "[Publish] First upload attempt failed — retrying..."
+  try {
+    permanentUrl = await uploadFileToStorage(fileToUpload);
+  } catch {
+    console.warn(
+      "[Publish] First upload attempt failed — retrying..."
+    );
+
+    permanentUrl = await uploadFileToStorage(fileToUpload);
+  }
+
+  console.info(
+    `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
   );
-
-  permanentUrl = await uploadFileToStorage(fileToUpload);
-}
-
-console.info(
-  `[Publish] ✓ Image ${imgIdx + 1} uploaded successfully — permanent URL obtained`,
-);
-
-updated[imgIdx] = {
-  // CRITICAL: Keep original File reference — do NOT nullify file
+      updated[imgIdx] = {
   preview: permanentUrl,
   file: img.file,
   permanentUrl,
 };
-        updated[imgIdx] = {
-          // CRITICAL: Keep original File reference — do NOT nullify file
-          preview: permanentUrl,
-          file: img.file, // keep original File so retries can re-use it
-          permanentUrl,
-        };
-        onProgress(progressOffset + imgIdx + 1);
+
+onProgress(progressOffset + imgIdx + 1);
       } catch (uploadErr) {
         const reason =
           uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
