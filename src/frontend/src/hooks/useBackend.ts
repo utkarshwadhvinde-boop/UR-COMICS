@@ -114,3 +114,36 @@ export function useGetUnreadCount(userId: string | null) {
 }
 
 // ... (Other functions follow same logic: check !!actor instead of !isFetching)
+
+// ─── Notifications (Missing Exports) ────────────────────────────────────────
+
+export function useGetNotifications(userId: string | null) {
+  const { actor } = useBackendActor();
+  
+  return useQuery<NotificationPublic[]>({
+    queryKey: ["backend", "notifications", userId],
+    queryFn: async () => {
+      if (!actor || !userId) return [];
+      return actor.getNotifications(userId);
+    },
+    enabled: !!actor && !!userId,
+  });
+}
+
+export function useMarkAllRead() {
+  const { actor, isReady } = useBackendActor();
+  const qc = useQueryClient();
+
+  return useMutation<boolean, Error, string>({
+    mutationFn: async (userId) => {
+      if (!actor) throw new Error("Connection lost.");
+      return actor.markAllNotificationsRead(userId);
+    },
+    onSuccess: (_, userId) => {
+      // Refresh the unread count and notification list immediately
+      qc.invalidateQueries({ queryKey: ["backend", "unreadCount", userId] });
+      qc.invalidateQueries({ queryKey: ["backend", "notifications", userId] });
+    },
+  });
+}
+
