@@ -26,17 +26,6 @@ export function Layout({ children }: LayoutProps) {
           <p className="text-sm text-muted-foreground">
             © {year} UR Comics. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Built with love using{" "}
-            <a
-              href={footerLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              caffeine.ai
-            </a>
-          </p>
         </div>
       </footer>
     </div>
