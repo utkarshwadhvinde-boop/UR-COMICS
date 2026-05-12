@@ -131,20 +131,6 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            © {new Date().getFullYear()} UR Comics
-          </p>
-          <p className="text-xs text-muted-foreground/60 text-center mt-1">
-            Built with{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
-            >
-              caffeine.ai
-            </a>
-          </p>
         </div>
       </aside>
     </>
