@@ -7,19 +7,16 @@ import type {
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// Exporting types so other components can use them
 export type { NotificationPublic, UserProfilePublic, ComicPublic };
 
 /**
  * SHARED LOGIC: Centralized Actor Readiness
- * This ensures all hooks use the same definition of 'Connected'
+ * Bypassing 'isFetching' prevents the UI from locking up during background refreshes.
  */
 const useBackendActor = () => {
   const { actor, isFetching, error } = useActor(createActor);
-  
-  // We consider the actor ready if it exists, even if a background refetch is happening.
-  // This prevents UI 'flicker' or hangs during background syncing.
   const isReady = !!actor && !error;
-  
   return { actor, isReady, isFetching, error };
 };
 
@@ -29,13 +26,13 @@ export function useCreateOrUpdateProfile() {
   const { actor, isReady } = useBackendActor();
   const qc = useQueryClient();
 
-  const mutation = useMutation<
+  return useMutation<
     UserProfilePublic,
     Error,
     { userId: string; username: string; avatarUrl?: string; bio?: string }
   >({
     mutationFn: async ({ userId, username, avatarUrl, bio }) => {
-      if (!actor) throw new Error("Backend connection not established. Please refresh.");
+      if (!actor) throw new Error("Blockchain connection lost. Please refresh.");
       return actor.createOrUpdateProfile(
         userId,
         username,
@@ -48,53 +45,39 @@ export function useCreateOrUpdateProfile() {
       qc.invalidateQueries({ queryKey: ["backend", "creatorProfiles"] });
     },
   });
-
-  return { ...mutation, isActorReady: isReady };
 }
 
 export function useGetProfile(userId: string | null) {
-  const { actor, isReady, isFetching } = useBackendActor();
+  const { actor } = useBackendActor();
   
   return useQuery<UserProfilePublic | null>({
     queryKey: ["backend", "profile", userId],
     queryFn: async () => {
       if (!actor || !userId) return null;
-      try {
-        return await actor.getProfile(userId);
-      } catch (err) {
-        console.error("Failed to fetch profile:", err);
-        throw err;
-      }
+      return actor.getProfile(userId);
     },
-    // Fix: Only disable if we don't have an actor at all. 
-    // If it's just 'fetching' a refresh, let the query proceed or use cache.
     enabled: !!actor && !!userId, 
     staleTime: 30_000,
-    retry: 2, // Automatic retry for flaky connections
   });
 }
 
-// ─── Follow System (Optimized) ─────────────────────────────────────────────
+// ─── Follow System ─────────────────────────────────────────────────────────
 
 export function useFollowUser() {
   const { actor, isReady } = useBackendActor();
   const qc = useQueryClient();
 
-  const mutation = useMutation<
-    boolean,
-    Error,
-    { followerId: string; followeeId: string }
-  >({
+  return useMutation<boolean, Error, { followerId: string; followeeId: string }>({
     mutationFn: async ({ followerId, followeeId }) => {
-      if (!actor) throw new Error("Connection lost. Try again.");
+      if (!actor) throw new Error("Backend not ready.");
       return actor.followUser(followerId, followeeId);
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["backend"] }); // Invalidate all backend cache for consistency
+      // Specifically invalidate follower/following counts and profile status
+      qc.invalidateQueries({ queryKey: ["backend", "profile", vars.followeeId] });
+      qc.invalidateQueries({ queryKey: ["backend", "profile", vars.followerId] });
     },
   });
-
-  return { ...mutation, isActorReady: isReady };
 }
 
 // ─── Notifications ─────────────────────────────────────────────────────────
@@ -109,13 +92,9 @@ export function useGetUnreadCount(userId: string | null) {
       return actor.getUnreadCount(userId);
     },
     enabled: !!actor && !!userId,
-    refetchInterval: 60_000, // Reduced frequency to save bandwidth
+    refetchInterval: 30_000, // Check every 30s for new alerts
   });
 }
-
-// ... (Other functions follow same logic: check !!actor instead of !isFetching)
-
-// ─── Notifications (Missing Exports) ────────────────────────────────────────
 
 export function useGetNotifications(userId: string | null) {
   const { actor } = useBackendActor();
@@ -131,19 +110,17 @@ export function useGetNotifications(userId: string | null) {
 }
 
 export function useMarkAllRead() {
-  const { actor, isReady } = useBackendActor();
+  const { actor } = useBackendActor();
   const qc = useQueryClient();
 
   return useMutation<boolean, Error, string>({
     mutationFn: async (userId) => {
-      if (!actor) throw new Error("Connection lost.");
+      if (!actor) throw new Error("Blockchain unreachable.");
       return actor.markAllNotificationsRead(userId);
     },
     onSuccess: (_, userId) => {
-      // Refresh the unread count and notification list immediately
       qc.invalidateQueries({ queryKey: ["backend", "unreadCount", userId] });
       qc.invalidateQueries({ queryKey: ["backend", "notifications", userId] });
     },
   });
 }
-
