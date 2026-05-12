@@ -64,7 +64,7 @@ export function useGetProfile(userId: string | null) {
 // ─── Follow System ─────────────────────────────────────────────────────────
 
 export function useFollowUser() {
-  const { actor, isReady } = useBackendActor();
+  const { actor } = useBackendActor();
   const qc = useQueryClient();
 
   return useMutation<boolean, Error, { followerId: string; followeeId: string }>({
@@ -73,7 +73,6 @@ export function useFollowUser() {
       return actor.followUser(followerId, followeeId);
     },
     onSuccess: (_, vars) => {
-      // Specifically invalidate follower/following counts and profile status
       qc.invalidateQueries({ queryKey: ["backend", "profile", vars.followeeId] });
       qc.invalidateQueries({ queryKey: ["backend", "profile", vars.followerId] });
     },
@@ -92,7 +91,7 @@ export function useGetUnreadCount(userId: string | null) {
       return actor.getUnreadCount(userId);
     },
     enabled: !!actor && !!userId,
-    refetchInterval: 30_000, // Check every 30s for new alerts
+    refetchInterval: 30_000,
   });
 }
 
