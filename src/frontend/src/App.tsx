@@ -24,7 +24,7 @@ const OwnerPage = lazy(() => import("./pages/Owner"));
 const TrendingPage = lazy(() => import("./pages/Trending"));
 const LibraryPage = lazy(() => import("./pages/Library"));
 const NotFoundPage = lazy(() => import("./pages/NotFound"));
-
+const PrivacyPage = lazy(() => import("./pages/Privacy"));
 function PageLoader() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -103,6 +103,11 @@ const faqRoute = createRoute({
   path: "/faq",
   component: FAQPage,
 });
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/privacy",
+  component: PrivacyPage,
+});
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
@@ -131,6 +136,7 @@ const routeTree = rootRoute.addChildren([
   notificationsRoute,
   coinsRoute,
   faqRoute,
+  privacyRoute,
   adminRoute,
   ownerRoute,
   notFoundRoute,
