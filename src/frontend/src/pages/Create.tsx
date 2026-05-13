@@ -455,10 +455,7 @@ export default function CreatePage() {
       if (!currentId) {
         currentId = await withTimeout(mutations.createComic.mutateAsync(comicInput), "Creating comic failed");
         setBackendComicId(currentId);
-      } else {
-        await withTimeout(mutations.updateComic.mutateAsync({ id: currentId, input: comicInput }), "Updating comic failed");
       }
-
       if (!silent) toast.success("Draft saved successfully.");
       return currentId;
     } catch (err) {
