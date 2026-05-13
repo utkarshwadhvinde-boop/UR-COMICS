@@ -14,7 +14,6 @@ import {
   useListChapters,
   usePublishChapter,
   useUpdateChapter,
-  useUpdateComic,
 } from "@/hooks/useComicBackend";
 import {
   uploadFileToStorage,
