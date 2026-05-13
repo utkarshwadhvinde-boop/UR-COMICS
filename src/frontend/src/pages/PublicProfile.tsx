@@ -7,16 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useCreateOrUpdateProfile,
-  useFollowUser,
-  useGetFollowers,
-  useGetFollowing,
-  useGetProfile,
-  useIsFollowing,
-  useListComicsQuery,
-  useUnfollowUser,
-} from "@/hooks/useBackend";
+import { useListComics } from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 import { Link, useParams } from "@tanstack/react-router";
