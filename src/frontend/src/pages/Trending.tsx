@@ -1,12 +1,12 @@
 import { ComicCard } from "@/components/ui/ComicCard";
 import { Button } from "@/components/ui/button";
-import { useListComicsQuery } from "@/hooks/useBackend";
+import { useListComics } from "@/hooks/useBackend";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Flame, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 export default function TrendingPage() {
-  const { data: backendComics = [], isLoading } = useListComicsQuery();
+  const { data: backendComics = [], isLoading } = useListComics();
   const [activeGenre, setActiveGenre] = useState<string>("All");
   const [visibleCount, setVisibleCount] = useState(20);
 
