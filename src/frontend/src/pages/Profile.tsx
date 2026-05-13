@@ -21,7 +21,7 @@ import {
   useListComicsQuery,
   useUnfollowUser,
 } from "@/hooks/useBackend";
-import { useListComics } from "@/hooks/useComicBackend";
+import { useListComics } from "@/hooks/useBackend";
 import { useAppStore } from "@/store";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
