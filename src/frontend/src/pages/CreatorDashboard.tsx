@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  useDeleteChapter,
   useDeleteComic,
   useListChapters,
   usePublishChapter,
