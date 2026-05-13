@@ -54,3 +54,49 @@ export function useGetTrending(limit: number = 5) {
     enabled: isReady && !isFetching,
   });
 }
+
+// ------------------------------
+// NOTIFICATIONS (MISSING — FIX)
+// ------------------------------
+export function useGetNotifications(userId: string | null) {
+  const { actor, isReady } = useBackendActor();
+
+  return useQuery<NotificationPublic[]>({
+    queryKey: ["backend", "notifications", userId],
+    queryFn: async () => {
+      if (!actor || !userId) return [];
+      return actor.getNotifications(userId);
+    },
+    enabled: isReady && !!userId,
+  });
+}
+
+export function useGetUnreadCount(userId: string | null) {
+  const { actor, isReady } = useBackendActor();
+
+  return useQuery<bigint>({
+    queryKey: ["backend", "unreadCount", userId],
+    queryFn: async () => {
+      if (!actor || !userId) return BigInt(0);
+      return actor.getUnreadCount(userId);
+    },
+    enabled: isReady && !!userId,
+    refetchInterval: 30000,
+  });
+}
+
+export function useMarkAllRead() {
+  const { actor, isReady } = useBackendActor();
+  const qc = useQueryClient();
+
+  return useMutation<boolean, Error, string>({
+    mutationFn: async (userId) => {
+      if (!actor) throw new Error("Backend not ready");
+      return actor.markAllNotificationsRead(userId);
+    },
+    onSuccess: (_, userId) => {
+      qc.invalidateQueries({ queryKey: ["backend", "notifications", userId] });
+      qc.invalidateQueries({ queryKey: ["backend", "unreadCount", userId] });
+    },
+  });
+}
