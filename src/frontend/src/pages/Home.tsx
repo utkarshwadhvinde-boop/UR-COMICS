@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   type ComicPublic,
-  useGetTrending,
   useListComics,
 } from "@/hooks/useBackend";
 import { useDeleteComic } from "@/hooks/useComicBackend";
@@ -241,8 +240,8 @@ export default function HomePage() {
   const qc = useQueryClient();
 
   // Backend queries
-  const { data: backendComics = [], isLoading } = useListComicsQuery();
-  const { data: trendingBackend = [] } = useGetTrending(5);
+  const { data: backendComics = [], isLoading } = useListComics();
+const trendingBackend: any[] = [];
 
   // On first mount: scrub any ghost/orphan entries from the React Query caches
   // by filtering out comics that have no valid cover URL. This is a fire-and-forget
