@@ -5,29 +5,21 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-const guardedCall = async <T>(fn: () => Promise<T>) => {
-  try {
-    return await fn();
-  } catch (e) {
-    throw e;
-  }
-};
+import type {
+  ComicInput,
+  ChapterInput,
+  ChapterPublic,
+} from "@/backend";
 
-const unwrapResult = <T,>(result: T, _name: string): T => {
-  return result;
-};
-
-/**
- * SIMPLE Actor setup (FIXED)
- * No external hook, no missing files
- */
+/* ─────────────────────────────────────────────
+   ACTOR SETUP
+───────────────────────────────────────────── */
 const useBackendStatus = () => {
   const actor = createActor();
 
   return {
     actor,
     isReady: !!actor,
-    isFetching: false,
   };
 };
 
@@ -41,8 +33,7 @@ export function useCreateComic() {
   const mutation = useMutation<bigint, Error, ComicInput>({
     mutationFn: async (input) => {
       if (!actor) throw new Error("Backend not ready");
-
-      return guardedCall(() => actor.createComic(input));
+      return actor.createComic(input);
     },
 
     onSuccess: () => {
@@ -52,7 +43,7 @@ export function useCreateComic() {
   });
 
   return { ...mutation, isActorReady: isReady };
-}
+};
 
 /* ─────────────────────────────────────────────
    UPDATE CHAPTER
@@ -69,11 +60,7 @@ export function useUpdateChapter() {
     mutationFn: async ({ id, input }) => {
       if (!actor) throw new Error("Backend not ready");
 
-      const result = await guardedCall(() =>
-        actor.updateChapter(id, input)
-      );
-
-      return unwrapResult(result, "updateChapter");
+      return actor.updateChapter(id, input);
     },
 
     onSuccess: (_, vars) => {
@@ -85,7 +72,7 @@ export function useUpdateChapter() {
   });
 
   return { ...mutation, isActorReady: isReady };
-}
+};
 
 /* ─────────────────────────────────────────────
    PUBLISH CHAPTER
@@ -98,11 +85,7 @@ export function usePublishChapter() {
     mutationFn: async (id) => {
       if (!actor) throw new Error("Backend not ready");
 
-      const result = await guardedCall(() =>
-        actor.publishChapter(id)
-      );
-
-      return unwrapResult(result, "publishChapter");
+      return actor.publishChapter(id);
     },
 
     onSuccess: () => {
@@ -113,7 +96,7 @@ export function usePublishChapter() {
   });
 
   return { ...mutation, isActorReady: isReady };
-}
+};
 
 /* ─────────────────────────────────────────────
    LIST CHAPTERS
@@ -135,4 +118,4 @@ export function useListChapters(
     enabled: !!actor && comicId !== null,
     staleTime: 10_000,
   });
-    }
+};
