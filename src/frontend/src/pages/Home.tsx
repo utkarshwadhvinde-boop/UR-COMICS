@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   type ComicPublic,
   useGetTrending,
-  useListComicsQuery,
+  useListComics,
 } from "@/hooks/useBackend";
 import { useDeleteComic } from "@/hooks/useComicBackend";
 import { formatNumber } from "@/lib/sampleData";
