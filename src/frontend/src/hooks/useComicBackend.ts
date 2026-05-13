@@ -1,7 +1,5 @@
 import { createActor } from "@/backend";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-const useBackendStatus = () => {
-  const actor = createActor();
 
   return {
     actor,
@@ -16,8 +14,7 @@ const useBackendStatus = () => {
  * HELPER: Unified Actor readiness logic 
  * This ensures the UI doesn't hang just because the actor is refreshing in the background.
  */
-const useBackendStatus = () => {
-  import { createActor } from "@/backend";
+
   // OR your existing hook
   // An actor is ready if it exists. We don't care if it's "fetching" a refresh.
   return { actor, isReady: !!actor && !error, isFetching };
