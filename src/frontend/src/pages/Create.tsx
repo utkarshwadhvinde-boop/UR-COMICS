@@ -12,7 +12,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 import {
   useCreateComic,
-  useCreateChapter,
   useListChapters,
   usePublishChapter,
   useUpdateChapter,
@@ -385,7 +384,6 @@ export default function CreatePage() {
 
   const mutations = {
   createComic: useCreateComic(),
-  createChapter: useCreateChapter(),
   updateChapter: useUpdateChapter(),
   publishChapter: usePublishChapter()
 };
