@@ -14,6 +14,7 @@ export type { NotificationPublic, UserProfilePublic, ComicPublic };
 // ------------------------------
 const useBackendActor = () => {
   const { actor, isFetching, error } = useActor(createActor);
+
   return {
     actor,
     isReady: !!actor && !error,
@@ -23,9 +24,9 @@ const useBackendActor = () => {
 };
 
 // ------------------------------
-// COMICS (MISSING IN YOUR CODE — FIXED)
+// COMICS
 // ------------------------------
-export function useListComicsQuery() {
+export function useListComics() {
   const { actor, isReady, isFetching } = useBackendActor();
 
   return useQuery<ComicPublic[]>({
@@ -39,7 +40,7 @@ export function useListComicsQuery() {
 }
 
 // ------------------------------
-// TRENDING (MISSING — FIXED)
+// TRENDING
 // ------------------------------
 export function useGetTrending(limit: number = 5) {
   const { actor, isReady, isFetching } = useBackendActor();
