@@ -18,6 +18,7 @@ import {
   useGetFollowers,
   useGetFollowing,
   useIsFollowing,
+  useListComics,
   useListComicsQuery,
   useUnfollowUser,
 } from "@/hooks/useBackend";
