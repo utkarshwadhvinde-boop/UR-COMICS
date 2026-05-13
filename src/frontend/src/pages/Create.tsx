@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import {
   useCreateComic,
+  useCreateChapter,
+  useUpdateComic,
   useListChapters,
   usePublishChapter,
   useUpdateChapter,
