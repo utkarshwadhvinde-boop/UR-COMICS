@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useCreateOrUpdateProfile,
   useFollowUser,
   useIsFollowing,
   useListComics,
