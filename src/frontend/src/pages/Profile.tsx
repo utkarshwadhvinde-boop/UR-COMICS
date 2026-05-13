@@ -15,8 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useCreateOrUpdateProfile,
   useFollowUser,
-  useGetFollowers,
-  useGetFollowing,
   useIsFollowing,
   useListComics,
   useListComicsQuery,
