@@ -17,7 +17,6 @@ import {
   useFollowUser,
   useGetFollowers,
   useGetFollowing,
-  useGetProfile,
   useIsFollowing,
   useListComicsQuery,
   useUnfollowUser,
