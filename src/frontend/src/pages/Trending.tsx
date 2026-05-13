@@ -1,160 +1,155 @@
-import { ComicCard } from "@/components/ui/ComicCard";
-import { Button } from "@/components/ui/button";
-import { useListComics } from "@/hooks/useBackend";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useComics } from "@/hooks/useComics";
+import { useTrending } from "@/hooks/useTrending";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Flame, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Flame, TrendingUp } from "lucide-react";
+import { motion } from "motion/react";
 
-export default function TrendingPage() {
-  const { data: backendComics = [], isLoading } = useListComics();
-  const [activeGenre, setActiveGenre] = useState<string>("All");
-  const [visibleCount, setVisibleCount] = useState(20);
+function TrendingCardSkeleton() {
+  return (
+    <div className="bg-midnight-card rounded-xl overflow-hidden border border-purple-900/20">
+      <Skeleton className="w-full aspect-[9/14] bg-purple-900/20" />
+      <div className="p-3 space-y-2">
+        <Skeleton className="h-4 w-3/4 bg-purple-900/20" />
+        <Skeleton className="h-3 w-1/2 bg-purple-900/20" />
+      </div>
+    </div>
+  );
+}
 
-  const comics = backendComics.map((c) => ({
-    id: String(c.id),
-    title: c.title,
-    description: c.description,
-    author: c.author,
-    coverImage: c.coverUrl,
-    genres: c.genres,
-    status: "ongoing" as const,
-    likes: Number(c.likesCount),
-    views: Number(c.viewsCount),
-    rating: 0,
-    chapters: [] as { id: string; chapterNumber: number; title: string }[],
-    createdAt: Number(c.createdAt),
-    updatedAt: Number(c.createdAt),
-    isFeatured: c.isFeatured,
-    isTrending: c.isTrending,
-    isPremium: c.isPremium,
-    isPinned: c.isPinned,
-    creatorId: c.creatorId,
-    isOwnerComic: c.ownerUploaded,
-  }));
+function TrendingCard({
+  comic,
+  rank,
+  hotScore,
+  views,
+}: {
+  comic: { id: string; title: string; cover_blob: { getDirectURL(): string } };
+  rank: number;
+  hotScore: number;
+  views: bigint;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: Math.min(rank * 0.06, 0.4) }}
+      data-ocid={`trending.item.${rank}`}
+    >
+      <Link
+        to="/comics/$comicId"
+        params={{ comicId: comic.id }}
+        className="group block bg-midnight-card rounded-xl overflow-hidden border border-purple-900/20 hover:border-accent/40 transition-colors-fast"
+        data-ocid={`trending.card_link.${rank}`}
+      >
+        {/* Cover */}
+        <div className="relative w-full aspect-[9/14] overflow-hidden bg-purple-900/20">
+          <img
+            src={comic.cover_blob.getDirectURL()}
+            alt={comic.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+          {/* Rank badge */}
+          <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/70 border border-accent/50 flex items-center justify-center">
+            <span className="text-xs font-display font-bold text-accent">
+              {rank}
+            </span>
+          </div>
+          {/* Hot score badge */}
+          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-orange-500/40">
+            <Flame className="w-2.5 h-2.5 text-orange-400" />
+            <span className="text-xs font-body text-orange-300">
+              {hotScore.toFixed(0)}
+            </span>
+          </div>
+        </div>
 
-  const GENRES = [
-    "All",
-    "Fantasy",
-    "Sci-Fi",
-    "Action",
-    "Romance",
-    "Thriller",
-    "Horror",
-    "Slice of Life",
-    "Comedy",
-    "Drama",
-    "Adventure",
-  ];
+        {/* Info */}
+        <div className="p-3">
+          <h3 className="font-body text-sm font-medium text-foreground truncate mb-1 group-hover:text-accent transition-colors-fast">
+            {comic.title}
+          </h3>
+          <p className="text-xs text-muted-foreground font-body">
+            {Number(views).toLocaleString()} views
+          </p>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
-  const scored = [...comics]
-    .filter((c) => activeGenre === "All" || c.genres.includes(activeGenre))
-    .sort(
-      (a, b) => b.likes * 0.5 + b.views * 0.1 - (a.likes * 0.5 + a.views * 0.1),
-    );
+export function TrendingPage() {
+  const { data: trendingEntries, isLoading: trendingLoading } = useTrending(24);
+  const { data: allComics } = useComics();
 
-  const visible = scored.slice(0, visibleCount);
-  const hasMore = visibleCount < scored.length;
+  const trendingComics = (trendingEntries ?? [])
+    .map((entry, idx) => {
+      const comic = allComics?.find((c) => c.id === entry.comic_id);
+      return { entry, comic, rank: idx + 1 };
+    })
+    .filter((t) => !!t.comic);
 
   return (
-    <div
-      className="max-w-screen-xl mx-auto px-4 py-10"
-      data-ocid="trending.page"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <Flame className="w-7 h-7 text-orange-500" />
+    <div className="px-4 sm:px-6 py-8" data-ocid="trending.page">
+      {/* Page header */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
+          <TrendingUp className="w-5 h-5 text-accent" />
+        </div>
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
+          <h1 className="font-display text-2xl font-bold text-foreground">
             Trending Now
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Most popular comics this week
+          <p className="text-muted-foreground font-body text-sm">
+            Ranked by reads and views in the last 24 hours
           </p>
         </div>
       </div>
 
-      {/* Genre filter */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
-        {GENRES.map((g) => (
-          <button
-            key={g}
-            type="button"
-            onClick={() => {
-              setActiveGenre(g);
-              setVisibleCount(20);
-            }}
-            className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-smooth border ${
-              activeGenre === g
-                ? "gradient-primary text-primary-foreground border-transparent shadow-glow"
-                : "bg-card border-border text-muted-foreground hover:border-primary/50"
-            }`}
-            data-ocid={`trending.genre_filter.${g.toLowerCase().replace(/ /g, "_")}`}
-          >
-            {g}
-          </button>
-        ))}
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((k) => (
-            <div key={k} className="space-y-2">
-              <div className="aspect-[3/4] rounded-2xl bg-muted animate-pulse" />
-              <div className="h-3 rounded bg-muted animate-pulse w-3/4" />
-            </div>
+      {/* Grid */}
+      {trendingLoading ? (
+        <div
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"
+          data-ocid="trending.loading_state"
+        >
+          {Array.from({ length: 12 }).map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+            <TrendingCardSkeleton key={i} />
           ))}
         </div>
-      ) : scored.length === 0 ? (
+      ) : trendingComics.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center py-24 px-6 rounded-3xl bg-card border border-border/50 text-center"
+          className="text-center py-24 text-muted-foreground font-body"
           data-ocid="trending.empty_state"
         >
-          <div className="relative mb-6">
-            <div className="w-24 h-24 rounded-3xl gradient-primary flex items-center justify-center shadow-glow">
-              <BookOpen className="w-12 h-12 text-white" />
-            </div>
-            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-orange-400/20 border border-orange-400/40 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-orange-400" />
-            </div>
-          </div>
-          <h2 className="text-2xl font-display font-bold text-foreground mb-3">
-            No comics yet.
-          </h2>
-          <p className="text-lg text-muted-foreground mb-2 font-medium">
-            Be the first to upload!
+          <Flame className="w-12 h-12 mx-auto mb-4 opacity-30" />
+          <p className="text-lg font-medium text-foreground mb-1">
+            Nothing trending yet
           </p>
-          <p className="text-sm text-muted-foreground max-w-sm mb-8">
-            Once comics are uploaded, the most popular ones will appear here
-            ranked by views and engagement.
+          <p className="text-sm">
+            Be the first to start reading and make something popular!
           </p>
-          <Link to="/create">
-            <Button
-              className="gradient-primary text-white border-0 px-8 py-3 h-auto rounded-2xl font-semibold text-base shadow-glow hover:opacity-90 transition-smooth btn-press"
-              data-ocid="trending.upload_cta_button"
-            >
-              📤 Upload Your Comic
-            </Button>
+          <Link
+            to="/"
+            className="inline-block mt-6 px-5 py-2 rounded-lg bg-accent/15 border border-accent/30 text-accent text-sm font-body hover:bg-accent/25 transition-colors-fast"
+            data-ocid="trending.browse_link"
+          >
+            Browse All Comics
           </Link>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {visible.map((comic, i) => (
-              <ComicCard key={comic.id} comic={comic as never} index={i} />
-            ))}
-          </div>
-          {hasMore && (
-            <div className="mt-8 text-center">
-              <Button
-                variant="outline"
-                className="rounded-xl px-8"
-                onClick={() => setVisibleCount((v) => v + 20)}
-                data-ocid="trending.load_more_button"
-              >
-                Load More
-              </Button>
-            </div>
-          )}
-        </>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {trendingComics.map(({ entry, comic, rank }) => (
+            <TrendingCard
+              key={entry.comic_id}
+              comic={comic!}
+              rank={rank}
+              hotScore={entry.hot_score}
+              views={entry.views}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

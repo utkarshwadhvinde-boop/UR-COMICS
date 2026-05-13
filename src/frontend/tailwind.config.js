@@ -38,7 +38,9 @@ export default {
           foreground: "oklch(var(--muted-foreground) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "oklch(var(--accent) / <alpha-value>)",
+          DEFAULT: "#8B5CF6",
+          light: "#a78bfa",
+          dim: "rgba(139, 92, 246, 0.15)",
           foreground: "oklch(var(--accent-foreground))",
         },
         popover: {
@@ -66,11 +68,23 @@ export default {
           border: "oklch(var(--sidebar-border))",
           ring: "oklch(var(--sidebar-ring))",
         },
+        /* Midnight Purple palette */
+        midnight: {
+          DEFAULT: "#000000",
+          deep: "#1a0b2e",
+          card: "rgba(26, 11, 46, 0.5)",
+          glass: "rgba(26, 11, 46, 0.6)",
+        },
+        purple: {
+          DEFAULT: "#8B5CF6",
+          light: "#a78bfa",
+          dim: "rgba(139, 92, 246, 0.3)",
+        },
       },
       fontFamily: {
-        display: ["var(--font-display)", "serif"],
-        body: ["var(--font-body)", "sans-serif"],
-        mono: ["var(--font-mono)", "monospace"],
+        display: ["Montserrat", "var(--font-display)", "sans-serif"],
+        body: ["Inter", "var(--font-body)", "sans-serif"],
+        mono: ["JetBrainsMono", "var(--font-mono)", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -78,55 +92,44 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        sm: "var(--shadow-sm)",
-        md: "var(--shadow-md)",
-        lg: "var(--shadow-lg)",
-        glow: "var(--shadow-glow)",
+        xs: '0 1px 2px 0 rgba(0,0,0,0.05)',
+        manga: '0 12px 24px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)',
+        card: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        elevated: '0 8px 16px rgba(0, 0, 0, 0.2)',
       },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
-        "fade-in-up": {
-          from: { opacity: "0", transform: "translateY(20px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
         },
-        "scale-in": {
-          from: { opacity: "0", transform: "scale(0.98)" },
-          to: { opacity: "1", transform: "scale(1)" },
+        'fade-out': {
+          from: { opacity: '1' },
+          to: { opacity: '0' },
         },
-        "glow-pulse": {
-          "0%, 100%": { "box-shadow": "0 0 20px rgba(90, 59, 255, 0.15)" },
-          "50%": { "box-shadow": "0 0 30px rgba(90, 59, 255, 0.25)" },
+        'slide-up': {
+          from: { transform: 'translateY(8px)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
         },
-        "progress-fill": {
-          from: { width: "0%" },
-          to: { width: "100%" },
-        },
-        "progress-shimmer": {
-          "0%": { backgroundPosition: "-1000px 0" },
-          "100%": { backgroundPosition: "1000px 0" },
-        },
-        "drag-lift": {
-          from: { opacity: "1", transform: "translateY(0) scale(1)" },
-          to: { opacity: "0.8", transform: "translateY(-4px) scale(1.05)" },
+        'pulse-accent': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in-up": "fade-in-up 0.5s ease-out",
-        "scale-in": "scale-in 0.3s ease-out",
-        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
-        "progress-fill": "progress-fill 0.8s ease-out forwards",
-        "progress-shimmer": "progress-shimmer 2s linear infinite",
-        "drag-lift": "drag-lift 0.2s ease-out",
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'fade-out': 'fade-out 0.2s ease-in',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'pulse-accent': 'pulse-accent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },

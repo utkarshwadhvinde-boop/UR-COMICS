@@ -1,68 +1,36 @@
-import List "mo:core/List";
 import Map "mo:core/Map";
-import ComicTypes "types/comics";
-import UserTypes "types/users";
-import FAQTypes "types/faqs";
+import AccessControl "mo:caffeineai-authorization/access-control";
+import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
+import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
+import Types "types/common";
 import ComicsApi "mixins/comics-api";
-import ProgressApi "mixins/progress-api";
-import CommentsApi "mixins/comments-api";
-import FAQsApi "mixins/faqs-api";
-import SocialApi "mixins/social-api";
-import NotificationsApi "mixins/notifications-api";
-import UsersApi "mixins/users-api";
-import ComicsLib "lib/comics";
-
-
-
-
-
-
+import ChaptersApi "mixins/chapters-api";
+import ProfileApi "mixins/profile-api";
 
 actor {
-  // Comics & chapters state
-  let comics = List.empty<ComicTypes.Comic>();
-  let chapters = List.empty<ComicTypes.Chapter>();
-  let nextComicId = [var 1 : Nat];
-  let nextChapterId = [var 1 : Nat];
+  // ── Authorization ────────────────────────────────────────────────────────
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
 
-  // Reading progress state — key: "userId:comicId"
-  let progressMap = Map.empty<Text, UserTypes.ReadingProgress>();
+  // ── Object Storage ───────────────────────────────────────────────────────
+  include MixinObjectStorage();
 
-  // Comments state
-  let comments = List.empty<UserTypes.Comment>();
-  let nextCommentId = [var 1 : Nat];
+  // ── Comics state ─────────────────────────────────────────────────────────
+  let comics = Map.empty<Types.ComicId, Types.Comic>();
+  let comicCounter = { var next : Nat = 0 };
 
-  // FAQs state
-  let faqs = List.empty<FAQTypes.FAQ>();
-  let nextFAQId = [var 1 : Nat];
+  // ── Chapters + upload state ───────────────────────────────────────────────
+  let chapters = Map.empty<Types.ChapterId, Types.Chapter>();
+  let chapterCounter = { var next : Nat = 0 };
+  let uploads = Map.empty<Types.ChapterId, Types.UploadSession>();
 
-  // Social state
-  let follows = Map.empty<Text, UserTypes.Follow>();
-  let chapterLikes = Map.empty<Text, UserTypes.ChapterLike>();
-  let commentReplies = Map.empty<Text, List.List<UserTypes.CommentReply>>();
-  let nextReplyId = [var 1 : Nat];
+  // ── Profile + read-progress state ────────────────────────────────────────
+  let profiles = Map.empty<Types.ProfileId, Types.UserProfile>();
+  let readProgress = Map.empty<Text, Types.ReadProgress>();
+  let trending = Map.empty<Types.ComicId, Types.TrendingEntry>();
 
-  // Notifications state
-  let notifications = List.empty<UserTypes.Notification>();
-  let nextNotificationId = [var 1 : Nat];
-
-  // User profiles state
-  let userProfiles = Map.empty<Text, UserTypes.UserProfile>();
-
-  // Health-check: frontend polls this before attempting writes
-  public query func canisterStatus() : async Text {
-    "running"
-  };
-
-  // Run orphan/ghost-entry cleanup on canister initialization
-  ComicsLib.cleanupOrphans(comics, chapters);
-
-  // Compose all domain APIs
-  include ComicsApi(comics, chapters, nextComicId, nextChapterId);
-  include ProgressApi(progressMap);
-  include CommentsApi(comments, nextCommentId);
-  include FAQsApi(faqs, nextFAQId);
-  include SocialApi(follows, chapterLikes, commentReplies, nextReplyId);
-  include NotificationsApi(notifications, nextNotificationId);
-  include UsersApi(userProfiles);
+  // ── Mixin includes ───────────────────────────────────────────────────────
+  include ComicsApi(accessControlState, comics, chapters, comicCounter, trending);
+  include ChaptersApi(accessControlState, comics, chapters, uploads, chapterCounter);
+  include ProfileApi(accessControlState, profiles, readProgress, trending, comics);
 };

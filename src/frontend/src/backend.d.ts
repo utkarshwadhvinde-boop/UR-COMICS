@@ -7,205 +7,141 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface FAQPublic {
-    id: bigint;
-    upvotes: bigint;
-    question: string;
-    createdAt: bigint;
-    answer: string;
-    approved: boolean;
-    category: string;
-    isUserQuestion: boolean;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
 export type Timestamp = bigint;
-export interface Comment {
-    id: bigint;
-    userId: UserId;
-    createdAt: Timestamp;
-    text: string;
-    chapterId?: ChapterId;
-    comicId: ComicId;
-}
-export interface ChapterInput {
+export interface UpdateComicArgs {
     title: string;
-    chapterNumber: bigint;
-    imageKeys: Array<string>;
-    imageOrder: Array<bigint>;
-    creatorId: UserId;
-    comicId: ComicId;
-    chapterStatus: ChapterStatus;
-    images: Array<string>;
+    cover_blob: ExternalBlob;
+    description: string;
 }
-export interface ReadingProgress {
-    scrollPosition: bigint;
-    chapterId: ChapterId;
-    comicId: ComicId;
-    lastReadAt: Timestamp;
+export interface UpdateChapterDraftArgs {
+    title: string;
+    number: number;
 }
-export interface FAQInput {
-    question: string;
-    answer: string;
-    category: string;
-    isUserQuestion: boolean;
-}
-export interface UserProfilePublic {
-    id: UserId;
-    bio?: string;
-    username: string;
-    totalSeries: bigint;
-    createdAt: Timestamp;
-    avatarUrl?: string;
-    totalCommentsReceived: bigint;
-    followerCount: bigint;
-    followingCount: bigint;
-    totalLikesReceived: bigint;
-}
-export type ChapterId = bigint;
-export type UserId = string;
-export type Result = {
-    __kind__: "ok";
-    ok: boolean;
-} | {
-    __kind__: "err";
-    err: ChapterError;
-};
-export interface CommentReply {
-    id: bigint;
-    username: string;
-    parentCommentId: bigint;
-    userId: UserId;
-    createdAt: Timestamp;
-    text: string;
-}
-export interface ComicPublic {
+export type ProfileId = string;
+export interface ComicView {
     id: ComicId;
     title: string;
-    isPremium: boolean;
-    createdAt: Timestamp;
-    creatorId: UserId;
+    updated_at: Timestamp;
+    cover_blob: ExternalBlob;
     description: string;
-    author: string;
-    ownerUploaded: boolean;
-    isFeatured: boolean;
-    genres: Array<string>;
-    coverUrl: string;
-    likesCount: bigint;
-    isPinned: boolean;
-    isTrending: boolean;
-    viewsCount: bigint;
+    created_at: Timestamp;
+    author_id: UserId;
 }
-export interface ComicInput {
-    title: string;
-    isPremium: boolean;
-    creatorId: UserId;
-    description: string;
-    author: string;
-    ownerUploaded: boolean;
-    isFeatured: boolean;
-    genres: Array<string>;
-    coverUrl: string;
-    isPinned: boolean;
-    isTrending: boolean;
-}
-export type ComicId = bigint;
-export interface ChapterPublic {
+export type ChapterId = string;
+export interface ChapterView {
     id: ChapterId;
     title: string;
-    chapterNumber: bigint;
-    imageKeys: Array<string>;
-    imageOrder: Array<bigint>;
-    createdAt: Timestamp;
-    creatorId: UserId;
-    publishedAt?: Timestamp;
-    comicId: ComicId;
-    updatedAt: Timestamp;
-    chapterStatus: ChapterStatus;
-    images: Array<string>;
+    updated_at: Timestamp;
+    created_at: Timestamp;
+    comic_id: ComicId;
+    is_published: boolean;
+    number: number;
+    image_blobs: Array<ExternalBlob>;
 }
-export interface NotificationPublic {
-    id: bigint;
-    actorName: string;
-    notifType: NotificationType;
-    userId: UserId;
-    createdAt: Timestamp;
-    chapterId?: ChapterId;
-    isRead: boolean;
-    actorId: UserId;
-    comicId?: ComicId;
-    commentPreview?: string;
+export type UserId = Principal;
+export interface SaveReadProgressRequest {
+    comic_id: ComicId;
+    scroll_pixel_y: bigint;
+    chapter_id: ChapterId;
 }
-export enum ChapterError {
-    invalidImages = "invalidImages",
-    notFound = "notFound",
-    unauthorized = "unauthorized"
+export interface UpdateProfileRequest {
+    bio?: string;
+    profile_picture_url?: string;
+    display_name?: string;
 }
-export enum ChapterStatus {
+export type ComicId = string;
+export interface TrendingEntry {
+    views: bigint;
+    last_updated: Timestamp;
+    comic_id: ComicId;
+    hot_score: number;
+}
+export interface UploadSession {
+    status: UploadStatus;
+    updated_at: Timestamp;
+    chapter_id: ChapterId;
+    uploaded_blobs: Array<ExternalBlob>;
+    started_at: Timestamp;
+}
+export interface CreateComicArgs {
+    title: string;
+    cover_blob: ExternalBlob;
+    description: string;
+}
+export interface Comic {
+    id: ComicId;
+    title: string;
+    updated_at: Timestamp;
+    cover_blob: ExternalBlob;
+    description: string;
+    created_at: Timestamp;
+    author_id: UserId;
+    is_deleted: boolean;
+}
+export interface ReadProgress {
+    user_id: ProfileId;
+    comic_id: ComicId;
+    scroll_pixel_y: bigint;
+    chapter_id: ChapterId;
+    last_read_at: Timestamp;
+}
+export interface UserProfile {
+    id: ProfileId;
+    bio: string;
+    updated_at: Timestamp;
+    created_at: Timestamp;
+    profile_picture_url?: string;
+    display_name: string;
+    auth_id: string;
+    handle: string;
+    is_creator: boolean;
+}
+export interface CreateChapterArgs {
+    title: string;
+    comic_id: ComicId;
+    number: number;
+}
+export enum UploadStatus {
     published = "published",
-    draft = "draft"
+    uploading = "uploading",
+    draft = "draft",
+    failed = "failed"
 }
-export enum NotificationType {
-    like = "like",
-    comment = "comment",
-    reply = "reply",
-    follow = "follow"
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
 }
 export interface backendInterface {
-    addComment(userId: UserId, comicId: ComicId, chapterId: ChapterId | null, text: string): Promise<bigint>;
-    addReply(parentCommentId: bigint, userId: UserId, username: string, text: string): Promise<CommentReply>;
-    approveFAQ(id: bigint): Promise<boolean>;
-    bookmarkComic(_id: ComicId): Promise<boolean>;
-    canisterStatus(): Promise<string>;
-    cleanupAllDeletedComics(): Promise<void>;
-    clearNotifications(userId: UserId): Promise<void>;
-    createChapter(input: ChapterInput): Promise<ChapterId>;
-    createComic(input: ComicInput): Promise<ComicId>;
-    createFAQ(input: FAQInput): Promise<bigint>;
-    createOrUpdateProfile(userId: UserId, username: string, avatarUrl: string | null, bio: string | null): Promise<UserProfilePublic>;
-    deleteChapter(id: ChapterId): Promise<Result>;
-    deleteComic(id: ComicId): Promise<Result>;
-    deleteFAQ(id: bigint): Promise<boolean>;
-    deleteReadingHistoryEntry(chapterId: ChapterId): Promise<void>;
-    followUser(followerId: UserId, followeeId: UserId): Promise<boolean>;
-    getChapter(id: ChapterId): Promise<ChapterPublic | null>;
-    getChapterLikeCount(chapterId: ChapterId): Promise<bigint>;
-    getComic(id: ComicId): Promise<ComicPublic | null>;
-    getFirstPublishedChapter(comicId: ComicId): Promise<ChapterPublic | null>;
-    getFollowers(userId: UserId): Promise<Array<string>>;
-    getFollowing(userId: UserId): Promise<Array<string>>;
-    getLikes(id: ComicId): Promise<bigint | null>;
-    getNotifications(userId: UserId): Promise<Array<NotificationPublic>>;
-    getProfile(userId: UserId): Promise<UserProfilePublic | null>;
-    getProgress(userId: UserId, comicId: ComicId): Promise<ReadingProgress | null>;
-    getReadingProgress(comicId: ComicId, userId: UserId): Promise<ReadingProgress | null>;
-    getTrending(limit: bigint): Promise<Array<ComicPublic>>;
-    getUnreadCount(userId: UserId): Promise<bigint>;
-    getViews(id: ComicId): Promise<bigint | null>;
-    isChapterLiked(userId: UserId, chapterId: ChapterId): Promise<boolean>;
-    isFollowing(followerId: UserId, followeeId: UserId): Promise<boolean>;
-    likeChapter(userId: UserId, comicId: ComicId, chapterId: ChapterId): Promise<boolean>;
-    likeComic(id: ComicId): Promise<boolean>;
-    listChapters(comicId: ComicId, publishedOnly: boolean): Promise<Array<ChapterPublic>>;
-    listComics(): Promise<Array<ComicPublic>>;
-    listComments(comicId: ComicId): Promise<Array<Comment>>;
-    listCreatorProfiles(limit: bigint): Promise<Array<UserProfilePublic>>;
-    listFAQs(approvedOnly: boolean): Promise<Array<FAQPublic>>;
-    listProgress(userId: UserId): Promise<Array<ReadingProgress>>;
-    listReplies(parentCommentId: bigint): Promise<Array<CommentReply>>;
-    markAllRead(userId: UserId): Promise<void>;
-    markRead(userId: UserId, notificationId: bigint): Promise<boolean>;
-    publishChapter(id: ChapterId): Promise<Result>;
-    saveProgress(userId: UserId, progress: ReadingProgress): Promise<void>;
-    submitFAQ(input: FAQInput): Promise<bigint>;
-    unbookmarkComic(_id: ComicId): Promise<boolean>;
-    unfollowUser(followerId: UserId, followeeId: UserId): Promise<boolean>;
-    unlikeChapter(userId: UserId, chapterId: ChapterId): Promise<boolean>;
-    unlikeComic(id: ComicId): Promise<boolean>;
-    unpublishChapter(id: ChapterId): Promise<Result>;
-    updateChapter(id: ChapterId, input: ChapterInput): Promise<Result>;
-    updateChapterOrder(id: ChapterId, newImageOrder: Array<bigint>): Promise<Result>;
-    updateComic(id: ComicId, input: ComicInput): Promise<boolean>;
-    updateFAQ(id: bigint, input: FAQInput): Promise<boolean>;
-    updateReadingProgress(comicId: ComicId, chapterId: ChapterId, userId: UserId): Promise<void>;
-    viewComic(id: ComicId): Promise<boolean>;
-    voteFAQ(id: bigint): Promise<boolean>;
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    beginUpload(chapter_id: ChapterId): Promise<UploadSession>;
+    commitUpload(chapter_id: ChapterId): Promise<ChapterView>;
+    createChapter(args: CreateChapterArgs): Promise<ChapterView>;
+    createComic(args: CreateComicArgs): Promise<ComicView>;
+    deleteChapter(id: ChapterId): Promise<void>;
+    deleteComic(id: ComicId): Promise<void>;
+    getCallerUserRole(): Promise<UserRole>;
+    getChapter(id: ChapterId): Promise<ChapterView | null>;
+    getComic(id: ComicId): Promise<ComicView | null>;
+    getMyReadProgress(comicId: ComicId): Promise<ReadProgress | null>;
+    getMyResumeReading(limit: bigint): Promise<Array<[Comic, ReadProgress]>>;
+    getTrendingComics(limit: bigint): Promise<Array<TrendingEntry>>;
+    getUserProfile(userId: string): Promise<UserProfile | null>;
+    incrementComicViews(comicId: ComicId): Promise<void>;
+    isCallerAdmin(): Promise<boolean>;
+    listChapters(comic_id: ComicId): Promise<Array<ChapterView>>;
+    listComics(): Promise<Array<ComicView>>;
+    registerUploadedImage(chapter_id: ChapterId, blob: ExternalBlob): Promise<UploadSession>;
+    rollbackUpload(chapter_id: ChapterId): Promise<bigint>;
+    saveMyReadProgress(req: SaveReadProgressRequest): Promise<void>;
+    updateChapterDraft(id: ChapterId, args: UpdateChapterDraftArgs): Promise<ChapterView>;
+    updateComic(id: ComicId, args: UpdateComicArgs): Promise<ComicView>;
+    updateMyProfile(req: UpdateProfileRequest): Promise<UserProfile>;
 }

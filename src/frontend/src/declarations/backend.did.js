@@ -8,479 +8,387 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const UserId = IDL.Text;
-export const ComicId = IDL.Nat;
-export const ChapterId = IDL.Nat;
-export const Timestamp = IDL.Int;
-export const CommentReply = IDL.Record({
-  'id' : IDL.Nat,
-  'username' : IDL.Text,
-  'parentCommentId' : IDL.Nat,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'text' : IDL.Text,
+export const _ImmutableObjectStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
 });
-export const ChapterStatus = IDL.Variant({
+export const _ImmutableObjectStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _ImmutableObjectStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
+export const ChapterId = IDL.Text;
+export const UploadStatus = IDL.Variant({
   'published' : IDL.Null,
+  'uploading' : IDL.Null,
   'draft' : IDL.Null,
+  'failed' : IDL.Null,
 });
-export const ChapterInput = IDL.Record({
-  'title' : IDL.Text,
-  'chapterNumber' : IDL.Nat,
-  'imageKeys' : IDL.Vec(IDL.Text),
-  'imageOrder' : IDL.Vec(IDL.Nat),
-  'creatorId' : UserId,
-  'comicId' : ComicId,
-  'chapterStatus' : ChapterStatus,
-  'images' : IDL.Vec(IDL.Text),
+export const Timestamp = IDL.Int;
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const UploadSession = IDL.Record({
+  'status' : UploadStatus,
+  'updated_at' : Timestamp,
+  'chapter_id' : ChapterId,
+  'uploaded_blobs' : IDL.Vec(ExternalBlob),
+  'started_at' : Timestamp,
 });
-export const ComicInput = IDL.Record({
-  'title' : IDL.Text,
-  'isPremium' : IDL.Bool,
-  'creatorId' : UserId,
-  'description' : IDL.Text,
-  'author' : IDL.Text,
-  'ownerUploaded' : IDL.Bool,
-  'isFeatured' : IDL.Bool,
-  'genres' : IDL.Vec(IDL.Text),
-  'coverUrl' : IDL.Text,
-  'isPinned' : IDL.Bool,
-  'isTrending' : IDL.Bool,
-});
-export const FAQInput = IDL.Record({
-  'question' : IDL.Text,
-  'answer' : IDL.Text,
-  'category' : IDL.Text,
-  'isUserQuestion' : IDL.Bool,
-});
-export const UserProfilePublic = IDL.Record({
-  'id' : UserId,
-  'bio' : IDL.Opt(IDL.Text),
-  'username' : IDL.Text,
-  'totalSeries' : IDL.Nat,
-  'createdAt' : Timestamp,
-  'avatarUrl' : IDL.Opt(IDL.Text),
-  'totalCommentsReceived' : IDL.Nat,
-  'followerCount' : IDL.Nat,
-  'followingCount' : IDL.Nat,
-  'totalLikesReceived' : IDL.Nat,
-});
-export const ChapterError = IDL.Variant({
-  'invalidImages' : IDL.Null,
-  'notFound' : IDL.Null,
-  'unauthorized' : IDL.Null,
-});
-export const Result = IDL.Variant({ 'ok' : IDL.Bool, 'err' : ChapterError });
-export const ChapterPublic = IDL.Record({
+export const ComicId = IDL.Text;
+export const ChapterView = IDL.Record({
   'id' : ChapterId,
   'title' : IDL.Text,
-  'chapterNumber' : IDL.Nat,
-  'imageKeys' : IDL.Vec(IDL.Text),
-  'imageOrder' : IDL.Vec(IDL.Nat),
-  'createdAt' : Timestamp,
-  'creatorId' : UserId,
-  'publishedAt' : IDL.Opt(Timestamp),
-  'comicId' : ComicId,
-  'updatedAt' : Timestamp,
-  'chapterStatus' : ChapterStatus,
-  'images' : IDL.Vec(IDL.Text),
+  'updated_at' : Timestamp,
+  'created_at' : Timestamp,
+  'comic_id' : ComicId,
+  'is_published' : IDL.Bool,
+  'number' : IDL.Float64,
+  'image_blobs' : IDL.Vec(ExternalBlob),
 });
-export const ComicPublic = IDL.Record({
+export const CreateChapterArgs = IDL.Record({
+  'title' : IDL.Text,
+  'comic_id' : ComicId,
+  'number' : IDL.Float64,
+});
+export const CreateComicArgs = IDL.Record({
+  'title' : IDL.Text,
+  'cover_blob' : ExternalBlob,
+  'description' : IDL.Text,
+});
+export const UserId = IDL.Principal;
+export const ComicView = IDL.Record({
   'id' : ComicId,
   'title' : IDL.Text,
-  'isPremium' : IDL.Bool,
-  'createdAt' : Timestamp,
-  'creatorId' : UserId,
+  'updated_at' : Timestamp,
+  'cover_blob' : ExternalBlob,
   'description' : IDL.Text,
-  'author' : IDL.Text,
-  'ownerUploaded' : IDL.Bool,
-  'isFeatured' : IDL.Bool,
-  'genres' : IDL.Vec(IDL.Text),
-  'coverUrl' : IDL.Text,
-  'likesCount' : IDL.Nat,
-  'isPinned' : IDL.Bool,
-  'isTrending' : IDL.Bool,
-  'viewsCount' : IDL.Nat,
+  'created_at' : Timestamp,
+  'author_id' : UserId,
 });
-export const NotificationType = IDL.Variant({
-  'like' : IDL.Null,
-  'comment' : IDL.Null,
-  'reply' : IDL.Null,
-  'follow' : IDL.Null,
+export const ProfileId = IDL.Text;
+export const ReadProgress = IDL.Record({
+  'user_id' : ProfileId,
+  'comic_id' : ComicId,
+  'scroll_pixel_y' : IDL.Nat,
+  'chapter_id' : ChapterId,
+  'last_read_at' : Timestamp,
 });
-export const NotificationPublic = IDL.Record({
-  'id' : IDL.Nat,
-  'actorName' : IDL.Text,
-  'notifType' : NotificationType,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'chapterId' : IDL.Opt(ChapterId),
-  'isRead' : IDL.Bool,
-  'actorId' : UserId,
-  'comicId' : IDL.Opt(ComicId),
-  'commentPreview' : IDL.Opt(IDL.Text),
+export const Comic = IDL.Record({
+  'id' : ComicId,
+  'title' : IDL.Text,
+  'updated_at' : Timestamp,
+  'cover_blob' : ExternalBlob,
+  'description' : IDL.Text,
+  'created_at' : Timestamp,
+  'author_id' : UserId,
+  'is_deleted' : IDL.Bool,
 });
-export const ReadingProgress = IDL.Record({
-  'scrollPosition' : IDL.Nat,
-  'chapterId' : ChapterId,
-  'comicId' : ComicId,
-  'lastReadAt' : Timestamp,
+export const TrendingEntry = IDL.Record({
+  'views' : IDL.Nat,
+  'last_updated' : Timestamp,
+  'comic_id' : ComicId,
+  'hot_score' : IDL.Float64,
 });
-export const Comment = IDL.Record({
-  'id' : IDL.Nat,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'text' : IDL.Text,
-  'chapterId' : IDL.Opt(ChapterId),
-  'comicId' : ComicId,
+export const UserProfile = IDL.Record({
+  'id' : ProfileId,
+  'bio' : IDL.Text,
+  'updated_at' : Timestamp,
+  'created_at' : Timestamp,
+  'profile_picture_url' : IDL.Opt(IDL.Text),
+  'display_name' : IDL.Text,
+  'auth_id' : IDL.Text,
+  'handle' : IDL.Text,
+  'is_creator' : IDL.Bool,
 });
-export const FAQPublic = IDL.Record({
-  'id' : IDL.Nat,
-  'upvotes' : IDL.Nat,
-  'question' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'answer' : IDL.Text,
-  'approved' : IDL.Bool,
-  'category' : IDL.Text,
-  'isUserQuestion' : IDL.Bool,
+export const SaveReadProgressRequest = IDL.Record({
+  'comic_id' : ComicId,
+  'scroll_pixel_y' : IDL.Nat,
+  'chapter_id' : ChapterId,
+});
+export const UpdateChapterDraftArgs = IDL.Record({
+  'title' : IDL.Text,
+  'number' : IDL.Float64,
+});
+export const UpdateComicArgs = IDL.Record({
+  'title' : IDL.Text,
+  'cover_blob' : ExternalBlob,
+  'description' : IDL.Text,
+});
+export const UpdateProfileRequest = IDL.Record({
+  'bio' : IDL.Opt(IDL.Text),
+  'profile_picture_url' : IDL.Opt(IDL.Text),
+  'display_name' : IDL.Opt(IDL.Text),
 });
 
 export const idlService = IDL.Service({
-  'addComment' : IDL.Func(
-      [UserId, ComicId, IDL.Opt(ChapterId), IDL.Text],
+  '_immutableObjectStorageBlobsAreLive' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [IDL.Vec(IDL.Bool)],
+      ['query'],
+    ),
+  '_immutableObjectStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_immutableObjectStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_immutableObjectStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_ImmutableObjectStorageCreateCertificateResult],
+      [],
+    ),
+  '_immutableObjectStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_ImmutableObjectStorageRefillInformation)],
+      [_ImmutableObjectStorageRefillResult],
+      [],
+    ),
+  '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
+  '_initializeAccessControl' : IDL.Func([], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'beginUpload' : IDL.Func([ChapterId], [UploadSession], []),
+  'commitUpload' : IDL.Func([ChapterId], [ChapterView], []),
+  'createChapter' : IDL.Func([CreateChapterArgs], [ChapterView], []),
+  'createComic' : IDL.Func([CreateComicArgs], [ComicView], []),
+  'deleteChapter' : IDL.Func([ChapterId], [], []),
+  'deleteComic' : IDL.Func([ComicId], [], []),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterView)], ['query']),
+  'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicView)], ['query']),
+  'getMyReadProgress' : IDL.Func([ComicId], [IDL.Opt(ReadProgress)], ['query']),
+  'getMyResumeReading' : IDL.Func(
       [IDL.Nat],
-      [],
-    ),
-  'addReply' : IDL.Func(
-      [IDL.Nat, UserId, IDL.Text, IDL.Text],
-      [CommentReply],
-      [],
-    ),
-  'approveFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
-  'bookmarkComic' : IDL.Func([ComicId], [IDL.Bool], []),
-  'canisterStatus' : IDL.Func([], [IDL.Text], ['query']),
-  'cleanupAllDeletedComics' : IDL.Func([], [], []),
-  'clearNotifications' : IDL.Func([UserId], [], []),
-  'createChapter' : IDL.Func([ChapterInput], [ChapterId], []),
-  'createComic' : IDL.Func([ComicInput], [ComicId], []),
-  'createFAQ' : IDL.Func([FAQInput], [IDL.Nat], []),
-  'createOrUpdateProfile' : IDL.Func(
-      [UserId, IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
-      [UserProfilePublic],
-      [],
-    ),
-  'deleteChapter' : IDL.Func([ChapterId], [Result], []),
-  'deleteComic' : IDL.Func([ComicId], [Result], []),
-  'deleteFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
-  'deleteReadingHistoryEntry' : IDL.Func([ChapterId], [], []),
-  'followUser' : IDL.Func([UserId, UserId], [IDL.Bool], []),
-  'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterPublic)], ['query']),
-  'getChapterLikeCount' : IDL.Func([ChapterId], [IDL.Nat], ['query']),
-  'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicPublic)], ['query']),
-  'getFirstPublishedChapter' : IDL.Func(
-      [ComicId],
-      [IDL.Opt(ChapterPublic)],
+      [IDL.Vec(IDL.Tuple(Comic, ReadProgress))],
       ['query'],
     ),
-  'getFollowers' : IDL.Func([UserId], [IDL.Vec(IDL.Text)], ['query']),
-  'getFollowing' : IDL.Func([UserId], [IDL.Vec(IDL.Text)], ['query']),
-  'getLikes' : IDL.Func([ComicId], [IDL.Opt(IDL.Nat)], ['query']),
-  'getNotifications' : IDL.Func(
-      [UserId],
-      [IDL.Vec(NotificationPublic)],
-      ['query'],
-    ),
-  'getProfile' : IDL.Func([UserId], [IDL.Opt(UserProfilePublic)], ['query']),
-  'getProgress' : IDL.Func(
-      [UserId, ComicId],
-      [IDL.Opt(ReadingProgress)],
-      ['query'],
-    ),
-  'getReadingProgress' : IDL.Func(
-      [ComicId, UserId],
-      [IDL.Opt(ReadingProgress)],
-      ['query'],
-    ),
-  'getTrending' : IDL.Func([IDL.Nat], [IDL.Vec(ComicPublic)], ['query']),
-  'getUnreadCount' : IDL.Func([UserId], [IDL.Nat], ['query']),
-  'getViews' : IDL.Func([ComicId], [IDL.Opt(IDL.Nat)], ['query']),
-  'isChapterLiked' : IDL.Func([UserId, ChapterId], [IDL.Bool], ['query']),
-  'isFollowing' : IDL.Func([UserId, UserId], [IDL.Bool], ['query']),
-  'likeChapter' : IDL.Func([UserId, ComicId, ChapterId], [IDL.Bool], []),
-  'likeComic' : IDL.Func([ComicId], [IDL.Bool], []),
-  'listChapters' : IDL.Func(
-      [ComicId, IDL.Bool],
-      [IDL.Vec(ChapterPublic)],
-      ['query'],
-    ),
-  'listComics' : IDL.Func([], [IDL.Vec(ComicPublic)], ['query']),
-  'listComments' : IDL.Func([ComicId], [IDL.Vec(Comment)], ['query']),
-  'listCreatorProfiles' : IDL.Func(
+  'getTrendingComics' : IDL.Func(
       [IDL.Nat],
-      [IDL.Vec(UserProfilePublic)],
+      [IDL.Vec(TrendingEntry)],
       ['query'],
     ),
-  'listFAQs' : IDL.Func([IDL.Bool], [IDL.Vec(FAQPublic)], ['query']),
-  'listProgress' : IDL.Func([UserId], [IDL.Vec(ReadingProgress)], ['query']),
-  'listReplies' : IDL.Func([IDL.Nat], [IDL.Vec(CommentReply)], ['query']),
-  'markAllRead' : IDL.Func([UserId], [], []),
-  'markRead' : IDL.Func([UserId, IDL.Nat], [IDL.Bool], []),
-  'publishChapter' : IDL.Func([ChapterId], [Result], []),
-  'saveProgress' : IDL.Func([UserId, ReadingProgress], [], []),
-  'submitFAQ' : IDL.Func([FAQInput], [IDL.Nat], []),
-  'unbookmarkComic' : IDL.Func([ComicId], [IDL.Bool], []),
-  'unfollowUser' : IDL.Func([UserId, UserId], [IDL.Bool], []),
-  'unlikeChapter' : IDL.Func([UserId, ChapterId], [IDL.Bool], []),
-  'unlikeComic' : IDL.Func([ComicId], [IDL.Bool], []),
-  'unpublishChapter' : IDL.Func([ChapterId], [Result], []),
-  'updateChapter' : IDL.Func([ChapterId, ChapterInput], [Result], []),
-  'updateChapterOrder' : IDL.Func([ChapterId, IDL.Vec(IDL.Nat)], [Result], []),
-  'updateComic' : IDL.Func([ComicId, ComicInput], [IDL.Bool], []),
-  'updateFAQ' : IDL.Func([IDL.Nat, FAQInput], [IDL.Bool], []),
-  'updateReadingProgress' : IDL.Func([ComicId, ChapterId, UserId], [], []),
-  'viewComic' : IDL.Func([ComicId], [IDL.Bool], []),
-  'voteFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'getUserProfile' : IDL.Func([IDL.Text], [IDL.Opt(UserProfile)], ['query']),
+  'incrementComicViews' : IDL.Func([ComicId], [], []),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listChapters' : IDL.Func([ComicId], [IDL.Vec(ChapterView)], ['query']),
+  'listComics' : IDL.Func([], [IDL.Vec(ComicView)], ['query']),
+  'registerUploadedImage' : IDL.Func(
+      [ChapterId, ExternalBlob],
+      [UploadSession],
+      [],
+    ),
+  'rollbackUpload' : IDL.Func([ChapterId], [IDL.Nat], []),
+  'saveMyReadProgress' : IDL.Func([SaveReadProgressRequest], [], []),
+  'updateChapterDraft' : IDL.Func(
+      [ChapterId, UpdateChapterDraftArgs],
+      [ChapterView],
+      [],
+    ),
+  'updateComic' : IDL.Func([ComicId, UpdateComicArgs], [ComicView], []),
+  'updateMyProfile' : IDL.Func([UpdateProfileRequest], [UserProfile], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const UserId = IDL.Text;
-  const ComicId = IDL.Nat;
-  const ChapterId = IDL.Nat;
-  const Timestamp = IDL.Int;
-  const CommentReply = IDL.Record({
-    'id' : IDL.Nat,
-    'username' : IDL.Text,
-    'parentCommentId' : IDL.Nat,
-    'userId' : UserId,
-    'createdAt' : Timestamp,
-    'text' : IDL.Text,
+  const _ImmutableObjectStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
   });
-  const ChapterStatus = IDL.Variant({
+  const _ImmutableObjectStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _ImmutableObjectStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
+  const ChapterId = IDL.Text;
+  const UploadStatus = IDL.Variant({
     'published' : IDL.Null,
+    'uploading' : IDL.Null,
     'draft' : IDL.Null,
+    'failed' : IDL.Null,
   });
-  const ChapterInput = IDL.Record({
-    'title' : IDL.Text,
-    'chapterNumber' : IDL.Nat,
-    'imageKeys' : IDL.Vec(IDL.Text),
-    'imageOrder' : IDL.Vec(IDL.Nat),
-    'creatorId' : UserId,
-    'comicId' : ComicId,
-    'chapterStatus' : ChapterStatus,
-    'images' : IDL.Vec(IDL.Text),
+  const Timestamp = IDL.Int;
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const UploadSession = IDL.Record({
+    'status' : UploadStatus,
+    'updated_at' : Timestamp,
+    'chapter_id' : ChapterId,
+    'uploaded_blobs' : IDL.Vec(ExternalBlob),
+    'started_at' : Timestamp,
   });
-  const ComicInput = IDL.Record({
-    'title' : IDL.Text,
-    'isPremium' : IDL.Bool,
-    'creatorId' : UserId,
-    'description' : IDL.Text,
-    'author' : IDL.Text,
-    'ownerUploaded' : IDL.Bool,
-    'isFeatured' : IDL.Bool,
-    'genres' : IDL.Vec(IDL.Text),
-    'coverUrl' : IDL.Text,
-    'isPinned' : IDL.Bool,
-    'isTrending' : IDL.Bool,
-  });
-  const FAQInput = IDL.Record({
-    'question' : IDL.Text,
-    'answer' : IDL.Text,
-    'category' : IDL.Text,
-    'isUserQuestion' : IDL.Bool,
-  });
-  const UserProfilePublic = IDL.Record({
-    'id' : UserId,
-    'bio' : IDL.Opt(IDL.Text),
-    'username' : IDL.Text,
-    'totalSeries' : IDL.Nat,
-    'createdAt' : Timestamp,
-    'avatarUrl' : IDL.Opt(IDL.Text),
-    'totalCommentsReceived' : IDL.Nat,
-    'followerCount' : IDL.Nat,
-    'followingCount' : IDL.Nat,
-    'totalLikesReceived' : IDL.Nat,
-  });
-  const ChapterError = IDL.Variant({
-    'invalidImages' : IDL.Null,
-    'notFound' : IDL.Null,
-    'unauthorized' : IDL.Null,
-  });
-  const Result = IDL.Variant({ 'ok' : IDL.Bool, 'err' : ChapterError });
-  const ChapterPublic = IDL.Record({
+  const ComicId = IDL.Text;
+  const ChapterView = IDL.Record({
     'id' : ChapterId,
     'title' : IDL.Text,
-    'chapterNumber' : IDL.Nat,
-    'imageKeys' : IDL.Vec(IDL.Text),
-    'imageOrder' : IDL.Vec(IDL.Nat),
-    'createdAt' : Timestamp,
-    'creatorId' : UserId,
-    'publishedAt' : IDL.Opt(Timestamp),
-    'comicId' : ComicId,
-    'updatedAt' : Timestamp,
-    'chapterStatus' : ChapterStatus,
-    'images' : IDL.Vec(IDL.Text),
+    'updated_at' : Timestamp,
+    'created_at' : Timestamp,
+    'comic_id' : ComicId,
+    'is_published' : IDL.Bool,
+    'number' : IDL.Float64,
+    'image_blobs' : IDL.Vec(ExternalBlob),
   });
-  const ComicPublic = IDL.Record({
+  const CreateChapterArgs = IDL.Record({
+    'title' : IDL.Text,
+    'comic_id' : ComicId,
+    'number' : IDL.Float64,
+  });
+  const CreateComicArgs = IDL.Record({
+    'title' : IDL.Text,
+    'cover_blob' : ExternalBlob,
+    'description' : IDL.Text,
+  });
+  const UserId = IDL.Principal;
+  const ComicView = IDL.Record({
     'id' : ComicId,
     'title' : IDL.Text,
-    'isPremium' : IDL.Bool,
-    'createdAt' : Timestamp,
-    'creatorId' : UserId,
+    'updated_at' : Timestamp,
+    'cover_blob' : ExternalBlob,
     'description' : IDL.Text,
-    'author' : IDL.Text,
-    'ownerUploaded' : IDL.Bool,
-    'isFeatured' : IDL.Bool,
-    'genres' : IDL.Vec(IDL.Text),
-    'coverUrl' : IDL.Text,
-    'likesCount' : IDL.Nat,
-    'isPinned' : IDL.Bool,
-    'isTrending' : IDL.Bool,
-    'viewsCount' : IDL.Nat,
+    'created_at' : Timestamp,
+    'author_id' : UserId,
   });
-  const NotificationType = IDL.Variant({
-    'like' : IDL.Null,
-    'comment' : IDL.Null,
-    'reply' : IDL.Null,
-    'follow' : IDL.Null,
+  const ProfileId = IDL.Text;
+  const ReadProgress = IDL.Record({
+    'user_id' : ProfileId,
+    'comic_id' : ComicId,
+    'scroll_pixel_y' : IDL.Nat,
+    'chapter_id' : ChapterId,
+    'last_read_at' : Timestamp,
   });
-  const NotificationPublic = IDL.Record({
-    'id' : IDL.Nat,
-    'actorName' : IDL.Text,
-    'notifType' : NotificationType,
-    'userId' : UserId,
-    'createdAt' : Timestamp,
-    'chapterId' : IDL.Opt(ChapterId),
-    'isRead' : IDL.Bool,
-    'actorId' : UserId,
-    'comicId' : IDL.Opt(ComicId),
-    'commentPreview' : IDL.Opt(IDL.Text),
+  const Comic = IDL.Record({
+    'id' : ComicId,
+    'title' : IDL.Text,
+    'updated_at' : Timestamp,
+    'cover_blob' : ExternalBlob,
+    'description' : IDL.Text,
+    'created_at' : Timestamp,
+    'author_id' : UserId,
+    'is_deleted' : IDL.Bool,
   });
-  const ReadingProgress = IDL.Record({
-    'scrollPosition' : IDL.Nat,
-    'chapterId' : ChapterId,
-    'comicId' : ComicId,
-    'lastReadAt' : Timestamp,
+  const TrendingEntry = IDL.Record({
+    'views' : IDL.Nat,
+    'last_updated' : Timestamp,
+    'comic_id' : ComicId,
+    'hot_score' : IDL.Float64,
   });
-  const Comment = IDL.Record({
-    'id' : IDL.Nat,
-    'userId' : UserId,
-    'createdAt' : Timestamp,
-    'text' : IDL.Text,
-    'chapterId' : IDL.Opt(ChapterId),
-    'comicId' : ComicId,
+  const UserProfile = IDL.Record({
+    'id' : ProfileId,
+    'bio' : IDL.Text,
+    'updated_at' : Timestamp,
+    'created_at' : Timestamp,
+    'profile_picture_url' : IDL.Opt(IDL.Text),
+    'display_name' : IDL.Text,
+    'auth_id' : IDL.Text,
+    'handle' : IDL.Text,
+    'is_creator' : IDL.Bool,
   });
-  const FAQPublic = IDL.Record({
-    'id' : IDL.Nat,
-    'upvotes' : IDL.Nat,
-    'question' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'answer' : IDL.Text,
-    'approved' : IDL.Bool,
-    'category' : IDL.Text,
-    'isUserQuestion' : IDL.Bool,
+  const SaveReadProgressRequest = IDL.Record({
+    'comic_id' : ComicId,
+    'scroll_pixel_y' : IDL.Nat,
+    'chapter_id' : ChapterId,
+  });
+  const UpdateChapterDraftArgs = IDL.Record({
+    'title' : IDL.Text,
+    'number' : IDL.Float64,
+  });
+  const UpdateComicArgs = IDL.Record({
+    'title' : IDL.Text,
+    'cover_blob' : ExternalBlob,
+    'description' : IDL.Text,
+  });
+  const UpdateProfileRequest = IDL.Record({
+    'bio' : IDL.Opt(IDL.Text),
+    'profile_picture_url' : IDL.Opt(IDL.Text),
+    'display_name' : IDL.Opt(IDL.Text),
   });
   
   return IDL.Service({
-    'addComment' : IDL.Func(
-        [UserId, ComicId, IDL.Opt(ChapterId), IDL.Text],
-        [IDL.Nat],
+    '_immutableObjectStorageBlobsAreLive' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [IDL.Vec(IDL.Bool)],
+        ['query'],
+      ),
+    '_immutableObjectStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_immutableObjectStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
         [],
       ),
-    'addReply' : IDL.Func(
-        [IDL.Nat, UserId, IDL.Text, IDL.Text],
-        [CommentReply],
+    '_immutableObjectStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_ImmutableObjectStorageCreateCertificateResult],
         [],
       ),
-    'approveFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
-    'bookmarkComic' : IDL.Func([ComicId], [IDL.Bool], []),
-    'canisterStatus' : IDL.Func([], [IDL.Text], ['query']),
-    'cleanupAllDeletedComics' : IDL.Func([], [], []),
-    'clearNotifications' : IDL.Func([UserId], [], []),
-    'createChapter' : IDL.Func([ChapterInput], [ChapterId], []),
-    'createComic' : IDL.Func([ComicInput], [ComicId], []),
-    'createFAQ' : IDL.Func([FAQInput], [IDL.Nat], []),
-    'createOrUpdateProfile' : IDL.Func(
-        [UserId, IDL.Text, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
-        [UserProfilePublic],
+    '_immutableObjectStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_ImmutableObjectStorageRefillInformation)],
+        [_ImmutableObjectStorageRefillResult],
         [],
       ),
-    'deleteChapter' : IDL.Func([ChapterId], [Result], []),
-    'deleteComic' : IDL.Func([ComicId], [Result], []),
-    'deleteFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
-    'deleteReadingHistoryEntry' : IDL.Func([ChapterId], [], []),
-    'followUser' : IDL.Func([UserId, UserId], [IDL.Bool], []),
-    'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterPublic)], ['query']),
-    'getChapterLikeCount' : IDL.Func([ChapterId], [IDL.Nat], ['query']),
-    'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicPublic)], ['query']),
-    'getFirstPublishedChapter' : IDL.Func(
+    '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
+    '_initializeAccessControl' : IDL.Func([], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'beginUpload' : IDL.Func([ChapterId], [UploadSession], []),
+    'commitUpload' : IDL.Func([ChapterId], [ChapterView], []),
+    'createChapter' : IDL.Func([CreateChapterArgs], [ChapterView], []),
+    'createComic' : IDL.Func([CreateComicArgs], [ComicView], []),
+    'deleteChapter' : IDL.Func([ChapterId], [], []),
+    'deleteComic' : IDL.Func([ComicId], [], []),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterView)], ['query']),
+    'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicView)], ['query']),
+    'getMyReadProgress' : IDL.Func(
         [ComicId],
-        [IDL.Opt(ChapterPublic)],
+        [IDL.Opt(ReadProgress)],
         ['query'],
       ),
-    'getFollowers' : IDL.Func([UserId], [IDL.Vec(IDL.Text)], ['query']),
-    'getFollowing' : IDL.Func([UserId], [IDL.Vec(IDL.Text)], ['query']),
-    'getLikes' : IDL.Func([ComicId], [IDL.Opt(IDL.Nat)], ['query']),
-    'getNotifications' : IDL.Func(
-        [UserId],
-        [IDL.Vec(NotificationPublic)],
-        ['query'],
-      ),
-    'getProfile' : IDL.Func([UserId], [IDL.Opt(UserProfilePublic)], ['query']),
-    'getProgress' : IDL.Func(
-        [UserId, ComicId],
-        [IDL.Opt(ReadingProgress)],
-        ['query'],
-      ),
-    'getReadingProgress' : IDL.Func(
-        [ComicId, UserId],
-        [IDL.Opt(ReadingProgress)],
-        ['query'],
-      ),
-    'getTrending' : IDL.Func([IDL.Nat], [IDL.Vec(ComicPublic)], ['query']),
-    'getUnreadCount' : IDL.Func([UserId], [IDL.Nat], ['query']),
-    'getViews' : IDL.Func([ComicId], [IDL.Opt(IDL.Nat)], ['query']),
-    'isChapterLiked' : IDL.Func([UserId, ChapterId], [IDL.Bool], ['query']),
-    'isFollowing' : IDL.Func([UserId, UserId], [IDL.Bool], ['query']),
-    'likeChapter' : IDL.Func([UserId, ComicId, ChapterId], [IDL.Bool], []),
-    'likeComic' : IDL.Func([ComicId], [IDL.Bool], []),
-    'listChapters' : IDL.Func(
-        [ComicId, IDL.Bool],
-        [IDL.Vec(ChapterPublic)],
-        ['query'],
-      ),
-    'listComics' : IDL.Func([], [IDL.Vec(ComicPublic)], ['query']),
-    'listComments' : IDL.Func([ComicId], [IDL.Vec(Comment)], ['query']),
-    'listCreatorProfiles' : IDL.Func(
+    'getMyResumeReading' : IDL.Func(
         [IDL.Nat],
-        [IDL.Vec(UserProfilePublic)],
+        [IDL.Vec(IDL.Tuple(Comic, ReadProgress))],
         ['query'],
       ),
-    'listFAQs' : IDL.Func([IDL.Bool], [IDL.Vec(FAQPublic)], ['query']),
-    'listProgress' : IDL.Func([UserId], [IDL.Vec(ReadingProgress)], ['query']),
-    'listReplies' : IDL.Func([IDL.Nat], [IDL.Vec(CommentReply)], ['query']),
-    'markAllRead' : IDL.Func([UserId], [], []),
-    'markRead' : IDL.Func([UserId, IDL.Nat], [IDL.Bool], []),
-    'publishChapter' : IDL.Func([ChapterId], [Result], []),
-    'saveProgress' : IDL.Func([UserId, ReadingProgress], [], []),
-    'submitFAQ' : IDL.Func([FAQInput], [IDL.Nat], []),
-    'unbookmarkComic' : IDL.Func([ComicId], [IDL.Bool], []),
-    'unfollowUser' : IDL.Func([UserId, UserId], [IDL.Bool], []),
-    'unlikeChapter' : IDL.Func([UserId, ChapterId], [IDL.Bool], []),
-    'unlikeComic' : IDL.Func([ComicId], [IDL.Bool], []),
-    'unpublishChapter' : IDL.Func([ChapterId], [Result], []),
-    'updateChapter' : IDL.Func([ChapterId, ChapterInput], [Result], []),
-    'updateChapterOrder' : IDL.Func(
-        [ChapterId, IDL.Vec(IDL.Nat)],
-        [Result],
+    'getTrendingComics' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(TrendingEntry)],
+        ['query'],
+      ),
+    'getUserProfile' : IDL.Func([IDL.Text], [IDL.Opt(UserProfile)], ['query']),
+    'incrementComicViews' : IDL.Func([ComicId], [], []),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listChapters' : IDL.Func([ComicId], [IDL.Vec(ChapterView)], ['query']),
+    'listComics' : IDL.Func([], [IDL.Vec(ComicView)], ['query']),
+    'registerUploadedImage' : IDL.Func(
+        [ChapterId, ExternalBlob],
+        [UploadSession],
         [],
       ),
-    'updateComic' : IDL.Func([ComicId, ComicInput], [IDL.Bool], []),
-    'updateFAQ' : IDL.Func([IDL.Nat, FAQInput], [IDL.Bool], []),
-    'updateReadingProgress' : IDL.Func([ComicId, ChapterId, UserId], [], []),
-    'viewComic' : IDL.Func([ComicId], [IDL.Bool], []),
-    'voteFAQ' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'rollbackUpload' : IDL.Func([ChapterId], [IDL.Nat], []),
+    'saveMyReadProgress' : IDL.Func([SaveReadProgressRequest], [], []),
+    'updateChapterDraft' : IDL.Func(
+        [ChapterId, UpdateChapterDraftArgs],
+        [ChapterView],
+        [],
+      ),
+    'updateComic' : IDL.Func([ComicId, UpdateComicArgs], [ComicView], []),
+    'updateMyProfile' : IDL.Func([UpdateProfileRequest], [UserProfile], []),
   });
 };
 

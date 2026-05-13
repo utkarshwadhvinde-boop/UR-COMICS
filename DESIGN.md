@@ -1,71 +1,104 @@
-# UR Comics Design System
+# UR COMICS Design Brief
+
+**Purpose:** Premium webtoon/manhwa reading and creation platform. Minimalist Luxury aesthetic — infinite dark space with vivid purple energy.
 
 ## Visual Direction
-**Luxury digital minimalism**: Premium purple-based platform with glassmorphism elegance, smooth micro-interactions, and refined typography. Feels like Spotify + Figma maturity — bold but tasteful, modern but timeless.
 
-## Color Palette (OKLCH)
-| Role | Light | Dark |
-|------|-------|------|
-| Primary | 0.58 0.22 265 | 0.72 0.20 265 |
-| Background | 0.98 0.005 320 | 0.13 0.005 265 |
-| Foreground | 0.15 0.02 265 | 0.95 0.004 280 |
-| Card | 1.0 0 0 | 0.17 0.008 265 |
-| Accent | 0.58 0.22 265 | 0.72 0.20 265 |
-| Muted | 0.93 0.004 320 | 0.21 0.008 265 |
-| Destructive | 0.55 0.22 25 | 0.65 0.19 22 |
+| Aspect | Definition |
+| --- | --- |
+| **Tone** | Bold, immersive, editorial — never playful or corporate |
+| **Aesthetic** | Midnight Purple — deep gradient space, vibrant #8B5CF6 accent, glassmorphism header |
+| **Differentiation** | CSS-rendered infinite depth; comic covers as primary focal point; minimal reader chrome |
+
+## Midnight Purple System
+
+| Token | Value | Usage |
+| --- | --- | --- |
+| `--color-accent` | `#8B5CF6` | CTAs, highlights, borders, glow effects |
+| `--color-bg` | `#000000` | Base fallback |
+| `--color-bg-deep` | `#1a0b2e` | Gradient midpoint |
+| `--gradient-midnight` | `linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)` | Body/page background |
+
+## Color Palette (OKLCH — Dark Mode Always Active)
+
+| Role | OKLCH | Hex Approx | Usage |
+| --- | --- | --- | --- |
+| Background | 0.06 0 0 | ~#0a0a0a | Page foundation |
+| Foreground | 0.96 0 0 | ~#f5f5f5 | Body text |
+| Card | 0.11 0.02 290 | ~#110d1a | Comic cards, panels |
+| Primary | 0.62 0.22 291 | ~#8B5CF6 | Interactive elements, CTAs |
+| Accent | 0.62 0.22 291 | `#8B5CF6` | Highlights, active states |
+| Muted | 0.15 0.03 291 | ~#1a1225 | Skeletons, inactive zones |
+| Border | 0.22 0.06 291 | ~rgba(139,92,246,0.3) | Subtle purple outlines |
 
 ## Typography
-| Role | Font | Usage |
-|------|------|-------|
-| Display | General Sans | Hero titles, comic titles, prominent CTAs |
-| Body | DM Sans | Body text, navigation, UI copy |
-| Mono | JetBrains Mono | Stats, timestamps, code |
 
-## Shape & Spacing
-- **Radii**: 20px cards, 12px buttons/inputs, 8px chips
-- **Shadows**: Soft (sm: 1px blur), Medium (md: 4px blur), Large (lg: 8px blur), Glow (purple 20px)
-- **Spacing**: 0.5rem base grid, mobile-first scaling
+| Tier | Font | Usage |
+| --- | --- | --- |
+| Display | **Montserrat** (700–900) | Comic titles, hero headings, nav brand |
+| Body | **Inter** (400–600) | Reading text, UI labels, descriptions |
+| Mono | JetBrainsMono | Code, creator metadata |
+
+## Glassmorphism Header
+
+```css
+.glass-header {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(26, 11, 46, 0.6);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
+```
+
+Header is `position: sticky top-0 z-50`. Logo sits left, nav right. No opaque fills.
+
+## Elevation & Depth
+
+| Shadow | Value | Purpose |
+| --- | --- | --- |
+| `shadow-card` | `0 2px 8px rgba(0,0,0,0.4)` | Subtle card lift |
+| `shadow-elevated` | `0 8px 16px rgba(0,0,0,0.5), 0 2px 4px rgba(139,92,246,0.1)` | Medium elevation |
+| `shadow-manga` | `0 12px 24px rgba(0,0,0,0.6), 0 4px 8px rgba(139,92,246,0.1)` | Hero/cover focal depth |
+| `glow-accent` | `0 0 20px rgba(139,92,246,0.4), 0 0 40px rgba(139,92,246,0.15)` | Purple aura on CTAs |
 
 ## Structural Zones
-| Zone | Treatment | Role |
-|------|-----------|------|
-| Header | bg-background, border-b | Sticky, logo + navigation + search |
-| Hero | bg-gradient-primary, glassmorphism | Featured comic banner with glow CTA |
-| Grid | bg-background, section dividers | Comic cards with card-hover effect |
-| Modals | bg-card, backdrop-blur (glassmorphism) | Semi-transparent overlay, elevated |
-| Footer | bg-muted, border-t | Secondary links, copyright |
-| Image Stitching Modal | modal-glass (bg-card/95, backdrop-blur-md, border border-border/40) | Drop zone (dashed border, glow on hover), thumbnail grid (responsive cols), progress bar (gradient fill), action buttons |
+
+| Zone | Background | Border | Usage |
+| --- | --- | --- | --- |
+| Header/Nav | `.glass-header` sticky | `1px solid rgba(139,92,246,0.3)` | Logo, search, creator toggle |
+| Main Content | `var(--gradient-midnight)` fixed | None | Comic grid, reader container |
+| Comic Card | `bg-midnight-card` | `border-purple-glow` | Cover image, title, badge |
+| Reader Chrome | Fade to transparent | None | Controls on scroll/hover |
+| Footer | `bg-midnight-deep` 80% | `border-t border-purple-glow` | Links, copyright |
 
 ## Component Patterns
-- **Buttons**: Purple primary, scale 0.98 on press, 0.15s transition-press
-- **Cards**: White/elevated surfaces, scale 1.02 + shadow-lg on hover, 0.3s transition-smooth
-- **Genre Chips**: Grey inactive → purple gradient on active, glow effect
-- **Logo**: Fade-in-up on load (0.5s), glow-pulse subtle animation, scale 1.05 on hover
-- **Read Now CTA**: Primary gradient, glow-accent shadow, press animation
-- **Image Stitching Modal**: Glassmorphism card (bg-card/95, backdrop-blur-md), dashed purple-glow border on drop zone, drag-handle indicators on thumbnail hover, linear progress bar with gradient fill animation, dual action buttons (auto-upload primary gradient, download secondary), fade-in scale-in on open
 
-## Motion & Interactions
-| Trigger | Animation | Duration | Easing |
-|---------|-----------|----------|--------|
-| Page load | fade-in-up | 0.5s | ease-out |
-| Button press | scale (0.98) | 0.15s | cubic-bezier |
-| Card hover | scale (1.02) + shadow-lg | 0.3s | cubic-bezier |
-| Chip active | gradient + glow | 0.2s | ease-out |
-| Logo hover | scale (1.05) | 0.3s | ease-out |
-| Glow pulse | shadow animation | 2s | ease-in-out |
-| Modal open | scale-in (0.98→1) + fade | 0.3s | ease-out |
-| Drop zone drag-over | drop-zone-active (border + bg) | 0.2s | ease-out |
-| Thumbnail drag | drag-lift + scale 1.05 + opacity 0.8 | 0.2s | ease-out |
-| Progress bar | progress-fill (0→100%) + shimmer | 0.8s / 2s | ease-out / linear |
-| Stitching complete | checkmark fade-in + success message | 0.4s | ease-out |
+- **Comic Covers:** `bg-midnight-card shadow-manga border-purple-glow` with minimal 4px radius. Badge accent (top-right) in `#8B5CF6`.
+- **Buttons — Primary:** `bg-accent text-white glow-accent-sm` on hover. `rounded-sm`.
+- **Buttons — Secondary:** `border border-purple-dim text-accent` backdrop glass. `rounded-sm`.
+- **Reader Controls:** Glass background, appear on scroll/hover, accent highlight for active chapter.
+- **Loading:** Muted pulse on card skeletons (`bg-muted`), `glow-accent` pulse on interactive elements.
+- **Modals:** Dark glass overlay, `bg-midnight-card`, sharp corners, `#8B5CF6` border on primary action.
 
-## Responsive Design
-- **Mobile-first**: base styles 375px+
-- **Tablet**: md breakpoint (768px) — sidebar/grid adjust
-- **Desktop**: lg+ (1024px+) — full layout
+## Motion & Animation
 
-## Differentiation & Signature Detail
-**Glassmorphism layering**: Semi-transparent backgrounds on modals/popovers with backdrop blur effect (8px), creating elegant depth. Purple gradient accents on interactive elements (buttons, chips) paired with soft glow shadow create premium, cohesive brand identity.
+| Animation | Duration | Easing | Purpose |
+| --- | --- | --- | --- |
+| All interactive transitions | **150ms** | `ease` | Buttons, links, cards — universal |
+| `fade-in` | 300ms | ease-out | Page/modal entrance |
+| `slide-up` | 300ms | ease-out | Card stagger, skeleton reveal |
+| `pulse-accent` | 2s | cubic-bezier(0.4, 0, 0.6, 1) | Loading indicators |
 
-## Dark Mode
-Intentional design (not inverted): Darker purple backgrounds (#13000D), brighter accent text, softer shadows with reduced opacity, adjusted glow intensity for reduced eye strain.
+## Spacing & Rhythm
+
+- **Macro:** 48px section separation, 24px card gutters
+- **Micro:** 8px internal padding, 4px icon spacing
+- **Grid:** 2–4 columns responsive (mobile-first)
+
+## Constraints & Signature Detail
+
+- **Gradient not image** — the background is CSS `linear-gradient`, never a static PNG
+- **Purple-only accent** — `#8B5CF6` is the single accent color; no secondary accent
+- **Token-only colors** — never use raw hex in JSX className; use `text-accent`, `bg-midnight-deep`, `border-purple-dim`
+- **High contrast** — foreground/background minimum WCAG AA (4.5:1 on body text)
+- **Signature:** Glassmorphism header floats over the infinite dark gradient; covers glow faintly in purple

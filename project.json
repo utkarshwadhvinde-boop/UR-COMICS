@@ -1,27 +1,23 @@
 {
-  "overview": "UR Comics is a premium manhwa/webtoon reading platform where creators upload and publish comics, and readers enjoy them in a beautiful vertical scroll reader. Features permanent cloud storage, real-time global content visibility, mobile-first design, and a polished creator dashboard.",
+  "overview": "UR COMICS is a high-performance Webtoon/Manhwa ecosystem with a Midnight Purple visual identity. Creators upload vertical comic chapters through a 4-step studio wizard with atomic publish guarantees. Readers enjoy a virtualized vertical scrolling reader with smart bookmarking that resumes exactly where they left off.",
   "features": [
-    "Chapter upload with drag-and-drop reordering",
-    "Vertical webtoon-style reader with lazy loading",
-    "Real chapter preview before publishing",
-    "Delete chapter with confirmation",
-    "Next/Previous chapter navigation",
-    "Reading progress auto-save",
-    "Creator dashboard with chapter management",
-    "Permanent cloud storage for images",
-    "Mobile-first Android-optimized design",
-    "Dark purple glassmorphism brand theme"
+    "Midnight Purple dark gradient UI with glassmorphism navigation",
+    "4-step Creator Studio with 9:16 thumbnail cropper, drag-drop image upload, and atomic DRAFT→PUBLISHED pipeline",
+    "Virtualized vertical webtoon reader with Stitch & Stretch seamless canvas and read-position memory",
+    "Intelligent sidebar with Home, Trending (Hot Score algorithm), and Continue Reading smart bookmarks",
+    "FAQ system with tag filtering and real-time keyword search",
+    "User profiles with Creator Badge auto-awarded on first publish",
+    "Two-phase commit upload with exponential backoff retry and full rollback on failure"
   ],
   "category": "entertainment",
   "tags": [
-    "manhwa",
-    "webtoon",
     "comics",
-    "manga",
-    "creator-platform",
-    "reading",
-    "vertical-scroll",
-    "mobile-first"
+    "webtoon",
+    "manhwa",
+    "creator",
+    "reader",
+    "dark-theme",
+    "vertical-scroll"
   ],
-  "last_updated": "2026-05-02T11:08:16.470Z"
+  "last_updated": "2026-05-13T15:07:31.913Z"
 }

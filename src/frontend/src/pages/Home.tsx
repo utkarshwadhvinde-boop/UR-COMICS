@@ -1,278 +1,516 @@
+import type { Comic, ComicView, ReadProgress } from "@/backend";
+import { ErrorFallback } from "@/components/ErrorFallback";
+import { SkeletonCardRow } from "@/components/SkeletonCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useComics } from "@/hooks/useComics";
+import { useResumeReading, useTrending } from "@/hooks/useTrending";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Flame, Sparkles, TrendingUp, Clock, Trophy } from "lucide-react";
-import { formatNumber } from "@/lib/sampleData";
-import type { Comic, Genre } from "@/types";
 import {
-  ComicCard,
-  SkeletonCard,
-  SkeletonRow,
-  GenreChip,
-  ALL_GENRES,
-} from "@/components/ui";
-import { useListComics, useGetTrending } from "@/hooks/useBackend";
-import { useAppStore } from "@/store";
-import { useEffect, useMemo, useRef, useState } from "react";
+  BookOpen,
+  ChevronRight,
+  Eye,
+  Flame,
+  RefreshCw,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useState } from "react";
 
-/* ---------------- SAFE HELPERS ---------------- */
+// ─── Comic Card ────────────────────────────────────────────────────────────────
+function ComicCard({
+  comic,
+  index,
+  hotScore,
+}: { comic: ComicView; index: number; hotScore?: number }) {
+  const coverUrl = comic.cover_blob.getDirectURL();
+  const updatedDate = new Date(
+    Number(comic.updated_at / 1_000_000n),
+  ).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
-const isValidUrl = (url?: string | null): boolean =>
-  !!url && (url.startsWith("http://") || url.startsWith("https://"));
-
-/* ---------------- EMPTY STATE ---------------- */
-
-export function ComicsEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-6 rounded-3xl bg-card border border-border/50 text-center">
-      <div className="relative mb-6">
-        <div className="w-24 h-24 rounded-3xl gradient-primary flex items-center justify-center shadow-glow">
-          <BookOpen className="w-12 h-12 text-white" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.07, duration: 0.35 }}
+      className="group"
+      data-ocid={`comics.item.${index + 1}`}
+    >
+      <Link
+        to="/comics/$comicId"
+        params={{ comicId: comic.id }}
+        className="block"
+      >
+        <div className="rounded-xl overflow-hidden bg-card border border-border shadow-card group-hover:shadow-elevated group-hover:border-accent/30 transition-smooth">
+          <div className="relative aspect-[3/4] overflow-hidden">
+            <img
+              src={coverUrl}
+              alt={comic.title}
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-smooth"
+              loading="lazy"
+            />
+            {/* gradient overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
+            {/* Hot score badge */}
+            {hotScore !== undefined && hotScore > 0 && (
+              <div className="absolute top-2 right-2">
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-black/70 backdrop-blur-sm px-2 py-0.5 text-[10px] font-body font-semibold text-accent border border-accent/30">
+                  🔥 {Math.round(hotScore)}
+                </span>
+              </div>
+            )}
+            {/* "Read" pill on hover */}
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-smooth">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-body font-semibold text-accent-foreground">
+                <BookOpen className="w-3 h-3" /> Read Now
+              </span>
+            </div>
+          </div>
+          <div className="p-3 flex flex-col gap-1">
+            <h3 className="font-display text-sm text-foreground line-clamp-2 leading-snug">
+              {comic.title}
+            </h3>
+            <p className="text-xs text-muted-foreground font-body line-clamp-1">
+              by {comic.author_id.toText().slice(0, 12)}…
+            </p>
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="text-[10px] text-muted-foreground font-body">
+                {updatedDate}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-orange-400/20 border border-orange-400/40 flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-orange-400" />
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-bold mb-3">No comics yet.</h2>
-      <p className="text-sm text-muted-foreground max-w-sm mb-8">
-        This platform is powered by creators like you.
-      </p>
-
-      <Link to="/create">
-        <Button className="gradient-primary text-white px-8 py-3 rounded-2xl">
-          📤 Upload Your Comic
-        </Button>
       </Link>
+    </motion.div>
+  );
+}
+
+// ─── Section Header ─────────────────────────────────────────────────────────
+function SectionHeader({
+  title,
+  icon: Icon,
+  actionLabel,
+  actionTo,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  actionLabel?: string;
+  actionTo?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-2.5">
+        <Icon className="w-5 h-5 text-accent" />
+        <h2 className="font-display text-3xl text-foreground">{title}</h2>
+      </div>
+      {actionLabel && actionTo && (
+        <Link
+          to={actionTo}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-accent transition-smooth font-body"
+        >
+          {actionLabel}
+          <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      )}
     </div>
   );
 }
 
-/* ---------------- HERO ---------------- */
-
-export function HeroBanner({ comic }: { comic: Comic }) {
-  const firstChapterId = comic.chapters?.[0]?.id ?? "";
-  const chapterCount = comic.chapters?.length ?? 0;
-
+// ─── Trending Row Item ────────────────────────────────────────────────────────
+function TrendingItem({
+  comic,
+  index,
+  hotScore,
+}: { comic: ComicView; index: number; hotScore?: number }) {
   return (
-    <section className="relative overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center scale-105"
-        style={{
-          backgroundImage:
-            "url('/assets/generated/hero-bg.dim_1400x600.jpg')",
-        }}
-      />
-
-      <div className="absolute inset-0 bg-black/60" />
-
-      <div className="relative max-w-screen-xl mx-auto px-4 py-12 flex flex-col md:flex-row items-center gap-10">
-        <div className="flex-1 text-center md:text-left">
-          <div className="text-2xl font-bold text-white mb-5">UR Comics</div>
-
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs mb-4">
-            <Flame className="w-3.5 h-3.5 text-orange-400" />
-            Featured Series
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            {comic.title || "Untitled"}
-          </h1>
-
-          <p className="text-white/70 mb-6 line-clamp-3">
-            {comic.description || "No description available."}
+    <motion.div
+      initial={{ opacity: 0, x: -12 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.08 }}
+      data-ocid={`trending.item.${index + 1}`}
+    >
+      <Link
+        to="/comics/$comicId"
+        params={{ comicId: comic.id }}
+        className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-accent/40 hover:shadow-card transition-smooth group"
+      >
+        <span className="text-2xl font-display text-accent/50 w-7 text-center flex-shrink-0">
+          {index + 1}
+        </span>
+        <img
+          src={comic.cover_blob.getDirectURL()}
+          alt={comic.title}
+          className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-card"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="font-body text-sm text-foreground font-medium truncate group-hover:text-accent transition-smooth">
+            {comic.title}
           </p>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            {(comic.genres || []).map((g) => (
-              <span
-                key={g}
-                className="text-xs px-3 py-1 rounded-full bg-white/10 text-white"
-              >
-                {g}
+          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+            <Eye className="w-3 h-3" />
+            {hotScore !== undefined && hotScore > 0 ? (
+              <span className="text-accent font-semibold">
+                🔥 {Math.round(hotScore)}
               </span>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link
-              to="/read/$comicId/$chapterId"
-              params={{
-                comicId: comic.id,
-                chapterId: firstChapterId,
-              }}
-            >
-              <Button disabled={!firstChapterId}>▶ Read Now</Button>
-            </Link>
-
-            <div className="text-white/60 text-sm flex gap-4">
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-4 h-4" />
-                {formatNumber(comic.views || 0)} views
-              </span>
-              <span className="flex items-center gap-1">
-                <BookOpen className="w-4 h-4" />
-                {chapterCount} Chapters
-              </span>
-            </div>
-          </div>
+            ) : (
+              "Trending now"
+            )}
+          </p>
         </div>
-
-        <div className="relative">
-          <img
-            src={comic.coverImage}
-            alt={comic.title}
-            className="w-44 md:w-60 rounded-2xl shadow-2xl"
-          />
-
-          {comic.isFeatured && (
-            <div className="absolute -top-2 -right-2">
-              <Badge className="bg-yellow-500 text-black">⭐ Featured</Badge>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
+        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-smooth flex-shrink-0" />
+      </Link>
+    </motion.div>
   );
 }
 
-/* ---------------- HOME PAGE ---------------- */
+// ─── Home Page ────────────────────────────────────────────────────────────────
+export function HomePage() {
+  const { data: comics, isLoading, isError, isFetching, refetch } = useComics();
+  const { data: trending } = useTrending(6);
+  const { data: resumeItems, isLoading: resumeLoading } = useResumeReading();
+  const { isAuthenticated } = useAuth();
+  const [search, setSearch] = useState("");
 
-const ITEMS_PER_PAGE = 20;
+  const allComics = comics ?? [];
+  const filtered = search.trim()
+    ? allComics.filter((c) =>
+        c.title.toLowerCase().includes(search.toLowerCase()),
+      )
+    : allComics;
 
-function trendingScore(c: Comic) {
-  return (c.likes || 0) * 0.5 + (c.views || 0) * 0.1;
-}
+  // Use useTrending results; fall back to allComics.slice if empty
+  const trendingComics =
+    trending && trending.length > 0
+      ? trending
+          .slice(0, 6)
+          .map((entry) => allComics.find((c) => c.id === entry.comic_id))
+          .filter((c): c is ComicView => c !== undefined)
+      : allComics.slice(0, 6);
 
-export default function HomePage() {
-  const { searchQuery, readingProgress = [], setComics } = useAppStore();
-  const [activeGenre, setActiveGenre] = useState<Genre | "All">("All");
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const { data: backendComics = [], isLoading } = useListComics();
-  const { data: trendingBackend = [] } = useGetTrending();
-
-  /* NORMALIZE */
-  const allComics: Comic[] = useMemo(() => {
-    return (backendComics || [])
-      .filter((c) => isValidUrl(c?.coverUrl))
-      .map((c) => ({
-        id: String(c.id),
-        title: c.title || "Untitled",
-        description: c.description || "",
-        author: c.author || "Unknown",
-        coverImage: c.coverUrl || "",
-        genres: (c.genres || []) as Genre[],
-        status: "ongoing",
-        likes: Number(c.likesCount || 0),
-        views: Number(c.viewsCount || 0),
-        rating: 4.5,
-        chapters: [],
-        createdAt: Number(c.createdAt || Date.now()),
-        updatedAt: Number(c.updatedAt || Date.now()),
-        isFeatured: !!c.isFeatured,
-        isTrending: !!c.isTrending,
-        isPinned: !!c.isPinned,
-        creatorId: c.creatorId,
-        isOwnerComic: !!c.ownerUploaded,
-      }));
-  }, [backendComics]);
-
-  useEffect(() => {
-    if (allComics.length) setComics(allComics);
-  }, [allComics, setComics]);
-
-  const filtered = useMemo(() => {
-    return allComics.filter((c) => {
-      const matchGenre =
-        activeGenre === "All" || c.genres.includes(activeGenre);
-
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
-        !searchQuery ||
-        c.title.toLowerCase().includes(q) ||
-        c.author.toLowerCase().includes(q);
-
-      return matchGenre && matchSearch;
-    });
-  }, [allComics, activeGenre, searchQuery]);
-
-  const paginated = filtered.slice(0, visibleCount);
-  const hasMore = paginated.length < filtered.length;
-
-  useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
-  }, [activeGenre, searchQuery]);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el || !hasMore || isLoading) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setVisibleCount((p) => p + ITEMS_PER_PAGE);
-      }
-    });
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasMore, isLoading]);
-
-  const heroComic = allComics[0];
-
-  const trending = useMemo(() => {
-    if (trendingBackend?.length) {
-      return trendingBackend
-        .map((t) => allComics.find((c) => c.id === String(t.id)))
-        .filter(Boolean) as Comic[];
-    }
-
-    return [...allComics]
-      .sort((a, b) => trendingScore(b) - trendingScore(a))
-      .slice(0, 6);
-  }, [allComics, trendingBackend]);
+  const trendingWithScores = (trending ?? []).reduce<Record<string, number>>(
+    (acc, t) => {
+      acc[t.comic_id] = t.hot_score;
+      return acc;
+    },
+    {},
+  );
 
   return (
-    <div className="min-h-screen pb-20">
-      {heroComic && <HeroBanner comic={heroComic} />}
+    <div className="bg-background min-h-screen">
+      {/* ── Resume Reading (auth-only) ─────────────────────────────── */}
+      {isAuthenticated && (
+        <section
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8"
+          data-ocid="home.resume_section"
+        >
+          <div className="flex items-center gap-2.5 mb-4">
+            <BookOpen className="w-5 h-5 text-accent" />
+            <h2 className="font-display text-2xl text-foreground">
+              Resume Reading
+            </h2>
+          </div>
+          {resumeLoading ? (
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-28 bg-muted/40 animate-pulse rounded-lg"
+                  style={{ aspectRatio: "9/16" }}
+                />
+              ))}
+            </div>
+          ) : resumeItems && resumeItems.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {resumeItems.map(
+                ([comicObj, progress]: [Comic, ReadProgress], i: number) => (
+                  <motion.div
+                    key={comicObj.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.07 }}
+                    className="flex-shrink-0 w-28"
+                    data-ocid={`home.resume.item.${i + 1}`}
+                  >
+                    <Link
+                      to="/comics/$comicId/chapters/$chapterId"
+                      params={{
+                        comicId: comicObj.id,
+                        chapterId: progress.chapter_id,
+                      }}
+                      search={{ scrollY: String(progress.scroll_pixel_y) }}
+                      className="block group"
+                    >
+                      <div className="bg-midnight-card border border-purple-900/40 rounded-lg overflow-hidden">
+                        <div
+                          className="relative"
+                          style={{ aspectRatio: "9/16" }}
+                        >
+                          <img
+                            src={comicObj.cover_blob.getDirectURL()}
+                            alt={comicObj.title}
+                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-smooth"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+                            <span className="text-[10px] text-accent font-body font-semibold">
+                              Continue →
+                            </span>
+                          </div>
+                        </div>
+                        <div className="px-2 py-1.5">
+                          <p className="text-[11px] font-body text-foreground line-clamp-2 leading-tight">
+                            {comicObj.title}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ),
+              )}
+            </div>
+          ) : null}
+        </section>
+      )}
 
-      <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-10">
-        <section>
-          <div className="flex gap-2 overflow-x-auto">
-            {ALL_GENRES.map((g) => (
-              <GenreChip
-                key={g}
-                genre={g}
-                isActive={activeGenre === g}
-                onClick={() => setActiveGenre(g)}
+      {/* ── Hero Banner ─────────────────────────────────────────────── */}
+      <section
+        className="relative w-full overflow-hidden"
+        style={{ minHeight: isAuthenticated ? "80vh" : "100vh" }}
+        data-ocid="home.hero_section"
+      >
+        {/* Cinematic gradient layers */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/40 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-transparent to-transparent" />
+
+        {/* Hero content */}
+        <div
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center"
+          style={{ minHeight: isAuthenticated ? "80vh" : "100vh" }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="max-w-2xl"
+          >
+            <Badge className="bg-accent/20 text-accent border border-accent/40 font-body text-xs mb-5 inline-flex items-center gap-1.5">
+              <Flame className="w-3 h-3" />
+              New releases every week
+            </Badge>
+            <h1 className="font-display text-6xl sm:text-7xl md:text-8xl text-foreground leading-none mb-6">
+              Your next
+              <br />
+              <span className="text-accent">obsession</span>
+              <br />
+              starts here.
+            </h1>
+            <p className="font-body text-lg text-muted-foreground max-w-md mb-8 leading-relaxed">
+              Thousands of webtoons and manga from independent creators —
+              updated daily. Dive in.
+            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="flex flex-col sm:flex-row gap-3 items-start"
+            >
+              <Button
+                asChild
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-body font-semibold px-8 shadow-manga"
+                data-ocid="home.cta_primary_button"
+              >
+                <a href="#new-arrivals">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Start Reading
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="font-body border-border hover:border-accent/50 hover:text-accent"
+                data-ocid="home.cta_secondary_button"
+              >
+                <Link to="/creator">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Creator Studio
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+
+          {/* Scroll indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
+          >
+            <span className="text-xs text-muted-foreground font-body tracking-widest uppercase">
+              Scroll
+            </span>
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}
+              className="w-0.5 h-8 bg-gradient-to-b from-accent/60 to-transparent rounded-full"
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── New Arrivals + Search ───────────────────────────────────── */}
+      <section
+        id="new-arrivals"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+        data-ocid="home.featured_section"
+      >
+        {/* Header row with search + refresh */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-5 h-5 text-accent" />
+            <h2 className="font-display text-3xl text-foreground">
+              New Arrivals
+            </h2>
+            {isFetching && !isLoading && (
+              <RefreshCw className="w-4 h-4 text-accent animate-spin ml-1" />
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Search comics…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 w-52 bg-card border-border font-body text-sm focus:border-accent/60 transition-smooth"
+                data-ocid="home.search_input"
+              />
+            </div>
+            {/* Refresh */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="h-9 w-9 hover:text-accent transition-smooth"
+              aria-label="Refresh comics"
+              data-ocid="home.refresh_button"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </div>
+        </div>
+
+        {/* States */}
+        {isLoading && <SkeletonCardRow count={6} />}
+
+        {isError && (
+          <ErrorFallback
+            message="Failed to load comics."
+            onRetry={() => refetch()}
+          />
+        )}
+
+        {!isLoading && !isError && filtered.length === 0 && !search && (
+          <div
+            className="flex flex-col items-center justify-center py-24 gap-5"
+            data-ocid="home.empty_state"
+          >
+            <div className="w-20 h-20 rounded-2xl bg-muted/60 border border-border flex items-center justify-center">
+              <BookOpen className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <div className="text-center">
+              <p className="text-foreground font-body font-semibold text-lg">
+                No comics yet
+              </p>
+              <p className="text-muted-foreground font-body text-sm mt-1 max-w-xs">
+                Be the first to publish! Open Creator Studio and start your
+                series today.
+              </p>
+            </div>
+            <Button
+              asChild
+              className="bg-accent text-accent-foreground hover:bg-accent/90 font-body"
+              data-ocid="home.creator_cta_button"
+            >
+              <Link to="/creator">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Open Creator Studio
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && filtered.length === 0 && search && (
+          <div
+            className="flex flex-col items-center justify-center py-16 gap-3"
+            data-ocid="home.no_results_state"
+          >
+            <Search className="w-8 h-8 text-muted-foreground" />
+            <p className="text-muted-foreground font-body text-sm">
+              No comics match{" "}
+              <span className="text-foreground">&ldquo;{search}&rdquo;</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="text-xs text-accent font-body hover:underline"
+            >
+              Clear search
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && filtered.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filtered.map((comic, i) => (
+              <ComicCard
+                key={comic.id}
+                comic={comic}
+                index={i}
+                hotScore={trendingWithScores[comic.id]}
               />
             ))}
           </div>
-        </section>
+        )}
+      </section>
 
-        <section>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {paginated.map((c) => (
-              <ComicCard key={c.id} comic={c} />
-            ))}
+      {/* ── Trending ─────────────────────────────────────────────────── */}
+      {!isLoading && !isError && trendingComics.length > 0 && (
+        <section
+          className="bg-muted/20 border-y border-border py-16"
+          data-ocid="home.trending_section"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <SectionHeader title="Trending" icon={TrendingUp} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {trendingComics.map((comic, i) => (
+                <TrendingItem
+                  key={comic.id}
+                  comic={comic}
+                  index={i}
+                  hotScore={trendingWithScores[comic.id]}
+                />
+              ))}
+            </div>
           </div>
-          {hasMore && <div ref={sentinelRef} className="h-10" />}
         </section>
-
-        <section>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Flame /> Trending
-          </h2>
-
-          <div className="flex gap-3 overflow-x-auto">
-            {trending.map((c) => (
-              <ComicCard key={c.id} comic={c} />
-            ))}
-          </div>
-        </section>
-      </div>
+      )}
     </div>
   );
-        }
+}

@@ -10,205 +10,166 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export type ChapterError = { 'invalidImages' : null } |
-  { 'notFound' : null } |
-  { 'unauthorized' : null };
-export type ChapterId = bigint;
-export interface ChapterInput {
-  'title' : string,
-  'chapterNumber' : bigint,
-  'imageKeys' : Array<string>,
-  'imageOrder' : Array<bigint>,
-  'creatorId' : UserId,
-  'comicId' : ComicId,
-  'chapterStatus' : ChapterStatus,
-  'images' : Array<string>,
-}
-export interface ChapterPublic {
+export type ChapterId = string;
+export interface ChapterView {
   'id' : ChapterId,
   'title' : string,
-  'chapterNumber' : bigint,
-  'imageKeys' : Array<string>,
-  'imageOrder' : Array<bigint>,
-  'createdAt' : Timestamp,
-  'creatorId' : UserId,
-  'publishedAt' : [] | [Timestamp],
-  'comicId' : ComicId,
-  'updatedAt' : Timestamp,
-  'chapterStatus' : ChapterStatus,
-  'images' : Array<string>,
+  'updated_at' : Timestamp,
+  'created_at' : Timestamp,
+  'comic_id' : ComicId,
+  'is_published' : boolean,
+  'number' : number,
+  'image_blobs' : Array<ExternalBlob>,
 }
-export type ChapterStatus = { 'published' : null } |
-  { 'draft' : null };
-export type ComicId = bigint;
-export interface ComicInput {
-  'title' : string,
-  'isPremium' : boolean,
-  'creatorId' : UserId,
-  'description' : string,
-  'author' : string,
-  'ownerUploaded' : boolean,
-  'isFeatured' : boolean,
-  'genres' : Array<string>,
-  'coverUrl' : string,
-  'isPinned' : boolean,
-  'isTrending' : boolean,
-}
-export interface ComicPublic {
+export interface Comic {
   'id' : ComicId,
   'title' : string,
-  'isPremium' : boolean,
-  'createdAt' : Timestamp,
-  'creatorId' : UserId,
+  'updated_at' : Timestamp,
+  'cover_blob' : ExternalBlob,
   'description' : string,
-  'author' : string,
-  'ownerUploaded' : boolean,
-  'isFeatured' : boolean,
-  'genres' : Array<string>,
-  'coverUrl' : string,
-  'likesCount' : bigint,
-  'isPinned' : boolean,
-  'isTrending' : boolean,
-  'viewsCount' : bigint,
+  'created_at' : Timestamp,
+  'author_id' : UserId,
+  'is_deleted' : boolean,
 }
-export interface Comment {
-  'id' : bigint,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'text' : string,
-  'chapterId' : [] | [ChapterId],
-  'comicId' : ComicId,
+export type ComicId = string;
+export interface ComicView {
+  'id' : ComicId,
+  'title' : string,
+  'updated_at' : Timestamp,
+  'cover_blob' : ExternalBlob,
+  'description' : string,
+  'created_at' : Timestamp,
+  'author_id' : UserId,
 }
-export interface CommentReply {
-  'id' : bigint,
-  'username' : string,
-  'parentCommentId' : bigint,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'text' : string,
+export interface CreateChapterArgs {
+  'title' : string,
+  'comic_id' : ComicId,
+  'number' : number,
 }
-export interface FAQInput {
-  'question' : string,
-  'answer' : string,
-  'category' : string,
-  'isUserQuestion' : boolean,
+export interface CreateComicArgs {
+  'title' : string,
+  'cover_blob' : ExternalBlob,
+  'description' : string,
 }
-export interface FAQPublic {
-  'id' : bigint,
-  'upvotes' : bigint,
-  'question' : string,
-  'createdAt' : bigint,
-  'answer' : string,
-  'approved' : boolean,
-  'category' : string,
-  'isUserQuestion' : boolean,
+export type ExternalBlob = Uint8Array;
+export type ProfileId = string;
+export interface ReadProgress {
+  'user_id' : ProfileId,
+  'comic_id' : ComicId,
+  'scroll_pixel_y' : bigint,
+  'chapter_id' : ChapterId,
+  'last_read_at' : Timestamp,
 }
-export interface NotificationPublic {
-  'id' : bigint,
-  'actorName' : string,
-  'notifType' : NotificationType,
-  'userId' : UserId,
-  'createdAt' : Timestamp,
-  'chapterId' : [] | [ChapterId],
-  'isRead' : boolean,
-  'actorId' : UserId,
-  'comicId' : [] | [ComicId],
-  'commentPreview' : [] | [string],
+export interface SaveReadProgressRequest {
+  'comic_id' : ComicId,
+  'scroll_pixel_y' : bigint,
+  'chapter_id' : ChapterId,
 }
-export type NotificationType = { 'like' : null } |
-  { 'comment' : null } |
-  { 'reply' : null } |
-  { 'follow' : null };
-export interface ReadingProgress {
-  'scrollPosition' : bigint,
-  'chapterId' : ChapterId,
-  'comicId' : ComicId,
-  'lastReadAt' : Timestamp,
-}
-export type Result = { 'ok' : boolean } |
-  { 'err' : ChapterError };
 export type Timestamp = bigint;
-export type UserId = string;
-export interface UserProfilePublic {
-  'id' : UserId,
+export interface TrendingEntry {
+  'views' : bigint,
+  'last_updated' : Timestamp,
+  'comic_id' : ComicId,
+  'hot_score' : number,
+}
+export interface UpdateChapterDraftArgs { 'title' : string, 'number' : number }
+export interface UpdateComicArgs {
+  'title' : string,
+  'cover_blob' : ExternalBlob,
+  'description' : string,
+}
+export interface UpdateProfileRequest {
   'bio' : [] | [string],
-  'username' : string,
-  'totalSeries' : bigint,
-  'createdAt' : Timestamp,
-  'avatarUrl' : [] | [string],
-  'totalCommentsReceived' : bigint,
-  'followerCount' : bigint,
-  'followingCount' : bigint,
-  'totalLikesReceived' : bigint,
+  'profile_picture_url' : [] | [string],
+  'display_name' : [] | [string],
+}
+export interface UploadSession {
+  'status' : UploadStatus,
+  'updated_at' : Timestamp,
+  'chapter_id' : ChapterId,
+  'uploaded_blobs' : Array<ExternalBlob>,
+  'started_at' : Timestamp,
+}
+export type UploadStatus = { 'published' : null } |
+  { 'uploading' : null } |
+  { 'draft' : null } |
+  { 'failed' : null };
+export type UserId = Principal;
+export interface UserProfile {
+  'id' : ProfileId,
+  'bio' : string,
+  'updated_at' : Timestamp,
+  'created_at' : Timestamp,
+  'profile_picture_url' : [] | [string],
+  'display_name' : string,
+  'auth_id' : string,
+  'handle' : string,
+  'is_creator' : boolean,
+}
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
+export interface _ImmutableObjectStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _ImmutableObjectStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _ImmutableObjectStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
 }
 export interface _SERVICE {
-  'addComment' : ActorMethod<
-    [UserId, ComicId, [] | [ChapterId], string],
-    bigint
+  '_immutableObjectStorageBlobsAreLive' : ActorMethod<
+    [Array<Uint8Array>],
+    Array<boolean>
   >,
-  'addReply' : ActorMethod<[bigint, UserId, string, string], CommentReply>,
-  'approveFAQ' : ActorMethod<[bigint], boolean>,
-  'bookmarkComic' : ActorMethod<[ComicId], boolean>,
-  'canisterStatus' : ActorMethod<[], string>,
-  'cleanupAllDeletedComics' : ActorMethod<[], undefined>,
-  'clearNotifications' : ActorMethod<[UserId], undefined>,
-  'createChapter' : ActorMethod<[ChapterInput], ChapterId>,
-  'createComic' : ActorMethod<[ComicInput], ComicId>,
-  'createFAQ' : ActorMethod<[FAQInput], bigint>,
-  'createOrUpdateProfile' : ActorMethod<
-    [UserId, string, [] | [string], [] | [string]],
-    UserProfilePublic
-  >,
-  'deleteChapter' : ActorMethod<[ChapterId], Result>,
-  'deleteComic' : ActorMethod<[ComicId], Result>,
-  'deleteFAQ' : ActorMethod<[bigint], boolean>,
-  'deleteReadingHistoryEntry' : ActorMethod<[ChapterId], undefined>,
-  'followUser' : ActorMethod<[UserId, UserId], boolean>,
-  'getChapter' : ActorMethod<[ChapterId], [] | [ChapterPublic]>,
-  'getChapterLikeCount' : ActorMethod<[ChapterId], bigint>,
-  'getComic' : ActorMethod<[ComicId], [] | [ComicPublic]>,
-  'getFirstPublishedChapter' : ActorMethod<[ComicId], [] | [ChapterPublic]>,
-  'getFollowers' : ActorMethod<[UserId], Array<string>>,
-  'getFollowing' : ActorMethod<[UserId], Array<string>>,
-  'getLikes' : ActorMethod<[ComicId], [] | [bigint]>,
-  'getNotifications' : ActorMethod<[UserId], Array<NotificationPublic>>,
-  'getProfile' : ActorMethod<[UserId], [] | [UserProfilePublic]>,
-  'getProgress' : ActorMethod<[UserId, ComicId], [] | [ReadingProgress]>,
-  'getReadingProgress' : ActorMethod<[ComicId, UserId], [] | [ReadingProgress]>,
-  'getTrending' : ActorMethod<[bigint], Array<ComicPublic>>,
-  'getUnreadCount' : ActorMethod<[UserId], bigint>,
-  'getViews' : ActorMethod<[ComicId], [] | [bigint]>,
-  'isChapterLiked' : ActorMethod<[UserId, ChapterId], boolean>,
-  'isFollowing' : ActorMethod<[UserId, UserId], boolean>,
-  'likeChapter' : ActorMethod<[UserId, ComicId, ChapterId], boolean>,
-  'likeComic' : ActorMethod<[ComicId], boolean>,
-  'listChapters' : ActorMethod<[ComicId, boolean], Array<ChapterPublic>>,
-  'listComics' : ActorMethod<[], Array<ComicPublic>>,
-  'listComments' : ActorMethod<[ComicId], Array<Comment>>,
-  'listCreatorProfiles' : ActorMethod<[bigint], Array<UserProfilePublic>>,
-  'listFAQs' : ActorMethod<[boolean], Array<FAQPublic>>,
-  'listProgress' : ActorMethod<[UserId], Array<ReadingProgress>>,
-  'listReplies' : ActorMethod<[bigint], Array<CommentReply>>,
-  'markAllRead' : ActorMethod<[UserId], undefined>,
-  'markRead' : ActorMethod<[UserId, bigint], boolean>,
-  'publishChapter' : ActorMethod<[ChapterId], Result>,
-  'saveProgress' : ActorMethod<[UserId, ReadingProgress], undefined>,
-  'submitFAQ' : ActorMethod<[FAQInput], bigint>,
-  'unbookmarkComic' : ActorMethod<[ComicId], boolean>,
-  'unfollowUser' : ActorMethod<[UserId, UserId], boolean>,
-  'unlikeChapter' : ActorMethod<[UserId, ChapterId], boolean>,
-  'unlikeComic' : ActorMethod<[ComicId], boolean>,
-  'unpublishChapter' : ActorMethod<[ChapterId], Result>,
-  'updateChapter' : ActorMethod<[ChapterId, ChapterInput], Result>,
-  'updateChapterOrder' : ActorMethod<[ChapterId, Array<bigint>], Result>,
-  'updateComic' : ActorMethod<[ComicId, ComicInput], boolean>,
-  'updateFAQ' : ActorMethod<[bigint, FAQInput], boolean>,
-  'updateReadingProgress' : ActorMethod<
-    [ComicId, ChapterId, UserId],
+  '_immutableObjectStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_immutableObjectStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
     undefined
   >,
-  'viewComic' : ActorMethod<[ComicId], boolean>,
-  'voteFAQ' : ActorMethod<[bigint], boolean>,
+  '_immutableObjectStorageCreateCertificate' : ActorMethod<
+    [string],
+    _ImmutableObjectStorageCreateCertificateResult
+  >,
+  '_immutableObjectStorageRefillCashier' : ActorMethod<
+    [[] | [_ImmutableObjectStorageRefillInformation]],
+    _ImmutableObjectStorageRefillResult
+  >,
+  '_immutableObjectStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
+  '_initializeAccessControl' : ActorMethod<[], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'beginUpload' : ActorMethod<[ChapterId], UploadSession>,
+  'commitUpload' : ActorMethod<[ChapterId], ChapterView>,
+  'createChapter' : ActorMethod<[CreateChapterArgs], ChapterView>,
+  'createComic' : ActorMethod<[CreateComicArgs], ComicView>,
+  'deleteChapter' : ActorMethod<[ChapterId], undefined>,
+  'deleteComic' : ActorMethod<[ComicId], undefined>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getChapter' : ActorMethod<[ChapterId], [] | [ChapterView]>,
+  'getComic' : ActorMethod<[ComicId], [] | [ComicView]>,
+  'getMyReadProgress' : ActorMethod<[ComicId], [] | [ReadProgress]>,
+  'getMyResumeReading' : ActorMethod<[bigint], Array<[Comic, ReadProgress]>>,
+  'getTrendingComics' : ActorMethod<[bigint], Array<TrendingEntry>>,
+  'getUserProfile' : ActorMethod<[string], [] | [UserProfile]>,
+  'incrementComicViews' : ActorMethod<[ComicId], undefined>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listChapters' : ActorMethod<[ComicId], Array<ChapterView>>,
+  'listComics' : ActorMethod<[], Array<ComicView>>,
+  'registerUploadedImage' : ActorMethod<
+    [ChapterId, ExternalBlob],
+    UploadSession
+  >,
+  'rollbackUpload' : ActorMethod<[ChapterId], bigint>,
+  'saveMyReadProgress' : ActorMethod<[SaveReadProgressRequest], undefined>,
+  'updateChapterDraft' : ActorMethod<
+    [ChapterId, UpdateChapterDraftArgs],
+    ChapterView
+  >,
+  'updateComic' : ActorMethod<[ComicId, UpdateComicArgs], ComicView>,
+  'updateMyProfile' : ActorMethod<[UpdateProfileRequest], UserProfile>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
