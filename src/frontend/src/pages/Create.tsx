@@ -1,26 +1,34 @@
 import { ChapterStatus } from "@/backend";
+
 import { ChapterPreviewModal } from "@/components/ui/ChapterPreviewModal";
-import { ALL_GENRES, GenreChip } from "@/components/ui/GenreChip";
 import { ImageStitchingModal } from "@/components/ui/ImageStitchingModal";
+
+import { ALL_GENRES, GenreChip } from "@/components/ui/GenreChip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
 import {
-  isStoppedCanisterError,
   useCreateComic,
   useListChapters,
   usePublishChapter,
   useUpdateChapter,
+  isStoppedCanisterError,
 } from "@/hooks/useComicBackend";
+
 import {
   uploadFileToStorage,
   validateAndCoerceImageFile,
 } from "@/lib/storageUpload";
+
 import { useAppStore } from "@/store";
+
 import type { Comic, ComicStatus, Genre } from "@/types";
+
 import { useNavigate, useSearch } from "@tanstack/react-router";
+
 import {
   AlertCircle,
   BookOpen,
@@ -32,7 +40,9 @@ import {
   Upload,
   X,
 } from "lucide-react";
+
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
