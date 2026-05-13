@@ -1,6 +1,6 @@
 import { ComicCard } from "@/components/ui/ComicCard";
 import { Button } from "@/components/ui/button";
-import { useListComicsQuery, useListProgress } from "@/hooks/useBackend";
+import { useListComics, useListProgress } from "@/hooks/useBackend";
 import { useAppStore } from "@/store";
 import { Link } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
@@ -9,7 +9,7 @@ export default function LibraryPage() {
   const { currentUser, readingProgress: localProgress } = useAppStore();
   const userId = currentUser?.id ?? null;
 
-  const { data: backendComics = [] } = useListComicsQuery();
+  const { data: backendComics = [] } = useListComics();
   const { data: backendProgress = [] } = useListProgress(userId);
 
   const comics = backendComics.map((c) => ({
