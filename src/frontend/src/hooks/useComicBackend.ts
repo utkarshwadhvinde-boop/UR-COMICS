@@ -4,20 +4,24 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { guardedCall, unwrapResult, isStoppedCanisterError } from "@/utils";
-import { useActor } from "@/hooks/useActor";
+
+import {
+  guardedCall,
+  unwrapResult,
+  isStoppedCanisterError,
+} from "@/utils";
 
 /**
- * HELPER: Actor readiness hook
- * This ensures UI works even when actor is refreshing
+ * SIMPLE Actor setup (FIXED)
+ * No external hook, no missing files
  */
 const useBackendStatus = () => {
-  const { actor, isFetching, error } = useActor(createActor);
+  const actor = createActor();
 
   return {
     actor,
-    isReady: !!actor && !error,
-    isFetching,
+    isReady: !!actor,
+    isFetching: false,
   };
 };
 
@@ -31,8 +35,10 @@ export function useCreateComic() {
   const mutation = useMutation<bigint, Error, ComicInput>({
     mutationFn: async (input) => {
       if (!actor) throw new Error("Backend not ready");
+
       return guardedCall(() => actor.createComic(input));
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comics"] });
       qc.invalidateQueries({ queryKey: ["backend", "comics"] });
@@ -123,4 +129,4 @@ export function useListChapters(
     enabled: !!actor && comicId !== null,
     staleTime: 10_000,
   });
-}
+    }
