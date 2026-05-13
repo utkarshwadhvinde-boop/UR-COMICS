@@ -16,7 +16,6 @@ import {
   useFollowUser,
   useIsFollowing,
   useListComics,
-  useListComicsQuery,
   useUnfollowUser,
 } from "@/hooks/useBackend";
 import { useListComics } from "@/hooks/useBackend";
