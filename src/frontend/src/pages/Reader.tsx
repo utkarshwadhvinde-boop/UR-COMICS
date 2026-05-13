@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  useGetReadingProgress,
   useListChapters,
 } from "@/hooks/useComicBackend";
 import { useAppStore } from "@/store";
