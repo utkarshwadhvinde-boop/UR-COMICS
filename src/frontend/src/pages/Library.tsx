@@ -1,16 +1,14 @@
 import { ComicCard } from "@/components/ui/ComicCard";
 import { Button } from "@/components/ui/button";
-import { useListComics, useListProgress } from "@/hooks/useBackend";
+import { useListComics } from "@/hooks/useBackend";
 import { useAppStore } from "@/store";
 import { Link } from "@tanstack/react-router";
 import { BookOpen } from "lucide-react";
 
 export default function LibraryPage() {
   const { currentUser, readingProgress: localProgress } = useAppStore();
-  const userId = currentUser?.id ?? null;
 
   const { data: backendComics = [] } = useListComics();
-  const { data: backendProgress = [] } = useListProgress(userId);
 
   const comics = backendComics.map((c) => ({
     id: String(c.id),
@@ -20,18 +18,7 @@ export default function LibraryPage() {
     chapters: [] as { id: string; chapterNumber: number; title: string }[],
   }));
 
-  // Use backend progress if available, fall back to local store
-  const mergedProgress =
-    backendProgress.length > 0
-      ? backendProgress.map((p) => ({
-          comicId: String(p.comicId),
-          chapterId: String(p.chapterId),
-          scrollPosition: Number(p.scrollPosition),
-          lastReadAt: Number(p.lastReadAt),
-          chapterNumber: 0,
-        }))
-      : localProgress;
-
+const mergedProgress = localProgress;
   const continueReadingItems = mergedProgress
     .sort((a, b) => b.lastReadAt - a.lastReadAt)
     .map((p) => {
