@@ -5,7 +5,6 @@ import {
   useDeleteChapter,
   useGetReadingProgress,
   useListChapters,
-  useUpdateReadingProgress,
 } from "@/hooks/useComicBackend";
 import { useAppStore } from "@/store";
 import type { Comment, CommentReply } from "@/types";
