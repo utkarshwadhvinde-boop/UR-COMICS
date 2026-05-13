@@ -14,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useListComics,
-  useUnfollowUser,
 } from "@/hooks/useBackend";
 import { useListComics } from "@/hooks/useBackend";
 import { useAppStore } from "@/store";
