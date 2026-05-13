@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useCreateComic,
   useCreateChapter,
-  useUpdateComic,
   useListChapters,
   usePublishChapter,
   useUpdateChapter,
@@ -385,12 +384,11 @@ export default function CreatePage() {
   const [backendComicId, setBackendComicId] = useState<bigint | null>(null);
 
   const mutations = {
-    createComic: useCreateComic(),
-    updateComic: useUpdateComic(),
-    createChapter: useCreateChapter(),
-    updateChapter: useUpdateChapter(),
-    publishChapter: usePublishChapter()
-  };
+  createComic: useCreateComic(),
+  createChapter: useCreateChapter(),
+  updateChapter: useUpdateChapter(),
+  publishChapter: usePublishChapter()
+};
 
   const isActorReady = mutations.createComic.isActorReady;
 
