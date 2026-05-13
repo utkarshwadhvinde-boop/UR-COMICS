@@ -1,6 +1,6 @@
 export { ComicCard } from "./ComicCard";
 export { SkeletonCard } from "./SkeletonCard";
-export { SkeletonRow } from "./SkeletonRow";
+export { Skeleton } from "./skeleton";
 export { GenreChip, ALL_GENRES } from "./GenreChip";
 
 export { Badge } from "./badge";
