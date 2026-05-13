@@ -5,11 +5,17 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import {
-  guardedCall,
-  unwrapResult,
-  isStoppedCanisterError,
-} from "@/utils";
+const guardedCall = async <T>(fn: () => Promise<T>) => {
+  try {
+    return await fn();
+  } catch (e) {
+    throw e;
+  }
+};
+
+const unwrapResult = <T,>(result: T, _name: string): T => {
+  return result;
+};
 
 /**
  * SIMPLE Actor setup (FIXED)
