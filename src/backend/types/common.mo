@@ -14,6 +14,7 @@ module {
     title : Text;
     description : Text;
     cover_blob : Storage.ExternalBlob;
+    genre_ids : [Text];
     is_deleted : Bool;
     created_at : Timestamp;
     updated_at : Timestamp;
@@ -26,6 +27,7 @@ module {
     title : Text;
     description : Text;
     cover_blob : Storage.ExternalBlob;
+    genre_ids : [Text];
     created_at : Timestamp;
     updated_at : Timestamp;
   };
@@ -34,12 +36,14 @@ module {
     title : Text;
     description : Text;
     cover_blob : Storage.ExternalBlob;
+    genre_ids : [Text];
   };
 
   public type UpdateComicArgs = {
     title : Text;
     description : Text;
     cover_blob : Storage.ExternalBlob;
+    genre_ids : [Text];
   };
 
   // ── Chapters ─────────────────────────────────────────────────────────────

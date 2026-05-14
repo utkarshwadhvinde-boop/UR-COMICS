@@ -1,6 +1,7 @@
 import type {
   ComicView,
   CreateComicArgs,
+  Genre,
   UpdateComicArgs,
   backendInterface,
 } from "@/backend";
@@ -38,4 +39,21 @@ export async function deleteComic(
   id: string,
 ): Promise<void> {
   return actor.deleteComic(id);
+}
+export async function listGenres(actor: backendInterface): Promise<Genre[]> {
+  return actor.listGenres();
+}
+
+export async function getComicsByGenre(
+  actor: backendInterface,
+  genreId: string,
+): Promise<ComicView[]> {
+  return actor.getComicsByGenre(genreId);
+}
+
+export async function searchComics(
+  actor: backendInterface,
+  query: string,
+): Promise<ComicView[]> {
+  return actor.searchComics(query);
 }

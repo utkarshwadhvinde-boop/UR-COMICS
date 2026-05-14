@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { COMICS_QUERY_KEY } from "@/hooks/useComics";
+import { FALLBACK_GENRES, useGenres } from "@/hooks/useGenres";
 import { createChapter } from "@/services/chaptersService";
 import { createComic } from "@/services/comicsService";
 import {
@@ -84,6 +85,8 @@ function StepIndicator({ current }: { current: WizardStep }) {
 export function CreateComicPage() {
   const navigate = useNavigate();
   const { actor } = useActor(createActor);
+  const { data: genres = FALLBACK_GENRES } = useGenres();
+
   const queryClient = useQueryClient();
 
   // Wizard state
@@ -96,6 +99,7 @@ export function CreateComicPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [croppingFile, setCroppingFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   // Step 2 → 3 state
   const [comicId, setComicId] = useState<string | null>(null);
@@ -140,6 +144,7 @@ export function CreateComicPage() {
         title: title.trim(),
         description: description.trim(),
         cover_blob: blob,
+        genre_ids: selectedGenres,
       });
       // Scaffold chapter 1
       const chapter = await createChapter(actor, {
@@ -347,6 +352,44 @@ export function CreateComicPage() {
                   className="bg-card border-border font-body resize-none"
                   data-ocid="create_comic.description_textarea"
                 />
+              </div>
+
+              {/* Genres */}
+              <div
+                className="flex flex-col gap-2"
+                data-ocid="create_comic.genres_section"
+              >
+                <Label className="font-body text-sm">Genres</Label>
+                <p className="text-xs text-muted-foreground font-body">
+                  Select one or more genres that best describe your comic.
+                </p>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {genres.map((genre) => {
+                    const active = selectedGenres.includes(genre.id);
+                    return (
+                      <button
+                        key={genre.id}
+                        type="button"
+                        onClick={() =>
+                          setSelectedGenres((prev) =>
+                            active
+                              ? prev.filter((id) => id !== genre.id)
+                              : [...prev, genre.id],
+                          )
+                        }
+                        className={[
+                          "px-2 py-1.5 rounded-md text-xs font-body transition-colors duration-150 truncate",
+                          active
+                            ? "bg-[#8B5CF6]/20 border border-[#8B5CF6] text-white"
+                            : "bg-card border border-border text-muted-foreground hover:border-[#8B5CF6]/50",
+                        ].join(" ")}
+                        data-ocid={`create_comic.genre_chip.${genre.slug}`}
+                      >
+                        {genre.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <Button

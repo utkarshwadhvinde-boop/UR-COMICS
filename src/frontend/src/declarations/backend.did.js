@@ -59,6 +59,7 @@ export const CreateChapterArgs = IDL.Record({
 export const CreateComicArgs = IDL.Record({
   'title' : IDL.Text,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : IDL.Vec(IDL.Text),
   'description' : IDL.Text,
 });
 export const UserId = IDL.Principal;
@@ -67,9 +68,16 @@ export const ComicView = IDL.Record({
   'title' : IDL.Text,
   'updated_at' : Timestamp,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : IDL.Vec(IDL.Text),
   'description' : IDL.Text,
   'created_at' : Timestamp,
   'author_id' : UserId,
+});
+export const GenreId = IDL.Text;
+export const Genre = IDL.Record({
+  'id' : GenreId,
+  'name' : IDL.Text,
+  'slug' : IDL.Text,
 });
 export const ProfileId = IDL.Text;
 export const ReadProgress = IDL.Record({
@@ -84,6 +92,7 @@ export const Comic = IDL.Record({
   'title' : IDL.Text,
   'updated_at' : Timestamp,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : IDL.Vec(IDL.Text),
   'description' : IDL.Text,
   'created_at' : Timestamp,
   'author_id' : UserId,
@@ -118,6 +127,7 @@ export const UpdateChapterDraftArgs = IDL.Record({
 export const UpdateComicArgs = IDL.Record({
   'title' : IDL.Text,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : IDL.Vec(IDL.Text),
   'description' : IDL.Text,
 });
 export const UpdateProfileRequest = IDL.Record({
@@ -164,6 +174,8 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterView)], ['query']),
   'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicView)], ['query']),
+  'getComicsByGenre' : IDL.Func([GenreId], [IDL.Vec(ComicView)], ['query']),
+  'getGenre' : IDL.Func([GenreId], [IDL.Opt(Genre)], ['query']),
   'getMyReadProgress' : IDL.Func([ComicId], [IDL.Opt(ReadProgress)], ['query']),
   'getMyResumeReading' : IDL.Func(
       [IDL.Nat],
@@ -180,6 +192,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'listChapters' : IDL.Func([ComicId], [IDL.Vec(ChapterView)], ['query']),
   'listComics' : IDL.Func([], [IDL.Vec(ComicView)], ['query']),
+  'listGenres' : IDL.Func([], [IDL.Vec(Genre)], ['query']),
   'registerUploadedImage' : IDL.Func(
       [ChapterId, ExternalBlob],
       [UploadSession],
@@ -187,6 +200,7 @@ export const idlService = IDL.Service({
     ),
   'rollbackUpload' : IDL.Func([ChapterId], [IDL.Nat], []),
   'saveMyReadProgress' : IDL.Func([SaveReadProgressRequest], [], []),
+  'searchComics' : IDL.Func([IDL.Text], [IDL.Vec(ComicView)], ['query']),
   'updateChapterDraft' : IDL.Func(
       [ChapterId, UpdateChapterDraftArgs],
       [ChapterView],
@@ -250,6 +264,7 @@ export const idlFactory = ({ IDL }) => {
   const CreateComicArgs = IDL.Record({
     'title' : IDL.Text,
     'cover_blob' : ExternalBlob,
+    'genre_ids' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
   });
   const UserId = IDL.Principal;
@@ -258,9 +273,16 @@ export const idlFactory = ({ IDL }) => {
     'title' : IDL.Text,
     'updated_at' : Timestamp,
     'cover_blob' : ExternalBlob,
+    'genre_ids' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
     'created_at' : Timestamp,
     'author_id' : UserId,
+  });
+  const GenreId = IDL.Text;
+  const Genre = IDL.Record({
+    'id' : GenreId,
+    'name' : IDL.Text,
+    'slug' : IDL.Text,
   });
   const ProfileId = IDL.Text;
   const ReadProgress = IDL.Record({
@@ -275,6 +297,7 @@ export const idlFactory = ({ IDL }) => {
     'title' : IDL.Text,
     'updated_at' : Timestamp,
     'cover_blob' : ExternalBlob,
+    'genre_ids' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
     'created_at' : Timestamp,
     'author_id' : UserId,
@@ -309,6 +332,7 @@ export const idlFactory = ({ IDL }) => {
   const UpdateComicArgs = IDL.Record({
     'title' : IDL.Text,
     'cover_blob' : ExternalBlob,
+    'genre_ids' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
   });
   const UpdateProfileRequest = IDL.Record({
@@ -355,6 +379,8 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getChapter' : IDL.Func([ChapterId], [IDL.Opt(ChapterView)], ['query']),
     'getComic' : IDL.Func([ComicId], [IDL.Opt(ComicView)], ['query']),
+    'getComicsByGenre' : IDL.Func([GenreId], [IDL.Vec(ComicView)], ['query']),
+    'getGenre' : IDL.Func([GenreId], [IDL.Opt(Genre)], ['query']),
     'getMyReadProgress' : IDL.Func(
         [ComicId],
         [IDL.Opt(ReadProgress)],
@@ -375,6 +401,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'listChapters' : IDL.Func([ComicId], [IDL.Vec(ChapterView)], ['query']),
     'listComics' : IDL.Func([], [IDL.Vec(ComicView)], ['query']),
+    'listGenres' : IDL.Func([], [IDL.Vec(Genre)], ['query']),
     'registerUploadedImage' : IDL.Func(
         [ChapterId, ExternalBlob],
         [UploadSession],
@@ -382,6 +409,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'rollbackUpload' : IDL.Func([ChapterId], [IDL.Nat], []),
     'saveMyReadProgress' : IDL.Func([SaveReadProgressRequest], [], []),
+    'searchComics' : IDL.Func([IDL.Text], [IDL.Vec(ComicView)], ['query']),
     'updateChapterDraft' : IDL.Func(
         [ChapterId, UpdateChapterDraftArgs],
         [ChapterView],

@@ -1,4 +1,5 @@
 import type { ChapterView } from "@/backend";
+import { createActor } from "@/backend";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { PageLoader } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { useChapter } from "@/hooks/useChapter";
 import { useChapters } from "@/hooks/useChapters";
 import { useSaveReadProgress } from "@/hooks/useReadProgress";
 import { cn } from "@/lib/utils";
+import { useActor } from "@caffeineai/core-infrastructure";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { BookOpen, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -57,8 +59,12 @@ function WebtoonImage({ src, alt, index, isVisible }: WebtoonImageProps) {
     >
       {!loaded && !errored && <ImageShimmer />}
       {errored ? (
-        <div className="w-full flex items-center justify-center bg-muted/30 text-muted-foreground text-sm font-body py-20">
-          Failed to load page {index + 1}
+        <div
+          className="w-full flex items-center justify-center bg-purple-900/30 text-muted-foreground text-sm font-body py-20 min-h-[300px]"
+          role="img"
+          aria-label={`Page ${index + 1} failed to load`}
+        >
+          <span className="opacity-50">⚠ Page {index + 1} unavailable</span>
         </div>
       ) : (
         <img
@@ -374,6 +380,13 @@ export function ReaderPage() {
   });
   const navigate = useNavigate();
 
+  // Track actor readiness so we can show a loading screen before the
+  // query is even enabled. When isFetching=true the query's enabled=false,
+  // which keeps isLoading=false. Without this guard the component falls
+  // straight through to `!chapter` and renders the error fallback —
+  // the root cause of the black-screen / "Chapter not found" flash.
+  const { isFetching: actorFetching } = useActor(createActor);
+
   const {
     data: chapter,
     isLoading,
@@ -496,7 +509,8 @@ export function ReaderPage() {
     setCurrentPage(1);
   }, [chapterId]);
 
-  if (isLoading) return <PageLoader />;
+  // Show loader while actor is initialising OR the query is in-flight.
+  if (actorFetching || isLoading) return <PageLoader />;
   if (isError)
     return (
       <ErrorFallback
@@ -506,7 +520,12 @@ export function ReaderPage() {
     );
   if (!chapter) return <ErrorFallback message="Chapter not found." />;
 
-  const imageUrls = chapter.image_blobs.map((b) => b.getDirectURL());
+  // Filter null/undefined blobs that might slip through, then extract CDN
+  // URLs. Array order is preserved — backend guarantees upload sequence.
+  const imageUrls = chapter.image_blobs
+    .filter((b) => b != null)
+    .map((b) => b.getDirectURL())
+    .filter((url): url is string => typeof url === "string" && url.length > 0);
 
   return (
     <motion.div

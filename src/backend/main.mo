@@ -6,7 +6,12 @@ import Types "types/common";
 import ComicsApi "mixins/comics-api";
 import ChaptersApi "mixins/chapters-api";
 import ProfileApi "mixins/profile-api";
+import GenreTypes "types/genres";
+import GenresApi "mixins/genres-api";
+import Migration "migration";
+import GenresLib "lib/genres";
 
+(with migration = Migration.run)
 actor {
   // ── Authorization ────────────────────────────────────────────────────────
   let accessControlState = AccessControl.initState();
@@ -18,6 +23,9 @@ actor {
   // ── Comics state ─────────────────────────────────────────────────────────
   let comics = Map.empty<Types.ComicId, Types.Comic>();
   let comicCounter = { var next : Nat = 0 };
+
+  // ── Genres state ─────────────────────────────────────────────────────────
+  let genres = Map.empty<GenreTypes.GenreId, GenreTypes.Genre>();
 
   // ── Chapters + upload state ───────────────────────────────────────────────
   let chapters = Map.empty<Types.ChapterId, Types.Chapter>();
@@ -33,4 +41,8 @@ actor {
   include ComicsApi(accessControlState, comics, chapters, comicCounter, trending);
   include ChaptersApi(accessControlState, comics, chapters, uploads, chapterCounter);
   include ProfileApi(accessControlState, profiles, readProgress, trending, comics);
+  include GenresApi(genres, comics);
+
+  // Ensure genres are seeded on startup
+  GenresLib.ensureSeeded(genres);
 };

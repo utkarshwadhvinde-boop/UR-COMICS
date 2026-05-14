@@ -27,6 +27,7 @@ module {
       title = args.title;
       description = args.description;
       cover_blob = args.cover_blob;
+      genre_ids = args.genre_ids;
       is_deleted = false;
       created_at = now;
       updated_at = now;
@@ -55,6 +56,7 @@ module {
       title = args.title;
       description = args.description;
       cover_blob = args.cover_blob;
+      genre_ids = args.genre_ids;
       updated_at = Time.now();
     };
     comics.add(id, updated);
@@ -117,8 +119,22 @@ module {
       title = comic.title;
       description = comic.description;
       cover_blob = comic.cover_blob;
+      genre_ids = comic.genre_ids;
       created_at = comic.created_at;
       updated_at = comic.updated_at;
     };
+  };
+
+  /// Return all non-deleted comics that include genreId in their genre_ids.
+  public func listComicsByGenre(
+    comics : Map.Map<Types.ComicId, Types.Comic>,
+    genreId : Text,
+  ) : [Types.ComicView] {
+    comics.values()
+      .filter(func(c : Types.Comic) : Bool {
+        not c.is_deleted and c.genre_ids.find(func(gid : Text) : Bool { Text.equal(gid, genreId) }) != null
+      })
+      .map<Types.Comic, Types.ComicView>(func(c) = toView(c))
+      .toArray();
   };
 };

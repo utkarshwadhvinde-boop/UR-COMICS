@@ -18,6 +18,7 @@ export type Timestamp = bigint;
 export interface UpdateComicArgs {
     title: string;
     cover_blob: ExternalBlob;
+    genre_ids: Array<string>;
     description: string;
 }
 export interface UpdateChapterDraftArgs {
@@ -25,16 +26,22 @@ export interface UpdateChapterDraftArgs {
     number: number;
 }
 export type ProfileId = string;
+export interface Genre {
+    id: GenreId;
+    name: string;
+    slug: string;
+}
+export type GenreId = string;
 export interface ComicView {
     id: ComicId;
     title: string;
     updated_at: Timestamp;
     cover_blob: ExternalBlob;
+    genre_ids: Array<string>;
     description: string;
     created_at: Timestamp;
     author_id: UserId;
 }
-export type ChapterId = string;
 export interface ChapterView {
     id: ChapterId;
     title: string;
@@ -73,6 +80,7 @@ export interface UploadSession {
 export interface CreateComicArgs {
     title: string;
     cover_blob: ExternalBlob;
+    genre_ids: Array<string>;
     description: string;
 }
 export interface Comic {
@@ -80,11 +88,13 @@ export interface Comic {
     title: string;
     updated_at: Timestamp;
     cover_blob: ExternalBlob;
+    genre_ids: Array<string>;
     description: string;
     created_at: Timestamp;
     author_id: UserId;
     is_deleted: boolean;
 }
+export type ChapterId = string;
 export interface ReadProgress {
     user_id: ProfileId;
     comic_id: ComicId;
@@ -130,6 +140,8 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getChapter(id: ChapterId): Promise<ChapterView | null>;
     getComic(id: ComicId): Promise<ComicView | null>;
+    getComicsByGenre(genreId: GenreId): Promise<Array<ComicView>>;
+    getGenre(id: GenreId): Promise<Genre | null>;
     getMyReadProgress(comicId: ComicId): Promise<ReadProgress | null>;
     getMyResumeReading(limit: bigint): Promise<Array<[Comic, ReadProgress]>>;
     getTrendingComics(limit: bigint): Promise<Array<TrendingEntry>>;
@@ -138,9 +150,11 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     listChapters(comic_id: ComicId): Promise<Array<ChapterView>>;
     listComics(): Promise<Array<ComicView>>;
+    listGenres(): Promise<Array<Genre>>;
     registerUploadedImage(chapter_id: ChapterId, blob: ExternalBlob): Promise<UploadSession>;
     rollbackUpload(chapter_id: ChapterId): Promise<bigint>;
     saveMyReadProgress(req: SaveReadProgressRequest): Promise<void>;
+    searchComics(searchQuery: string): Promise<Array<ComicView>>;
     updateChapterDraft(id: ChapterId, args: UpdateChapterDraftArgs): Promise<ChapterView>;
     updateComic(id: ComicId, args: UpdateComicArgs): Promise<ComicView>;
     updateMyProfile(req: UpdateProfileRequest): Promise<UserProfile>;

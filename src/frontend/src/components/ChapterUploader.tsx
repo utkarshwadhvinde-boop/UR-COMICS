@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { Eye, Pencil, Upload, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 interface ChapterUploaderProps {
@@ -15,6 +15,7 @@ export function ChapterUploader({
   const [previews, setPreviews] = useState<string[]>([]);
   const [stretchMode, setStretchMode] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback(
@@ -102,8 +103,8 @@ export function ChapterUploader({
         />
       </button>
 
-      {/* Page count + stretch toggle */}
-      <div className="flex items-center justify-between">
+      {/* Page count + controls row */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <span className="font-body text-sm text-muted-foreground">
           <span
             className={
@@ -115,37 +116,82 @@ export function ChapterUploader({
           {" / "}
           {maxImages} pages
         </span>
-        <label
-          className="flex items-center gap-2 cursor-pointer select-none"
-          data-ocid="chapter_uploader.stretch_toggle"
-        >
-          <input
-            type="checkbox"
-            checked={stretchMode}
-            onChange={(e) => setStretchMode(e.target.checked)}
-            className="sr-only"
-          />
-          <span
-            className={[
-              "relative inline-block w-9 h-5 rounded-full transition-colors duration-200",
-              stretchMode ? "bg-accent" : "bg-muted",
-            ].join(" ")}
+        <div className="flex items-center gap-3">
+          {files.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPreviewMode((v) => !v)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-body border border-border bg-card text-muted-foreground hover:border-accent/60 hover:text-foreground transition-colors duration-150"
+              data-ocid="chapter_uploader.preview_toggle"
+            >
+              {previewMode ? (
+                <>
+                  <Pencil className="w-3.5 h-3.5" /> Edit
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5" /> Preview
+                </>
+              )}
+            </button>
+          )}
+          <label
+            className="flex items-center gap-2 cursor-pointer select-none"
+            data-ocid="chapter_uploader.stretch_toggle"
           >
+            <input
+              type="checkbox"
+              checked={stretchMode}
+              onChange={(e) => setStretchMode(e.target.checked)}
+              className="sr-only"
+            />
             <span
               className={[
-                "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200",
-                stretchMode ? "translate-x-4" : "",
+                "relative inline-block w-9 h-5 rounded-full transition-colors duration-200",
+                stretchMode ? "bg-accent" : "bg-muted",
               ].join(" ")}
-            />
-          </span>
-          <span className="text-sm font-body text-muted-foreground">
-            Seamless Stitch
-          </span>
-        </label>
+            >
+              <span
+                className={[
+                  "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200",
+                  stretchMode ? "translate-x-4" : "",
+                ].join(" ")}
+              />
+            </span>
+            <span className="text-sm font-body text-muted-foreground">
+              Seamless Stitch
+            </span>
+          </label>
+        </div>
       </div>
 
-      {/* Preview grid */}
-      {files.length > 0 && (
+      {/* Preview mode: full-size ordered scrollable column */}
+      {files.length > 0 && previewMode && (
+        <div
+          className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1"
+          data-ocid="chapter_uploader.preview_panel"
+        >
+          {files.map((f, i) => (
+            <div
+              key={`preview-${f.name}-${i}`}
+              className="relative rounded-lg overflow-hidden"
+              data-ocid={`chapter_uploader.preview.${i + 1}`}
+            >
+              <img
+                src={previews[i]}
+                alt={`Page ${i + 1}`}
+                className="w-full object-cover"
+              />
+              <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
+                Page {i + 1}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Thumbnail grid (edit mode) */}
+      {files.length > 0 && !previewMode && (
         <div
           className={[
             "grid grid-cols-4 gap-2",

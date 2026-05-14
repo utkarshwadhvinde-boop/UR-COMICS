@@ -10,6 +10,7 @@ import { useChapters } from "@/hooks/useChapters";
 import { chaptersQueryKey } from "@/hooks/useChapters";
 import { useComic } from "@/hooks/useComic";
 import { comicQueryKey } from "@/hooks/useComic";
+import { FALLBACK_GENRES, useGenres } from "@/hooks/useGenres";
 import { updateComic } from "@/services/comicsService";
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,6 +23,8 @@ export function EditComicPage() {
   const { comicId } = useParams({ from: "/creator/comics/$comicId" });
   const navigate = useNavigate();
   const { actor } = useActor(createActor);
+  const { data: genres = FALLBACK_GENRES } = useGenres();
+
   const queryClient = useQueryClient();
   const { data: comic, isLoading, isError } = useComic(comicId);
   const { data: chapters, isLoading: chaptersLoading } = useChapters(comicId);
@@ -31,12 +34,14 @@ export function EditComicPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
   useEffect(() => {
     if (comic) {
       setTitle(comic.title);
       setDescription(comic.description);
       setCoverPreview(comic.cover_blob.getDirectURL());
+      setSelectedGenres(comic.genre_ids ?? []);
     }
   }, [comic]);
 
@@ -61,6 +66,7 @@ export function EditComicPage() {
         title: title.trim(),
         description: description.trim(),
         cover_blob: coverBlob,
+        genre_ids: selectedGenres,
       });
       await queryClient.invalidateQueries({ queryKey: comicQueryKey(comicId) });
       toast.success("Comic updated!");
@@ -153,6 +159,44 @@ export function EditComicPage() {
             className="bg-card border-border font-body resize-none"
             data-ocid="edit_comic.description_textarea"
           />
+        </div>
+
+        {/* Genres */}
+        <div
+          className="flex flex-col gap-2"
+          data-ocid="edit_comic.genres_section"
+        >
+          <Label className="font-body text-sm">Genres</Label>
+          <p className="text-xs text-muted-foreground font-body">
+            Select one or more genres that best describe your comic.
+          </p>
+          <div className="grid grid-cols-3 gap-2 mt-1">
+            {genres.map((genre) => {
+              const active = selectedGenres.includes(genre.id);
+              return (
+                <button
+                  key={genre.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedGenres((prev) =>
+                      active
+                        ? prev.filter((id) => id !== genre.id)
+                        : [...prev, genre.id],
+                    )
+                  }
+                  className={[
+                    "px-2 py-1.5 rounded-md text-xs font-body transition-colors duration-150 truncate",
+                    active
+                      ? "bg-[#8B5CF6]/20 border border-[#8B5CF6] text-white"
+                      : "bg-card border border-border text-muted-foreground hover:border-[#8B5CF6]/50",
+                  ].join(" ")}
+                  data-ocid={`edit_comic.genre_chip.${genre.slug}`}
+                >
+                  {genre.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <Button

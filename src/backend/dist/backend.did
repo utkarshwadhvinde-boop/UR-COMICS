@@ -55,6 +55,7 @@ type UpdateComicArgs =
  record {
    cover_blob: ExternalBlob;
    description: text;
+   genre_ids: vec text;
    title: text;
  };
 type UpdateChapterDraftArgs = 
@@ -85,11 +86,19 @@ type ReadProgress =
    user_id: ProfileId;
  };
 type ProfileId = text;
+type GenreId = text;
+type Genre = 
+ record {
+   id: GenreId;
+   name: text;
+   slug: text;
+ };
 type ExternalBlob = blob;
 type CreateComicArgs = 
  record {
    cover_blob: ExternalBlob;
    description: text;
+   genre_ids: vec text;
    title: text;
  };
 type CreateChapterArgs = 
@@ -104,6 +113,7 @@ type ComicView =
    cover_blob: ExternalBlob;
    created_at: Timestamp;
    description: text;
+   genre_ids: vec text;
    id: ComicId;
    title: text;
    updated_at: Timestamp;
@@ -115,6 +125,7 @@ type Comic =
    cover_blob: ExternalBlob;
    created_at: Timestamp;
    description: text;
+   genre_ids: vec text;
    id: ComicId;
    is_deleted: bool;
    title: text;
@@ -153,6 +164,8 @@ service : {
   getCallerUserRole: () -> (UserRole) query;
   getChapter: (id: ChapterId) -> (opt ChapterView) query;
   getComic: (id: ComicId) -> (opt ComicView) query;
+  getComicsByGenre: (genreId: GenreId) -> (vec ComicView) query;
+  getGenre: (id: GenreId) -> (opt Genre) query;
   getMyReadProgress: (comicId: ComicId) -> (opt ReadProgress) query;
   getMyResumeReading: (limit: nat) ->
    (vec record {
@@ -165,10 +178,12 @@ service : {
   isCallerAdmin: () -> (bool) query;
   listChapters: (comic_id: ComicId) -> (vec ChapterView) query;
   listComics: () -> (vec ComicView) query;
+  listGenres: () -> (vec Genre) query;
   registerUploadedImage: (chapter_id: ChapterId, "blob": ExternalBlob) ->
    (UploadSession);
   rollbackUpload: (chapter_id: ChapterId) -> (nat);
   saveMyReadProgress: (req: SaveReadProgressRequest) -> ();
+  searchComics: (searchQuery: text) -> (vec ComicView) query;
   updateChapterDraft: (id: ChapterId, args: UpdateChapterDraftArgs) ->
    (ChapterView);
   updateComic: (id: ComicId, args: UpdateComicArgs) -> (ComicView);

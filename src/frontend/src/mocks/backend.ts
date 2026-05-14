@@ -12,6 +12,7 @@ import {
 import type { 
   ChapterView,
   ComicView,
+  Genre,
   UploadSession,
   _ImmutableObjectStorageCreateCertificateResult,
   _ImmutableObjectStorageRefillInformation,
@@ -36,6 +37,7 @@ const sampleComics: ComicView[] = [
     title: "Shadow Realm Chronicles",
     description: "A dark fantasy epic set in a world where shadows come alive and consume the weak.",
     cover_blob: COVER_1,
+    genre_ids: ["action", "fantasy"],
     author_id: { toString: () => "aaaaa-aa" } as unknown as Principal,
     created_at: now - BigInt(7 * 24 * 3600 * 1_000_000_000),
     updated_at: now - BigInt(1 * 24 * 3600 * 1_000_000_000),
@@ -45,6 +47,7 @@ const sampleComics: ComicView[] = [
     title: "Neon Uprising",
     description: "Cyberpunk rebels fight against a mega-corporation controlling the city's neural grid.",
     cover_blob: COVER_2,
+    genre_ids: ["sci-fi", "action"],
     author_id: { toString: () => "aaaaa-aa" } as unknown as Principal,
     created_at: now - BigInt(14 * 24 * 3600 * 1_000_000_000),
     updated_at: now - BigInt(2 * 24 * 3600 * 1_000_000_000),
@@ -54,6 +57,7 @@ const sampleComics: ComicView[] = [
     title: "Crimson Tide",
     description: "An ancient samurai reawakened in modern Tokyo must navigate a world he no longer understands.",
     cover_blob: COVER_3,
+    genre_ids: ["martial-arts", "drama"],
     author_id: { toString: () => "aaaaa-aa" } as unknown as Principal,
     created_at: now - BigInt(21 * 24 * 3600 * 1_000_000_000),
     updated_at: now - BigInt(3 * 24 * 3600 * 1_000_000_000),
@@ -139,6 +143,7 @@ export const mockBackend: backendInterface = {
     title: args.title,
     description: args.description,
     cover_blob: args.cover_blob,
+    genre_ids: args.genre_ids,
     author_id: { toString: () => "aaaaa-aa" } as unknown as Principal,
     created_at: now,
     updated_at: now,
@@ -236,11 +241,47 @@ export const mockBackend: backendInterface = {
     updated_at: now,
   }),
 
+  incrementComicViews: async (_comicId: string): Promise<void> => undefined,
+
   updateComic: async (id: string, args): Promise<ComicView> => ({
     ...sampleComics[0],
     id,
     title: args.title,
     description: args.description,
     cover_blob: args.cover_blob,
+    genre_ids: args.genre_ids,
   }),
+
+  listGenres: async (): Promise<Array<Genre>> => [
+    { id: "action", name: "Action", slug: "action" },
+    { id: "adventure", name: "Adventure", slug: "adventure" },
+    { id: "comedy", name: "Comedy", slug: "comedy" },
+    { id: "sci-fi", name: "Sci-Fi", slug: "sci-fi" },
+    { id: "fantasy", name: "Fantasy", slug: "fantasy" },
+    { id: "romance", name: "Romance", slug: "romance" },
+    { id: "horror", name: "Horror", slug: "horror" },
+    { id: "drama", name: "Drama", slug: "drama" },
+    { id: "mystery", name: "Mystery", slug: "mystery" },
+    { id: "thriller", name: "Thriller", slug: "thriller" },
+    { id: "slice-of-life", name: "Slice of Life", slug: "slice-of-life" },
+    { id: "martial-arts", name: "Martial Arts", slug: "martial-arts" },
+    { id: "supernatural", name: "Supernatural", slug: "supernatural" },
+    { id: "psychological", name: "Psychological", slug: "psychological" },
+  ],
+
+  getGenre: async (id: string): Promise<Genre | null> =>
+    ({ id, name: id.charAt(0).toUpperCase() + id.slice(1), slug: id }),
+
+  getComicsByGenre: async (genreId: string): Promise<Array<ComicView>> =>
+    sampleComics.filter((c) => c.genre_ids.includes(genreId)),
+
+  searchComics: async (searchQuery: string): Promise<Array<ComicView>> => {
+    const q = searchQuery.toLowerCase();
+    return sampleComics.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        c.genre_ids.some((g) => g.includes(q)),
+    );
+  },
 };

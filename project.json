@@ -1,23 +1,27 @@
 {
-  "overview": "UR COMICS is a high-performance Webtoon/Manhwa ecosystem with a Midnight Purple visual identity. Creators upload vertical comic chapters through a 4-step studio wizard with atomic publish guarantees. Readers enjoy a virtualized vertical scrolling reader with smart bookmarking that resumes exactly where they left off.",
+  "overview": "UR COMICS is a production-grade Webtoon and Manhwa reading platform. Creators upload vertical comics with a two-phase publish pipeline, readers browse by genre, and a fast search finds comics by title, creator, or genre tag.",
   "features": [
-    "Midnight Purple dark gradient UI with glassmorphism navigation",
-    "4-step Creator Studio with 9:16 thumbnail cropper, drag-drop image upload, and atomic DRAFT→PUBLISHED pipeline",
-    "Virtualized vertical webtoon reader with Stitch & Stretch seamless canvas and read-position memory",
-    "Intelligent sidebar with Home, Trending (Hot Score algorithm), and Continue Reading smart bookmarks",
-    "FAQ system with tag filtering and real-time keyword search",
-    "User profiles with Creator Badge auto-awarded on first publish",
-    "Two-phase commit upload with exponential backoff retry and full rollback on failure"
+    "Genre system with 14 tags and many-to-many comic relationships",
+    "Homepage genre sections with horizontal scroll per genre",
+    "Search by comic title, creator name, and genre tags",
+    "Centered Sign-In hero CTA with animated hover",
+    "Chapter reader with routing fixes and error fallbacks",
+    "Chapter preview thumbnail grid in upload wizard",
+    "Two-phase DRAFT to PUBLISHED upload pipeline with rollback",
+    "Creator Studio with cover cropper and seamless stitch layout",
+    "Continue Reading smart bookmark with scroll position save",
+    "Trending comics ranked by hot score"
   ],
   "category": "entertainment",
   "tags": [
     "comics",
     "webtoon",
     "manhwa",
+    "reading",
     "creator",
-    "reader",
-    "dark-theme",
+    "genre",
+    "manga",
     "vertical-scroll"
   ],
-  "last_updated": "2026-05-13T15:07:31.913Z"
+  "last_updated": "2026-05-14T15:46:53.018Z"
 }

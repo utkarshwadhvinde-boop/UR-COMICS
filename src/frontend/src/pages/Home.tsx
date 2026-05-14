@@ -1,4 +1,4 @@
-import type { Comic, ComicView, ReadProgress } from "@/backend";
+import type { Comic, ComicView, Genre, ReadProgress } from "@/backend";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { SkeletonCardRow } from "@/components/SkeletonCard";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useComics } from "@/hooks/useComics";
+import {
+  useComicsByGenre,
+  useGenres,
+  useSearchComics,
+} from "@/hooks/useGenres";
 import { useResumeReading, useTrending } from "@/hooks/useTrending";
 import { Link } from "@tanstack/react-router";
 import {
@@ -13,13 +18,15 @@ import {
   ChevronRight,
   Eye,
   Flame,
+  Grid3X3,
+  LogIn,
   RefreshCw,
   Search,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // ─── Comic Card ────────────────────────────────────────────────────────────────
 function ComicCard({
@@ -172,20 +179,101 @@ function TrendingItem({
   );
 }
 
+// ─── Genre Row ─────────────────────────────────────────────────────────────────
+function GenreRow({ genre }: { genre: Genre }) {
+  const { data: comics, isLoading } = useComicsByGenre(genre.id);
+  if (!isLoading && (!comics || comics.length === 0)) return null;
+  return (
+    <div className="mb-10" data-ocid={`genre.${genre.id}.section`}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-display text-2xl text-foreground">{genre.name}</h3>
+      </div>
+      {isLoading ? (
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-[148px] rounded-xl bg-muted/40 animate-pulse"
+              style={{ aspectRatio: "3/4" }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {(comics ?? []).map((comic, i) => (
+            <motion.div
+              key={comic.id}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="flex-shrink-0 w-[148px] group"
+              data-ocid={`genre.${genre.id}.item.${i + 1}`}
+            >
+              <Link
+                to="/comics/$comicId"
+                params={{ comicId: comic.id }}
+                className="block"
+              >
+                <div className="rounded-xl overflow-hidden bg-card border border-border group-hover:border-accent/40 transition-smooth">
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <img
+                      src={comic.cover_blob.getDirectURL()}
+                      alt={comic.title}
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-smooth"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-smooth">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-body font-semibold text-accent-foreground">
+                        <BookOpen className="w-2.5 h-2.5" /> Read
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <p className="font-body text-xs text-foreground truncate leading-snug">
+                      {comic.title}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export function HomePage() {
   const { data: comics, isLoading, isError, isFetching, refetch } = useComics();
   const { data: trending } = useTrending(6);
   const { data: resumeItems, isLoading: resumeLoading } = useResumeReading();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
+  const { data: genres } = useGenres();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [search]);
+
+  const { data: searchResults } = useSearchComics(debouncedSearch);
 
   const allComics = comics ?? [];
-  const filtered = search.trim()
-    ? allComics.filter((c) =>
-        c.title.toLowerCase().includes(search.toLowerCase()),
-      )
-    : allComics;
+  const filtered = useMemo(() => {
+    if (debouncedSearch) return searchResults ?? [];
+    return allComics;
+  }, [debouncedSearch, searchResults, allComics]);
 
   // Use useTrending results; fall back to allComics.slice if empty
   const trendingComics =
@@ -322,31 +410,46 @@ export function HomePage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
-              className="flex flex-col sm:flex-row gap-3 items-start"
+              className="flex flex-col gap-4 items-start"
             >
-              <Button
-                asChild
-                size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-body font-semibold px-8 shadow-manga"
-                data-ocid="home.cta_primary_button"
-              >
-                <a href="#new-arrivals">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  Start Reading
-                </a>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="font-body border-border hover:border-accent/50 hover:text-accent"
-                data-ocid="home.cta_secondary_button"
-              >
-                <Link to="/creator">
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Creator Studio
-                </Link>
-              </Button>
+              {/* Primary Sign-In CTA for guests */}
+              {!isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={login}
+                  className="flex items-center gap-3 mx-auto bg-[#8B5CF6] hover:bg-[#7C3AED] text-white px-12 py-5 rounded-xl text-xl font-bold hover:scale-105 transition-all duration-200 shadow-lg"
+                  data-ocid="home.signin_primary_button"
+                >
+                  <LogIn className="w-6 h-6" />
+                  Sign In to Read Free
+                </button>
+              )}
+              {/* Secondary CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3 items-start">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-body font-semibold px-8 shadow-manga"
+                  data-ocid="home.cta_primary_button"
+                >
+                  <a href="#new-arrivals">
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    Start Reading
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="font-body border-border hover:border-accent/50 hover:text-accent"
+                  data-ocid="home.cta_secondary_button"
+                >
+                  <Link to="/creator">
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Creator Studio
+                  </Link>
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
 
@@ -509,6 +612,24 @@ export function HomePage() {
               ))}
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ── Browse by Genre ──────────────────────────────────────────── */}
+      {genres && genres.length > 0 && (
+        <section
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+          data-ocid="home.genres_section"
+        >
+          <div className="flex items-center gap-2.5 mb-8">
+            <Grid3X3 className="w-5 h-5 text-accent" />
+            <h2 className="font-display text-3xl text-foreground">
+              Browse by Genre
+            </h2>
+          </div>
+          {genres.map((genre) => (
+            <GenreRow key={genre.id} genre={genre} />
+          ))}
         </section>
       )}
     </div>

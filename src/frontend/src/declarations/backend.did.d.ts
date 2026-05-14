@@ -26,6 +26,7 @@ export interface Comic {
   'title' : string,
   'updated_at' : Timestamp,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : Array<string>,
   'description' : string,
   'created_at' : Timestamp,
   'author_id' : UserId,
@@ -37,6 +38,7 @@ export interface ComicView {
   'title' : string,
   'updated_at' : Timestamp,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : Array<string>,
   'description' : string,
   'created_at' : Timestamp,
   'author_id' : UserId,
@@ -49,9 +51,12 @@ export interface CreateChapterArgs {
 export interface CreateComicArgs {
   'title' : string,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : Array<string>,
   'description' : string,
 }
 export type ExternalBlob = Uint8Array;
+export interface Genre { 'id' : GenreId, 'name' : string, 'slug' : string }
+export type GenreId = string;
 export type ProfileId = string;
 export interface ReadProgress {
   'user_id' : ProfileId,
@@ -76,6 +81,7 @@ export interface UpdateChapterDraftArgs { 'title' : string, 'number' : number }
 export interface UpdateComicArgs {
   'title' : string,
   'cover_blob' : ExternalBlob,
+  'genre_ids' : Array<string>,
   'description' : string,
 }
 export interface UpdateProfileRequest {
@@ -150,6 +156,8 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChapter' : ActorMethod<[ChapterId], [] | [ChapterView]>,
   'getComic' : ActorMethod<[ComicId], [] | [ComicView]>,
+  'getComicsByGenre' : ActorMethod<[GenreId], Array<ComicView>>,
+  'getGenre' : ActorMethod<[GenreId], [] | [Genre]>,
   'getMyReadProgress' : ActorMethod<[ComicId], [] | [ReadProgress]>,
   'getMyResumeReading' : ActorMethod<[bigint], Array<[Comic, ReadProgress]>>,
   'getTrendingComics' : ActorMethod<[bigint], Array<TrendingEntry>>,
@@ -158,12 +166,14 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listChapters' : ActorMethod<[ComicId], Array<ChapterView>>,
   'listComics' : ActorMethod<[], Array<ComicView>>,
+  'listGenres' : ActorMethod<[], Array<Genre>>,
   'registerUploadedImage' : ActorMethod<
     [ChapterId, ExternalBlob],
     UploadSession
   >,
   'rollbackUpload' : ActorMethod<[ChapterId], bigint>,
   'saveMyReadProgress' : ActorMethod<[SaveReadProgressRequest], undefined>,
+  'searchComics' : ActorMethod<[string], Array<ComicView>>,
   'updateChapterDraft' : ActorMethod<
     [ChapterId, UpdateChapterDraftArgs],
     ChapterView
