@@ -43,12 +43,7 @@ function ComicCard({
   comic,
   index,
 }: {
-  comic: {
-    id: string;
-    title: string;
-    cover_blob: { getDirectURL(): string };
-    author_id: { toText(): string };
-  };
+  comic: import("@/types/index").Comic;
   index: number;
 }) {
   return (
@@ -67,7 +62,7 @@ function ComicCard({
       >
         <div className="relative w-full aspect-[9/14] overflow-hidden bg-purple-900/20">
           <img
-            src={comic.cover_blob.getDirectURL()}
+            src={comic.cover_url ?? ""}
             alt={comic.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -94,13 +89,12 @@ export function ProfilePage() {
   const { handle } = useParams({ strict: false }) as { handle: string };
   const { data: profile, isLoading, error, refetch } = useProfile(handle);
   const { data: allComics } = useComics();
-  const { principal } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const isOwnProfile =
-    !!profile && !!principal && profile.auth_id === principal.toText();
+  const isOwnProfile = !!profile && !!user && profile.id === user.id;
   const creatorComics = (allComics ?? []).filter(
-    (c) => profile && c.author_id.toText() === profile.auth_id,
+    (c) => profile && c.author_id === profile.id,
   );
 
   const initials = profile?.display_name
@@ -169,10 +163,10 @@ export function ProfilePage() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar */}
           <div className="shrink-0" data-ocid="profile.avatar">
-            {profile.profile_picture_url ? (
+            {profile.avatar_url ? (
               <img
-                src={profile.profile_picture_url}
-                alt={profile.display_name}
+                src={profile.avatar_url}
+                alt={profile.display_name ?? ""}
                 className="w-24 h-24 rounded-full object-cover border-2 border-accent/40 glow-accent-sm"
               />
             ) : (
@@ -205,7 +199,7 @@ export function ProfilePage() {
               )}
             </div>
             <p className="text-muted-foreground font-body text-sm mb-3">
-              @{profile.handle}
+              @{profile.handle ?? handle}
             </p>
             {profile.bio && (
               <p className="text-foreground/80 font-body text-sm leading-relaxed max-w-lg">
@@ -219,7 +213,7 @@ export function ProfilePage() {
             <div className="shrink-0">
               <Link
                 to="/profile/$handle/edit"
-                params={{ handle: profile.handle }}
+                params={{ handle: profile.handle ?? profile.id }}
                 data-ocid="profile.edit_button"
               >
                 <Button

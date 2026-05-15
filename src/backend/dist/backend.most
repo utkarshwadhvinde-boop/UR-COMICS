@@ -1,9 +1,4 @@
-// Version: 3.0.0
-type AccessControlState__45017055 =
-  {
-    var adminAssigned : Bool;
-    userRoles : Map__605269027<Principal, UserRole__1073662873>
-  };
+// Version: 1.0.0
 type ChapterId__202794786 = Text;
 type Chapter__965669759 =
   {
@@ -46,70 +41,6 @@ type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
-type OldChapterId__960654792 = Text;
-type OldChapter__270852693 =
-  {
-    comic_id : OldComicId__497202300;
-    created_at : OldTimestamp__27916213;
-    id : OldChapterId__960654792;
-    image_blobs : [ExternalBlob__671167343];
-    is_deleted : Bool;
-    is_published : Bool;
-    number : Float;
-    title : Text;
-    updated_at : OldTimestamp__27916213
-  };
-type OldComicId__497202300 = Text;
-type OldComic__177867870 =
-  {
-    author_id : OldUserId__580276348;
-    cover_blob : ExternalBlob__671167343;
-    created_at : OldTimestamp__27916213;
-    description : Text;
-    id : OldComicId__497202300;
-    is_deleted : Bool;
-    title : Text;
-    updated_at : OldTimestamp__27916213
-  };
-type OldProfileId__399171788 = Text;
-type OldReadProgress__930044247 =
-  {
-    chapter_id : OldChapterId__960654792;
-    comic_id : OldComicId__497202300;
-    last_read_at : OldTimestamp__27916213;
-    scroll_pixel_y : Nat;
-    user_id : OldProfileId__399171788
-  };
-type OldTimestamp__27916213 = Int;
-type OldTrendingEntry__1035734576 =
-  {
-    comic_id : OldComicId__497202300;
-    hot_score : Float;
-    last_updated : OldTimestamp__27916213;
-    views : Nat
-  };
-type OldUploadSession__987262667 =
-  {
-    chapter_id : OldChapterId__960654792;
-    started_at : OldTimestamp__27916213;
-    status : OldUploadStatus__934635998;
-    updated_at : OldTimestamp__27916213;
-    uploaded_blobs : [ExternalBlob__671167343]
-  };
-type OldUploadStatus__934635998 = {#draft; #failed; #published; #uploading};
-type OldUserId__580276348 = Principal;
-type OldUserProfile__416069324 =
-  {
-    auth_id : Text;
-    bio : Text;
-    created_at : OldTimestamp__27916213;
-    display_name : Text;
-    handle : Text;
-    id : OldProfileId__399171788;
-    is_creator : Bool;
-    profile_picture_url : ?Text;
-    updated_at : OldTimestamp__27916213
-  };
 type ProfileId__718444104 = Text;
 type ReadProgress__594271879 =
   {
@@ -150,21 +81,7 @@ type UserProfile__129828592 =
     updated_at : Timestamp__301639476
   };
 type UserRole__1073662873 = {#admin; #guest; #user};
-actor ({
-  in accessControlState : AccessControlState__45017055;
-  in chapterCounter : {var next : Nat};
-  in chapters :
-    Map__605269027<OldChapterId__960654792, OldChapter__270852693>;
-  in comicCounter : {var next : Nat};
-  in comics : Map__605269027<OldComicId__497202300, OldComic__177867870>;
-  in profiles :
-    Map__605269027<OldProfileId__399171788, OldUserProfile__416069324>;
-  in readProgress : Map__605269027<Text, OldReadProgress__930044247>;
-  in trending :
-    Map__605269027<OldComicId__497202300, OldTrendingEntry__1035734576>;
-  in uploads :
-    Map__605269027<OldChapterId__960654792, OldUploadSession__987262667>
-}, {
+actor {
   stable accessControlState :
     {
       var adminAssigned : Bool;
@@ -207,4 +124,4 @@ actor ({
       var root : Node__46230540<ChapterId__202794786, UploadSession__63400461>;
       var size : Nat__490723111
     }
-});
+};

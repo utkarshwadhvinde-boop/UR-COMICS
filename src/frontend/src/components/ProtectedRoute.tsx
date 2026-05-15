@@ -1,6 +1,5 @@
 import { PageLoader } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
-import { useInternetIdentity } from "@caffeineai/core-infrastructure";
 import { Navigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -9,11 +8,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
-  const { loginStatus } = useInternetIdentity();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Still checking auth state
-  if (loginStatus === "logging-in") {
+  // Hydrating session from storage — wait before deciding
+  if (isLoading) {
     return <PageLoader />;
   }
 

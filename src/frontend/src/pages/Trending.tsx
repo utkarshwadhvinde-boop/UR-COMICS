@@ -20,13 +20,9 @@ function TrendingCardSkeleton() {
 function TrendingCard({
   comic,
   rank,
-  hotScore,
-  views,
 }: {
-  comic: { id: string; title: string; cover_blob: { getDirectURL(): string } };
+  comic: import("@/types/index").Comic;
   rank: number;
-  hotScore: number;
-  views: bigint;
 }) {
   return (
     <motion.div
@@ -45,7 +41,7 @@ function TrendingCard({
         {/* Cover */}
         <div className="relative w-full aspect-[9/14] overflow-hidden bg-purple-900/20">
           <img
-            src={comic.cover_blob.getDirectURL()}
+            src={comic.cover_url ?? ""}
             alt={comic.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
@@ -60,7 +56,7 @@ function TrendingCard({
           <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-orange-500/40">
             <Flame className="w-2.5 h-2.5 text-orange-400" />
             <span className="text-xs font-body text-orange-300">
-              {hotScore.toFixed(0)}
+              {comic.view_count}
             </span>
           </div>
         </div>
@@ -71,7 +67,7 @@ function TrendingCard({
             {comic.title}
           </h3>
           <p className="text-xs text-muted-foreground font-body">
-            {Number(views).toLocaleString()} views
+            {comic.view_count.toLocaleString()} views
           </p>
         </div>
       </Link>
@@ -81,14 +77,11 @@ function TrendingCard({
 
 export function TrendingPage() {
   const { data: trendingEntries, isLoading: trendingLoading } = useTrending(24);
-  const { data: allComics } = useComics();
 
-  const trendingComics = (trendingEntries ?? [])
-    .map((entry, idx) => {
-      const comic = allComics?.find((c) => c.id === entry.comic_id);
-      return { entry, comic, rank: idx + 1 };
-    })
-    .filter((t) => !!t.comic);
+  const trendingComics = (trendingEntries ?? []).map((comic, idx) => ({
+    comic,
+    rank: idx + 1,
+  }));
 
   return (
     <div className="px-4 sm:px-6 py-8" data-ocid="trending.page">
@@ -140,14 +133,8 @@ export function TrendingPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {trendingComics.map(({ entry, comic, rank }) => (
-            <TrendingCard
-              key={entry.comic_id}
-              comic={comic!}
-              rank={rank}
-              hotScore={entry.hot_score}
-              views={entry.views}
-            />
+          {trendingComics.map(({ comic, rank }) => (
+            <TrendingCard key={comic.id} comic={comic} rank={rank} />
           ))}
         </div>
       )}

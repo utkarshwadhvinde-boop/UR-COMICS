@@ -1,7 +1,5 @@
-import { createActor } from "@/backend";
-import type { ComicView } from "@/backend";
 import { getComic } from "@/services/comicsService";
-import { useActor } from "@caffeineai/core-infrastructure";
+import type { Comic } from "@/types/index";
 import { useQuery } from "@tanstack/react-query";
 
 export function comicQueryKey(id: string) {
@@ -9,14 +7,13 @@ export function comicQueryKey(id: string) {
 }
 
 export function useComic(id: string | undefined) {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery<ComicView | null>({
+  return useQuery<Comic | null>({
     queryKey: comicQueryKey(id ?? ""),
     queryFn: async () => {
-      if (!actor || !id) return null;
-      return getComic(actor, id);
+      if (!id) return null;
+      return getComic(id);
     },
-    enabled: !!actor && !isFetching && !!id,
+    enabled: !!id,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

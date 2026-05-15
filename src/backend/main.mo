@@ -8,10 +8,10 @@ import ChaptersApi "mixins/chapters-api";
 import ProfileApi "mixins/profile-api";
 import GenreTypes "types/genres";
 import GenresApi "mixins/genres-api";
-import Migration "migration";
+
 import GenresLib "lib/genres";
 
-(with migration = Migration.run)
+
 actor {
   // ── Authorization ────────────────────────────────────────────────────────
   let accessControlState = AccessControl.initState();

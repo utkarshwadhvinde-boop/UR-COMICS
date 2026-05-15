@@ -33,11 +33,11 @@ function EditProfileSkeleton() {
 
 export function EditProfilePage() {
   const navigate = useNavigate();
-  const { isAuthenticated, principal } = useAuth();
-  const principalText = principal?.toText() ?? "";
+  const { isAuthenticated, user } = useAuth();
+  const userId = user?.id ?? "";
 
-  const { data: profile, isLoading } = useProfile(principalText);
-  const updateProfile = useUpdateProfile();
+  const { data: profile, isLoading } = useProfile(userId);
+  const updateProfile = useUpdateProfile(userId);
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -56,8 +56,8 @@ export function EditProfilePage() {
     if (profile) {
       setDisplayName(profile.display_name ?? "");
       setBio(profile.bio ?? "");
-      setProfilePictureUrl(profile.profile_picture_url ?? "");
-      setAvatarPreview(profile.profile_picture_url ?? null);
+      setProfilePictureUrl(profile.avatar_url ?? "");
+      setAvatarPreview(profile.avatar_url ?? null);
     }
   }, [profile]);
 
@@ -83,17 +83,20 @@ export function EditProfilePage() {
       const updated = await updateProfile.mutateAsync({
         display_name: displayName.trim(),
         bio: bio.trim() || undefined,
-        profile_picture_url: profilePictureUrl.trim() || undefined,
+        avatar_url: profilePictureUrl.trim() || undefined,
       });
       toast.success("Profile updated!");
-      navigate({ to: "/profile/$handle", params: { handle: updated.handle } });
+      navigate({
+        to: "/profile/$handle",
+        params: { handle: updated.handle ?? userId },
+      });
     } catch {
       toast.error("Failed to update profile. Please try again.");
     }
   }
 
   if (!isAuthenticated && !isLoading) return null;
-  if (isLoading || !profile) return <EditProfileSkeleton />;
+  if (isLoading || !profile || !profile.handle) return <EditProfileSkeleton />;
 
   return (
     <div
@@ -107,7 +110,7 @@ export function EditProfilePage() {
           onClick={() =>
             navigate({
               to: "/profile/$handle",
-              params: { handle: profile.handle },
+              params: { handle: profile.handle ?? userId },
             })
           }
           className="w-9 h-9 rounded-lg bg-card/50 border border-border hover:bg-accent/10 hover:border-accent/30 flex items-center justify-center transition-smooth text-muted-foreground hover:text-accent"
@@ -276,7 +279,7 @@ export function EditProfilePage() {
                 onClick={() =>
                   navigate({
                     to: "/profile/$handle",
-                    params: { handle: profile.handle },
+                    params: { handle: profile.handle ?? userId },
                   })
                 }
                 className="flex-1 border-border/50 text-muted-foreground hover:text-foreground hover:border-border font-body transition-smooth"

@@ -1,13 +1,12 @@
-import type { ChapterView } from "@/backend";
-import { createActor } from "@/backend";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { PageLoader } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { useChapter } from "@/hooks/useChapter";
 import { useChapters } from "@/hooks/useChapters";
 import { useSaveReadProgress } from "@/hooks/useReadProgress";
 import { cn } from "@/lib/utils";
-import { useActor } from "@caffeineai/core-infrastructure";
+import type { Chapter } from "@/types/index";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { BookOpen, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -184,9 +183,9 @@ function VirtualizedStrip({
 interface ChromeProps {
   visible: boolean;
   comicId: string;
-  chapter: ChapterView;
-  prevChapter: ChapterView | null;
-  nextChapter: ChapterView | null;
+  chapter: Chapter;
+  prevChapter: Chapter | null;
+  nextChapter: Chapter | null;
   currentPage: number;
   totalPages: number;
   prefetching: boolean;
@@ -230,7 +229,7 @@ function ReaderChrome({
 
         <div className="flex flex-col items-center min-w-0">
           <p className="text-xs font-body text-muted-foreground truncate max-w-[200px] sm:max-w-xs">
-            Chapter {chapter.number}
+            Chapter {chapter.chapter_number}
           </p>
           <p className="text-sm font-display text-foreground truncate max-w-[200px] sm:max-w-sm">
             {chapter.title}
@@ -379,13 +378,7 @@ export function ReaderPage() {
     from: "/comics/$comicId/chapters/$chapterId",
   });
   const navigate = useNavigate();
-
-  // Track actor readiness so we can show a loading screen before the
-  // query is even enabled. When isFetching=true the query's enabled=false,
-  // which keeps isLoading=false. Without this guard the component falls
-  // straight through to `!chapter` and renders the error fallback —
-  // the root cause of the black-screen / "Chapter not found" flash.
-  const { isFetching: actorFetching } = useActor(createActor);
+  const { user } = useAuth();
 
   const {
     data: chapter,
@@ -395,13 +388,13 @@ export function ReaderPage() {
   } = useChapter(comicId, chapterId);
 
   const { data: chapters } = useChapters(comicId);
-  const { mutate: saveProgress } = useSaveReadProgress();
+  const { mutate: saveProgress } = useSaveReadProgress(user?.id);
 
   // Derived chapter navigation
   const published =
     chapters
       ?.filter((c) => c.is_published)
-      .sort((a, b) => a.number - b.number) ?? [];
+      .sort((a, b) => a.chapter_number - b.chapter_number) ?? [];
   const currentIndex = published.findIndex((c) => c.id === chapterId);
   const prevChapter = currentIndex > 0 ? published[currentIndex - 1] : null;
   const nextChapter =
@@ -450,9 +443,9 @@ export function ReaderPage() {
     if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
     saveDebounceRef.current = setTimeout(() => {
       saveProgress({
-        comic_id: comicId,
-        chapter_id: chapterId,
-        scroll_pixel_y: BigInt(Math.round(window.scrollY)),
+        comicId,
+        lastChapterId: chapterId,
+        lastPageNumber: Math.round(window.scrollY),
       });
     }, 1000);
   }, [comicId, chapterId, saveProgress]);
@@ -484,7 +477,7 @@ export function ReaderPage() {
   const prefetchedRef = useRef(false);
   const { refetch: prefetchNext } = useChapter(
     nextChapter ? comicId : undefined,
-    nextChapter?.id,
+    nextChapter?.id ?? undefined,
   );
 
   // Page counter
@@ -509,8 +502,7 @@ export function ReaderPage() {
     setCurrentPage(1);
   }, [chapterId]);
 
-  // Show loader while actor is initialising OR the query is in-flight.
-  if (actorFetching || isLoading) return <PageLoader />;
+  if (isLoading) return <PageLoader />;
   if (isError)
     return (
       <ErrorFallback
@@ -520,11 +512,11 @@ export function ReaderPage() {
     );
   if (!chapter) return <ErrorFallback message="Chapter not found." />;
 
-  // Filter null/undefined blobs that might slip through, then extract CDN
-  // URLs. Array order is preserved — backend guarantees upload sequence.
-  const imageUrls = chapter.image_blobs
-    .filter((b) => b != null)
-    .map((b) => b.getDirectURL())
+  // Extract image URLs from chapter pages, in page order
+  const imageUrls = (chapter.pages ?? [])
+    .filter((p) => p != null)
+    .sort((a, b) => a.page_number - b.page_number)
+    .map((p) => p.image_url)
     .filter((url): url is string => typeof url === "string" && url.length > 0);
 
   return (
@@ -541,9 +533,9 @@ export function ReaderPage() {
       <ReaderChrome
         visible={showChrome}
         comicId={comicId}
-        chapter={chapter}
-        prevChapter={prevChapter}
-        nextChapter={nextChapter}
+        chapter={chapter as Chapter}
+        prevChapter={prevChapter as Chapter | null}
+        nextChapter={nextChapter as Chapter | null}
         currentPage={currentPage}
         totalPages={imageUrls.length}
         prefetching={prefetching}

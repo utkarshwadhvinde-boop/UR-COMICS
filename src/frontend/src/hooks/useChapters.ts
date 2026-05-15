@@ -1,7 +1,5 @@
-import { createActor } from "@/backend";
-import type { ChapterView } from "@/backend";
 import { listChapters } from "@/services/chaptersService";
-import { useActor } from "@caffeineai/core-infrastructure";
+import type { Chapter } from "@/types/index";
 import { useQuery } from "@tanstack/react-query";
 
 export function chaptersQueryKey(comicId: string) {
@@ -9,14 +7,13 @@ export function chaptersQueryKey(comicId: string) {
 }
 
 export function useChapters(comicId: string | undefined) {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery<ChapterView[]>({
+  return useQuery<Chapter[]>({
     queryKey: chaptersQueryKey(comicId ?? ""),
     queryFn: async () => {
-      if (!actor || !comicId) return [];
-      return listChapters(actor, comicId);
+      if (!comicId) return [];
+      return listChapters(comicId);
     },
-    enabled: !!actor && !isFetching && !!comicId,
+    enabled: !!comicId,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

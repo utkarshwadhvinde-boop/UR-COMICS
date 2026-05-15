@@ -25,11 +25,7 @@ const CreatorDashboardPage = lazy(() =>
     default: m.CreatorDashboardPage,
   })),
 );
-const CreateComicPage = lazy(() =>
-  import("@/pages/creator/CreateComic").then((m) => ({
-    default: m.CreateComicPage,
-  })),
-);
+const CreateComicPage = lazy(() => import("@/pages/creator/CreateComic"));
 const EditComicPage = lazy(() =>
   import("@/pages/creator/EditComic").then((m) => ({
     default: m.EditComicPage,

@@ -1,38 +1,28 @@
-import { createActor } from "@/backend";
-import type { Comic, ReadProgress, TrendingEntry } from "@/backend";
-import {
-  getMyResumeReading,
-  getTrendingComics,
-} from "@/services/profileService";
-import { useActor } from "@caffeineai/core-infrastructure";
+import { getTrendingComics } from "@/services/comicsService";
+import { getResumeReading } from "@/services/profileService";
+import type { Comic } from "@/types/index";
 import { useQuery } from "@tanstack/react-query";
 
 export const TRENDING_QUERY_KEY = ["trending"] as const;
 export const RESUME_READING_QUERY_KEY = ["resumeReading"] as const;
 
 export function useTrending(limit = 20) {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery<TrendingEntry[]>({
+  return useQuery<Comic[]>({
     queryKey: TRENDING_QUERY_KEY,
-    queryFn: async () => {
-      if (!actor) return [];
-      return getTrendingComics(actor, limit);
-    },
-    enabled: !!actor && !isFetching,
+    queryFn: () => getTrendingComics(limit),
     staleTime: 60 * 60 * 1000,
     refetchOnMount: true,
   });
 }
 
-export function useResumeReading() {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery<Array<[Comic, ReadProgress]>>({
-    queryKey: RESUME_READING_QUERY_KEY,
+export function useResumeReading(userId?: string) {
+  return useQuery<Comic[]>({
+    queryKey: [...RESUME_READING_QUERY_KEY, userId],
     queryFn: async () => {
-      if (!actor) return [];
-      return getMyResumeReading(actor, 3);
+      if (!userId) return [];
+      return (await getResumeReading(userId, 3)) ?? [];
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!userId,
     staleTime: 2 * 60 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,

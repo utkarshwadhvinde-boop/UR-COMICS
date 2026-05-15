@@ -1,10 +1,8 @@
-import { createActor } from "@/backend";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { chaptersQueryKey } from "@/hooks/useChapters";
 import { createChapter } from "@/services/chaptersService";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
@@ -16,7 +14,6 @@ export function CreateChapterPage() {
     from: "/creator/comics/$comicId/chapters/new",
   });
   const navigate = useNavigate();
-  const { actor } = useActor(createActor);
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [number, setNumber] = useState<string>("1");
@@ -25,13 +22,13 @@ export function CreateChapterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const chNum = Number.parseFloat(number);
-    if (!actor || !title.trim() || Number.isNaN(chNum)) return;
+    if (!title.trim() || Number.isNaN(chNum)) return;
     setIsSubmitting(true);
     try {
-      const chapter = await createChapter(actor, {
+      const chapter = await createChapter({
         comic_id: comicId,
         title: title.trim(),
-        number: chNum,
+        chapter_number: chNum,
       });
       await queryClient.invalidateQueries({
         queryKey: chaptersQueryKey(comicId),

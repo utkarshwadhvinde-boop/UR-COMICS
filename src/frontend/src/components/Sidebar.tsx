@@ -53,7 +53,7 @@ function NavLink({
 }
 
 function ResumeReadingSection({ onClose }: { onClose: () => void }) {
-  const { data: resumeItems, isLoading } = useResumeReading();
+  const { data: resumeItems, isLoading } = useResumeReading(undefined);
 
   if (isLoading) {
     return (
@@ -75,32 +75,29 @@ function ResumeReadingSection({ onClose }: { onClose: () => void }) {
       <p className="px-4 py-1 text-xs text-muted-foreground font-body uppercase tracking-wider">
         Continue Reading
       </p>
-      {resumeItems.slice(0, 3).map(([comic, progress], idx) => (
-        <Link
-          key={comic.id}
-          to="/comics/$comicId"
-          params={{ comicId: comic.id }}
-          onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg mx-0 transition-colors-fast text-muted-foreground hover:text-foreground hover:bg-purple-900/30 group"
-          data-ocid={`sidebar.resume_item.${idx + 1}`}
-        >
-          <BookOpen className="w-3.5 h-3.5 shrink-0 text-accent/60 group-hover:text-accent" />
-          <span className="font-body text-xs truncate flex-1">
-            {comic.title}
-          </span>
-          {progress && (
-            <span className="text-xs text-muted-foreground/50 shrink-0">
-              Ch {progress.chapter_id.slice(-4)}
+      {(resumeItems as import("@/types/index").Comic[])
+        .slice(0, 3)
+        .map((comic, idx) => (
+          <Link
+            key={comic.id}
+            to="/comics/$comicId"
+            params={{ comicId: comic.id }}
+            onClick={onClose}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg mx-0 transition-colors-fast text-muted-foreground hover:text-foreground hover:bg-purple-900/30 group"
+            data-ocid={`sidebar.resume_item.${idx + 1}`}
+          >
+            <BookOpen className="w-3.5 h-3.5 shrink-0 text-accent/60 group-hover:text-accent" />
+            <span className="font-body text-xs truncate flex-1">
+              {comic.title}
             </span>
-          )}
-        </Link>
-      ))}
+          </Link>
+        ))}
     </div>
   );
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { isAuthenticated, principal, login, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const sidebarContent = (
     <nav
@@ -168,13 +165,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="mt-auto pt-3 px-2">
         {isAuthenticated ? (
           <>
-            {principal && (
+            {user && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-900/20 mx-0 mb-1">
                 <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent font-display text-sm font-bold shrink-0">
-                  {principal.toString().slice(0, 1).toUpperCase()}
+                  {(user.email ?? user.id).slice(0, 1).toUpperCase()}
                 </div>
                 <span className="font-body text-xs text-muted-foreground truncate">
-                  {principal.toString().slice(0, 12)}…
+                  {(user.email ?? user.id).slice(0, 20)}…
                 </span>
               </div>
             )}
@@ -192,18 +189,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </>
         ) : (
-          <button
-            type="button"
-            onClick={() => {
-              login();
-              onClose();
-            }}
-            className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors-fast text-accent hover:bg-purple-900/30 font-body"
-            data-ocid="sidebar.login_button"
-          >
+          <div className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-lg text-accent font-body opacity-60">
             <LogIn className="w-4 h-4 shrink-0" />
-            Sign In
-          </button>
+            Sign In via Home
+          </div>
         )}
       </div>
     </nav>

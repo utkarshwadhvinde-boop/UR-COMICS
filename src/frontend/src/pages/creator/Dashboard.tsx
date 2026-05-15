@@ -1,4 +1,3 @@
-import { createActor } from "@/backend";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -8,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { COMICS_QUERY_KEY, useComics } from "@/hooks/useComics";
 import { useProfile } from "@/hooks/useProfile";
 import { deleteComic } from "@/services/comicsService";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Eye, FolderOpen, Plus, Trash2 } from "lucide-react";
@@ -18,21 +16,18 @@ import { toast } from "sonner";
 
 export function CreatorDashboardPage() {
   const { data: comics, isLoading, isError, refetch } = useComics();
-  const { principal } = useAuth();
-  const { actor } = useActor(createActor);
-  const principalStr = principal?.toString() ?? "";
-  const { data: profile } = useProfile(principalStr);
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
+  const { data: profile } = useProfile(userId);
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const myComics =
-    comics?.filter(
-      (c) => principal && c.author_id.toString() === principal.toString(),
-    ) ?? [];
+    comics?.filter((c) => userId && c.author_id === userId) ?? [];
 
   const handleDelete = async () => {
-    if (!deleteTarget || !actor) return;
+    if (!deleteTarget) return;
     setIsDeleting(true);
     // Snapshot current cache for rollback
     const previous = queryClient.getQueryData<typeof comics>(COMICS_QUERY_KEY);
@@ -41,7 +36,7 @@ export function CreatorDashboardPage() {
       (old ?? []).filter((c) => c.id !== deleteTarget),
     );
     try {
-      await deleteComic(actor, deleteTarget);
+      await deleteComic(deleteTarget);
       await queryClient.invalidateQueries({ queryKey: COMICS_QUERY_KEY });
       toast.success("Comic deleted.");
     } catch {
@@ -145,7 +140,7 @@ export function CreatorDashboardPage() {
               {/* Cover */}
               <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                  src={comic.cover_blob.getDirectURL()}
+                  src={comic.cover_url ?? ""}
                   alt={comic.title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

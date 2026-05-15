@@ -5,15 +5,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useChapters } from "@/hooks/useChapters";
 import { useComic } from "@/hooks/useComic";
 import { useReadProgress } from "@/hooks/useReadProgress";
+import type { Chapter } from "@/types/index";
 import { Link, useParams } from "@tanstack/react-router";
 import {
   BookOpen,
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Hash,
   Layers,
   Lock,
+  User,
 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -23,13 +24,11 @@ function ChapterRow({
   comicId,
   index,
 }: {
-  chapter: import("@/backend").ChapterView;
+  chapter: Chapter;
   comicId: string;
   index: number;
 }) {
-  const date = new Date(
-    Number(chapter.updated_at / 1_000_000n),
-  ).toLocaleDateString("en-US", {
+  const date = new Date(chapter.updated_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -52,12 +51,12 @@ function ChapterRow({
           {/* Chapter number bubble */}
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-center">
             <span className="text-accent font-display text-sm leading-none">
-              {chapter.number}
+              {chapter.chapter_number}
             </span>
           </div>
           <div className="min-w-0">
             <p className="font-body text-sm text-foreground font-medium truncate group-hover:text-accent transition-smooth">
-              {chapter.title}
+              {chapter.title ?? `Chapter ${chapter.chapter_number}`}
             </p>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
               <Calendar className="w-3 h-3" />
@@ -91,11 +90,11 @@ export function ComicDetailPage() {
     isError: chaptersError,
     refetch: refetchChapters,
   } = useChapters(comicId);
-  const { data: progress } = useReadProgress(comicId);
+  const { data: progress } = useReadProgress(undefined, comicId);
 
   const publishedChapters = (chapters ?? [])
     .filter((ch) => ch.is_published)
-    .sort((a, b) => a.number - b.number);
+    .sort((a, b) => a.chapter_number - b.chapter_number);
   const firstChapter = publishedChapters[0];
 
   if (comicError) {
@@ -120,11 +119,11 @@ export function ComicDetailPage() {
         }}
       >
         {/* Blurred backdrop from cover */}
-        {!comicLoading && comic && (
+        {!comicLoading && comic?.cover_url && (
           <div
             className="absolute inset-0 opacity-15 blur-2xl scale-110"
             style={{
-              backgroundImage: `url(${comic.cover_blob.getDirectURL()})`,
+              backgroundImage: `url(${comic.cover_url})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -154,11 +153,17 @@ export function ComicDetailPage() {
                 transition={{ duration: 0.45 }}
                 className="flex-shrink-0"
               >
-                <img
-                  src={comic.cover_blob.getDirectURL()}
-                  alt={comic.title}
-                  className="w-44 sm:w-52 h-auto rounded-xl shadow-manga object-cover"
-                />
+                {comic.cover_url ? (
+                  <img
+                    src={comic.cover_url}
+                    alt={comic.title}
+                    className="w-44 sm:w-52 h-auto rounded-xl shadow-manga object-cover"
+                  />
+                ) : (
+                  <div className="w-44 sm:w-52 aspect-[9/14] rounded-xl bg-muted/60 border border-border flex items-center justify-center">
+                    <BookOpen className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
               </motion.div>
             ) : null}
 
@@ -195,13 +200,13 @@ export function ComicDetailPage() {
                       {publishedChapters.length !== 1 ? "s" : ""}
                     </Badge>
                     <Badge className="bg-muted text-muted-foreground border border-border font-body inline-flex items-center gap-1">
-                      <Hash className="w-3 h-3" />
-                      {comic.author_id.toText().slice(0, 10)}…
+                      <User className="w-3 h-3" />
+                      {comic.author_name ?? comic.author_id.slice(0, 10)}…
                     </Badge>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2">
                     {/* Continue Reading button — shown when progress exists */}
-                    {progress?.chapter_id && (
+                    {progress?.last_chapter_id && (
                       <Button
                         asChild
                         size="lg"
@@ -211,8 +216,10 @@ export function ComicDetailPage() {
                       >
                         <Link
                           to="/comics/$comicId/chapters/$chapterId"
-                          params={{ comicId, chapterId: progress.chapter_id }}
-                          search={{ scrollY: String(progress.scroll_pixel_y) }}
+                          params={{
+                            comicId,
+                            chapterId: progress.last_chapter_id,
+                          }}
                         >
                           <BookOpen className="w-5 h-5 mr-2" />
                           Continue Reading →
@@ -313,10 +320,10 @@ export function ComicDetailPage() {
         {/* Chapter list */}
         {!chaptersLoading && !chaptersError && publishedChapters.length > 0 && (
           <div className="flex flex-col gap-2">
-            {publishedChapters.map((chapter, i) => (
+            {publishedChapters.map((ch, i) => (
               <ChapterRow
-                key={chapter.id}
-                chapter={chapter}
+                key={ch.id}
+                chapter={ch}
                 comicId={comicId}
                 index={i}
               />
