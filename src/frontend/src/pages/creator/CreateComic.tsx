@@ -108,11 +108,11 @@ export default function CreateComic() {
     const uploadedPaths: string[] = [];
     try {
       let cover_url: string | undefined;
-      if (coverFile) {
-        const tempId = crypto.randomUUID();
-        comicId = tempId;
-        cover_url = await uploadCoverImage(tempId, coverFile);
-      }
+      let cover_url: string | undefined;
+
+if (coverFile) {
+  cover_url = await uploadCoverImage("temp", coverFile);
+}
       const comic = await createComic({
         title: title.trim(),
         description: description.trim() || undefined,
