@@ -117,7 +117,7 @@ if (coverFile) {
         title: title.trim(),
         description: description.trim() || undefined,
         cover_url,
-        author_id: user.id,
+        creator_id: user.id,
       });
       comicId = comic.id;
       if (selectedGenres.length > 0)
