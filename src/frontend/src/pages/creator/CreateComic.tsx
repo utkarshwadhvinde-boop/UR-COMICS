@@ -108,7 +108,6 @@ export default function CreateComic() {
     const uploadedPaths: string[] = [];
     try {
       let cover_url: string | undefined;
-      let cover_url: string | undefined;
 
 if (coverFile) {
   cover_url = await uploadCoverImage("temp", coverFile);
