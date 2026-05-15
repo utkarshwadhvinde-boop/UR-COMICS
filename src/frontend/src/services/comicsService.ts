@@ -4,12 +4,8 @@ import type { Comic, Genre } from "@/types/index";
 export async function listComics(limit = 20): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`
-      *,
-      users!author_id(display_name),
-      comic_genres(genre_id, genres(id, name, slug))
-    `)
-    .eq("is_published", true)
+    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -19,11 +15,9 @@ export async function listComics(limit = 20): Promise<Comic[]> {
 export async function getTrendingComics(limit = 10): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(
-      "*, users!author_id(display_name), comic_genres(genre_id, genres(id, name, slug))",
-    )
-    .eq("is_published", true)
-    .order("view_count", { ascending: false })
+    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
@@ -32,9 +26,7 @@ export async function getTrendingComics(limit = 10): Promise<Comic[]> {
 export async function getComic(id: string): Promise<Comic | null> {
   const { data, error } = await supabase
     .from("comics")
-    .select(
-      "*, users!author_id(display_name), comic_genres(genre_id, genres(id, name, slug))",
-    )
+    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
     .eq("id", id)
     .single();
   if (error) return null;
@@ -45,11 +37,11 @@ export async function createComic(input: {
   title: string;
   description?: string;
   cover_url?: string;
-  author_id: string;
+  creator_id: string;
 }): Promise<Comic> {
   const { data, error } = await supabase
     .from("comics")
-    .insert([{ ...input, is_published: false }] as unknown as never[])
+    .insert([{ ...input, status: "draft" }] as unknown as never[])
     .select()
     .single();
   if (error) throw error;
@@ -62,10 +54,7 @@ export async function updateComic(
 ): Promise<Comic> {
   const { data, error } = await supabase
     .from("comics")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    } as unknown as never)
+    .update({ ...updates } as unknown as never)
     .eq("id", id)
     .select()
     .single();
@@ -93,10 +82,8 @@ export async function getComicsByGenre(
 ): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(
-      "*, users!author_id(display_name), comic_genres!inner(genre_id, genres!inner(id, name, slug))",
-    )
-    .eq("is_published", true)
+    .select(`*, comic_genres!inner(genre_id, genres!inner(id, name, slug))`)
+    .eq("status", "published")
     .eq("comic_genres.genres.slug", genreSlug)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -109,12 +96,10 @@ export async function searchComics(query: string): Promise<Comic[]> {
   if (!q) return [];
   const { data, error } = await supabase
     .from("comics")
-    .select(
-      "*, users!author_id(display_name), comic_genres(genre_id, genres(id, name, slug))",
-    )
-    .eq("is_published", true)
+    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .eq("status", "published")
     .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
-    .order("view_count", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
@@ -124,7 +109,7 @@ export async function getUserComics(userId: string): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
     .select("*, comic_genres(genre_id, genres(id, name, slug))")
-    .eq("author_id", userId)
+    .eq("creator_id", userId)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
@@ -151,16 +136,12 @@ function normalizeComic(raw: any): Comic {
     title: raw.title,
     description: raw.description ?? null,
     cover_url: raw.cover_url ?? null,
-    author_id: raw.author_id,
-    is_published: raw.is_published,
-    view_count: raw.view_count ?? 0,
-    metadata: raw.metadata ?? null,
+    creator_id: raw.creator_id,
+    status: raw.status,
     created_at: raw.created_at,
-    updated_at: raw.updated_at,
-    author_name: raw.users?.display_name ?? null,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     genres: (raw.comic_genres ?? [])
       .map((cg: any) => cg.genres)
       .filter(Boolean),
   };
-}
+    }
