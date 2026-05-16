@@ -123,10 +123,11 @@ if (coverFile) {
         await setComicGenres(comicId, selectedGenres);
 
       const chapter = await createChapter({
-        comic_id: comicId,
-        chapter_number: 1,
-        title: "Chapter 1",
-      });
+  comic_id: comicId,
+  chapter_number: 1,
+  title: "Chapter 1",
+  creator_id: user.id,
+});
       chapterId = chapter.id;
 
       const imageUrls: string[] = [];
