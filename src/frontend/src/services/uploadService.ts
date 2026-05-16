@@ -85,7 +85,6 @@ export async function commitChapterUpload(
   const { error } = await supabase
     .from("chapters")
     .update({
-      is_published: true,
       updated_at: new Date().toISOString(),
     } as unknown as never)
     .eq("id", chapterId);
