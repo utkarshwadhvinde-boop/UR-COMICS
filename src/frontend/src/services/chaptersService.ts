@@ -62,10 +62,11 @@ export async function createChapter(input: {
   comic_id: string;
   chapter_number: number;
   title?: string;
+  creator_id?: string;
 }): Promise<Chapter> {
   const { data, error } = await supabase
     .from("chapters")
-    .insert([{ ...input, is_published: false }] as unknown as never[])
+    .insert([{ ...input }] as unknown as never[])
     .select()
     .single();
   if (error) throw error;
