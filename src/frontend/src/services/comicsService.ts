@@ -4,7 +4,7 @@ import type { Comic, Genre } from "@/types/index";
 export async function listComics(limit = 20): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(‘*’)
+    .select(`*`)
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(limit);
