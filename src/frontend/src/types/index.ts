@@ -3,13 +3,10 @@ export interface Comic {
   title: string;
   description: string | null;
   cover_url: string | null;
-  author_id: string;
-  is_published: boolean;
-  view_count: number;
-  metadata: Record<string, unknown> | null;
+  creator_id: string;
+  status: string;
   created_at: string;
-  updated_at: string;
-  author_name?: string;
+  author_name?: string | null;
   genres?: Genre[];
 }
 
