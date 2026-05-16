@@ -201,7 +201,7 @@ export function ComicDetailPage() {
                     </Badge>
                     <Badge className="bg-muted text-muted-foreground border border-border font-body inline-flex items-center gap-1">
                       <User className="w-3 h-3" />
-                      {comic.author_name ?? comic.author_id.slice(0, 10)}…
+                      {comic.author_name ?? comic.creator_id?.slice(0, 10)}…
                     </Badge>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2">
