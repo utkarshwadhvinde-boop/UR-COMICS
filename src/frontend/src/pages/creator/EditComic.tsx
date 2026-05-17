@@ -113,7 +113,7 @@ export function EditComicPage() {
     );
   }
 
-  if (!comic || comic.author_id !== user?.id) {
+if (!comic || comic.creator_id !== user?.id) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
