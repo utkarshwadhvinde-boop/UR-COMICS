@@ -15,7 +15,7 @@ export async function listComics(limit = 20): Promise<Comic[]> {
 export async function getTrendingComics(limit = 10): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .select(`*`)
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -26,7 +26,7 @@ export async function getTrendingComics(limit = 10): Promise<Comic[]> {
 export async function getComic(id: string): Promise<Comic | null> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .select(`*`)
     .eq("id", id)
     .single();
   if (error) return null;
