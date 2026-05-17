@@ -139,13 +139,12 @@ export async function searchComics(query: string): Promise<Comic[]> {
 export async function getUserComics(userId: string): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select("*, comic_genres(genre_id, genres(id, name, slug))")
+    .select(`*`)
     .eq("creator_id", userId)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
 }
-
 export async function setComicGenres(
   comicId: string,
   genreIds: string[],
