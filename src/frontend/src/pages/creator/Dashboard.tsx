@@ -24,7 +24,7 @@ export function CreatorDashboardPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const myComics =
-    comics?.filter((c) => userId && c.author_id === userId) ?? [];
+    comics?.filter((c) => userId && c.creator_id === userId) ?? [];
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
