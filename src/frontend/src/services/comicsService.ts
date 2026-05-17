@@ -108,14 +108,14 @@ export async function listGenres(): Promise<Genre[]> {
 }
 
 export async function getComicsByGenre(
-  genreSlug: string,
+  genreId: string,
   limit = 20,
 ): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, comic_genres!inner(genre_id, genres!inner(id, name, slug))`)
+    .select(`*, comic_genres!inner(genre_id)`)
     .eq("status", "published")
-    .eq("comic_genres.genres.slug", genreSlug)
+    .eq("comic_genres.genre_id", genreId)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -127,14 +127,14 @@ export async function searchComics(query: string): Promise<Comic[]> {
   if (!q) return [];
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, comic_genres(genre_id, genres(id, name, slug))`)
+    .select(`*`)
     .eq("status", "published")
     .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
-}
+  }
 
 export async function getUserComics(userId: string): Promise<Comic[]> {
   const { data, error } = await supabase
