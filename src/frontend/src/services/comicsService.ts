@@ -26,7 +26,7 @@ export async function getTrendingComics(limit = 10): Promise<Comic[]> {
 export async function getComic(id: string): Promise<Comic | null> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, profiles!creator_id(display_name)`)
+    .select(`*`)
     .eq("id", id)
     .single();
   if (error) return null;
@@ -137,7 +137,7 @@ function normalizeComic(raw: any): Comic {
     description: raw.description ?? null,
     cover_url: raw.cover_url ?? null,
     creator_id: raw.creator_id,
-    author_name: raw.profiles?.display_name ?? null,
+    author_name: null,
     status: raw.status,
     created_at: raw.created_at,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
