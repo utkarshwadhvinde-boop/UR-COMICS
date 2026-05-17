@@ -31,7 +31,6 @@ export interface ChapterPage {
 export interface Genre {
   id: string;
   name: string;
-  slug: string;
 }
 
 export interface UserProfile {
