@@ -4,14 +4,23 @@ import type { Comic, Genre } from "@/types/index";
 export async function listComics(limit = 20): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
-    .select(`*, profiles(display_name)`)
+    .select(`*`)
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data ?? []).map((raw) => normalizeComic({
+  
+  const comics = data ?? [];
+  const creatorIds = [...new Set(comics.map((c) => c.creator_id))];
+  
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .in("id", creatorIds);
+  
+  return comics.map((raw) => normalizeComic({
     ...raw,
-    author_name: raw.profiles?.display_name ?? null
+    author_name: profiles?.find((p) => p.id === raw.creator_id)?.display_name ?? null
   }));
 }
 
