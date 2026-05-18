@@ -119,7 +119,18 @@ export async function getComicsByGenre(
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data ?? []).map(normalizeComic);
+
+  const comics = data ?? [];
+  const creatorIds = [...new Set(comics.map((c) => c.creator_id))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, display_name")
+    .in("id", creatorIds);
+
+  return comics.map((raw) => normalizeComic({
+    ...raw,
+    author_name: profiles?.find((p) => p.id === raw.creator_id)?.display_name ?? null
+  }));
 }
 
 export async function searchComics(query: string): Promise<Comic[]> {
