@@ -142,7 +142,7 @@ if (coverFile) {
 
       await commitChapterUpload(chapterId, imageUrls);
       setUploadProgress(100);
-      navigate({ to: `/comic/${comicId}` });
+      navigate({ to: `/comics/${comicId}` });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to publish");
       if (comicId && chapterId) {
