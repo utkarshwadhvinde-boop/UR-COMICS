@@ -72,7 +72,7 @@ export async function createComic(input: {
 }): Promise<Comic> {
   const { data, error } = await supabase
     .from("comics")
-    .insert([{ ...input, status: "draft" }] as unknown as never[])
+    .insert([{ ...input, status: "published" }] as unknown as never[])
     .select()
     .single();
   if (error) throw error;
