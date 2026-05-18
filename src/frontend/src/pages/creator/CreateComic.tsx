@@ -110,7 +110,7 @@ export default function CreateComic() {
       let cover_url: string | undefined;
 
 if (coverFile) {
-  cover_url = await uploadCoverImage("temp", coverFile);
+  cover_url = await uploadCoverImage(user.id, coverFile);
 }
       const comic = await createComic({
         title: title.trim(),
