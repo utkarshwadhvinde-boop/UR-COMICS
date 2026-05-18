@@ -1,3 +1,5 @@
+import { useComicsByGenre } from "../hooks/useGenres";
+import { useSearchComics } from "../hooks/useGenres";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, ChevronRight, Search, TrendingUp, Zap } from "lucide-react";
 import { useState } from "react";
@@ -78,6 +80,7 @@ export function HomePage() {
   const { data: newArrivals = [], isLoading: newLoading } = useComics();
   const { data: trending = [] } = useTrendingComics(6);
   const { data: resumeComics = [] } = useResumeReading(user?.id);
+  const { data: searchResults = [] } = useSearchComics(searchQuery);
 
   const handleSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
@@ -167,6 +170,24 @@ export function HomePage() {
               {trending.map((comic) => (
                 <ComicCard key={comic.id} comic={comic} />
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Search Results */}
+        {searchQuery.trim() && (
+          <section>
+            <h2 className="text-lg font-bold text-white mb-3">
+              Search Results for "{searchQuery}"
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {searchResults.length === 0 ? (
+                <p className="text-white/40 text-sm">No comics found.</p>
+              ) : (
+                searchResults.map((comic) => (
+                  <ComicCard key={comic.id} comic={comic} />
+                ))
+              )}
             </div>
           </section>
         )}
