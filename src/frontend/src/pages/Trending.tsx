@@ -56,7 +56,7 @@ function TrendingCard({
           <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-orange-500/40">
             <Flame className="w-2.5 h-2.5 text-orange-400" />
             <span className="text-xs font-body text-orange-300">
-              {comic.view_count}
+              {0}
             </span>
           </div>
         </div>
@@ -67,7 +67,7 @@ function TrendingCard({
             {comic.title}
           </h3>
           <p className="text-xs text-muted-foreground font-body">
-            {comic.view_count.toLocaleString()} views
+            0 views
           </p>
         </div>
       </Link>
