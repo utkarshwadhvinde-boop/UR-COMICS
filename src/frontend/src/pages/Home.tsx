@@ -1,13 +1,10 @@
-import { useComicsByGenre } from "../hooks/useGenres";
-import { useSearchComics } from "../hooks/useGenres";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, ChevronRight, Search, TrendingUp, Zap } from "lucide-react";
 import { useState } from "react";
 import { AuthModal } from "../components/AuthModal";
 import { useAuth } from "../hooks/useAuth";
 import { useComics } from "../hooks/useComics";
-import { useGenres } from "../hooks/useGenres";
-import { useComicsByGenre } from "../hooks/useGenres";
+import { useGenres, useComicsByGenre, useSearchComics } from "../hooks/useGenres";
 import { useTrending as useTrendingComics } from "../hooks/useTrending";
 import { useResumeReading } from "../hooks/useTrending";
 import type { Comic, Genre } from "../types/index";
