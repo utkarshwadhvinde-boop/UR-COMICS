@@ -145,15 +145,13 @@ if (coverFile) {
       navigate({ to: `/comics/${comicId}` });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to publish");
+      setIsSubmitting(false);
       if (comicId && chapterId) {
         await rollbackChapterUpload(comicId, chapterId, uploadedPaths).catch(
           () => {},
         );
       }
-    } finally {
-      setIsSubmitting(false);
     }
-  };
 
   return (
     <div
