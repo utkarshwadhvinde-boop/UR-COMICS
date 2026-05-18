@@ -152,6 +152,7 @@ if (coverFile) {
         );
       }
     }
+   }; 
 
   return (
     <div
