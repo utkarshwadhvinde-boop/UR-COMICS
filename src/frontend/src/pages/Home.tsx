@@ -41,7 +41,7 @@ function ComicCard({ comic }: { comic: Comic }) {
 }
 
 function GenreRow({ genre }: { genre: Genre }) {
-  const { data: comics = [], isLoading } = useComicsByGenre(genre.slug);
+  const { data: comics = [], isLoading } = useComicsByGenre(genre.id);
   if (!isLoading && comics.length === 0) return null;
   return (
     <section>
