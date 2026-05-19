@@ -107,29 +107,29 @@ export default function CreateComic() {
     let chapterId = "";
     const uploadedPaths: string[] = [];
     try {
-      let cover_url: string | undefined;
-
-if (coverFile) {
-  cover_url = await uploadCoverImage(user.id, coverFile);
-}
       const comic = await createComic({
         title: title.trim(),
         description: description.trim() || undefined,
-        cover_url,
+        cover_url: undefined,
         creator_id: user.id,
       });
       comicId = comic.id;
+
+      if (coverFile) {
+        const cover_url = await uploadCoverImage(comicId, coverFile);
+        await updateComic(comicId, { cover_url });
+      }
+
       if (selectedGenres.length > 0)
         await setComicGenres(comicId, selectedGenres);
 
       const chapter = await createChapter({
-  comic_id: comicId,
-  chapter_number: 1,
-  title: "Chapter 1",
-  creator_id: user.id,
-});
+        comic_id: comicId,
+        chapter_number: 1,
+        title: "Chapter 1",
+        creator_id: user.id,
+      });
       chapterId = chapter.id;
-
       const imageUrls: string[] = [];
       for (let i = 0; i < pages.length; i++) {
         const url = await uploadChapterPage(comicId, chapterId, i, pages[i]);
