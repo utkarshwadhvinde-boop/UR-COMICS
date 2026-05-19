@@ -94,6 +94,17 @@ export async function updateComic(
 }
 
 export async function deleteComic(id: string): Promise<void> {
+  // Delete all files from storage
+  const { data: files } = await supabase.storage
+    .from("comics")
+    .list(id);
+  
+  if (files && files.length > 0) {
+    const paths = files.map((f) => `${id}/${f.name}`);
+    await supabase.storage.from("comics").remove(paths);
+  }
+
+  // Delete comic from database
   const { error } = await supabase.from("comics").delete().eq("id", id);
   if (error) throw error;
 }
