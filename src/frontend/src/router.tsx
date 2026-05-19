@@ -176,6 +176,12 @@ const editProfileRoute = createRoute({
   ),
 });
 
+const privacyPolicyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/privacy-policy",
+  component: PrivacyPolicyPage,
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   comicDetailRoute,
@@ -189,6 +195,7 @@ const routeTree = rootRoute.addChildren([
   faqRoute,
   profileRoute,
   editProfileRoute,
+  privacyPolicyRoute
 ]);
 
 export const router = createRouter({ routeTree });
