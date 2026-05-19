@@ -161,6 +161,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onClick={onClose}
       />
 
+      <NavLink
+        to="/privacy-policy"
+        icon={User}
+        label="Privacy Policy"
+        ocid="sidebar.privacy_link"
+        onClick={onClose}
+      />
+
       {/* Auth */}
       <div className="mt-auto pt-3 px-2">
         {isAuthenticated ? (
