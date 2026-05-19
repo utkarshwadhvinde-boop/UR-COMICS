@@ -53,6 +53,9 @@ const ProfilePage = lazy(() =>
 const EditProfilePage = lazy(() =>
   import("@/pages/EditProfile").then((m) => ({ default: m.EditProfilePage })),
 );
+const PrivacyPolicyPage = lazy(() =>
+  import("@/pages/PrivacyPolicy").then((m) => ({ default: m.PrivacyPolicyPage })),
+);
 
 function RootComponent() {
   return (
