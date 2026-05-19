@@ -17,6 +17,7 @@ import {
   createComic,
   listGenres,
   setComicGenres,
+  updateComic,
 } from "../../services/comicsService";
 import {
   commitChapterUpload,
