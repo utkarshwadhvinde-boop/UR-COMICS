@@ -161,6 +161,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         onClick={onClose}
       />
 
+      {isAuthenticated && (
+        <NavLink
+          to={`/profile/${user?.id}`}
+          icon={User}
+          label="My Profile"
+          ocid="sidebar.profile_link"
+          onClick={onClose}
+        />
+      )}
+
       <NavLink
         to="/privacy-policy"
         icon={User}
