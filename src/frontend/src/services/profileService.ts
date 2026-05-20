@@ -1,14 +1,24 @@
 import { supabase } from "@/lib/supabase";
 import type { UserProfile } from "@/types/index";
 
-export async function getProfile(userId: string): Promise<UserProfile | null> {
-  const { data, error } = await supabase
+export async function getProfile(handleOrId: string): Promise<UserProfile | null> {
+  // Try by handle first
+  const { data: byHandle } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", userId)
+    .eq("handle", handleOrId)
     .single();
-  if (error) return null;
-  return data;
+  
+  if (byHandle) return byHandle;
+
+  // Fall back to id
+  const { data: byId } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", handleOrId)
+    .single();
+  
+  return byId ?? null;
 }
 
 export async function updateProfile(
