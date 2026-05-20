@@ -3,7 +3,7 @@ import type { UserProfile } from "@/types/index";
 
 export async function getProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
-    .from("users")
+    .from("profiles")
     .select("*")
     .eq("id", userId)
     .single();
@@ -21,7 +21,7 @@ export async function updateProfile(
   },
 ): Promise<UserProfile> {
   const { data, error } = await supabase
-    .from("users")
+    .from("profiles")
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
@@ -37,8 +37,8 @@ export async function getCreatorProfile(
   userId: string,
 ): Promise<UserProfile | null> {
   const { data, error } = await supabase
-    .from("users")
-    .select("*, comics(*, comic_genres(genre_id, genres(id, name, slug)))")
+    .from("profiles")
+    .select("*")
     .eq("id", userId)
     .single();
   if (error) return null;
@@ -47,7 +47,7 @@ export async function getCreatorProfile(
 
 export async function markAsCreator(userId: string): Promise<void> {
   const { error } = await supabase
-    .from("users")
+    .from("profiles")
     .update({
       is_creator: true,
       updated_at: new Date().toISOString(),
