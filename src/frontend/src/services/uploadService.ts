@@ -83,12 +83,12 @@ export async function commitChapterUpload(
   }
 
   const { error } = await supabase
-    .from("chapters")
-    .update({
-      updated_at: new Date().toISOString(),
-    } as unknown as never)
-    .eq("id", chapterId);
-  if (error) throw error;
+  .from("chapters")
+  .update({
+    updated_at: new Date().toISOString(),
+    is_published: true,
+  } as unknown as never)
+  .eq("id", chapterId);
   onProgress?.(100);
 }
 
