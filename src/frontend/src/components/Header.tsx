@@ -46,7 +46,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             alt="UR COMICS"
           />
           <span
-            className="font-display text-xl tracking-tight leading-none hidden sm:block"
+            className="font-display text-xl tracking-tight leading-none"
             style={{ letterSpacing: "-0.02em" }}
           >
             <span className="text-foreground">UR</span>
