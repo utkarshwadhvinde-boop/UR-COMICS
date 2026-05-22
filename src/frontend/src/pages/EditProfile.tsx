@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -16,10 +16,7 @@ const MAX_BIO = 300;
 
 function EditProfileSkeleton() {
   return (
-    <div
-      className="px-4 sm:px-6 py-10 max-w-xl mx-auto"
-      data-ocid="edit_profile.loading_state"
-    >
+    <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto">
       <Skeleton className="h-8 w-40 bg-purple-900/30 mb-8" />
       <div className="bg-midnight-card rounded-2xl p-6 space-y-6">
         <Skeleton className="w-20 h-20 rounded-full bg-purple-900/30 mx-auto" />
@@ -33,10 +30,11 @@ function EditProfileSkeleton() {
 
 export function EditProfilePage() {
   const navigate = useNavigate();
+  const { handle } = useParams({ strict: false }) as { handle: string };
   const { isAuthenticated, user } = useAuth();
   const userId = user?.id ?? "";
 
-  const { data: profile, isLoading } = useProfile(userId);
+  const { data: profile, isLoading } = useProfile(handle || userId);
   const updateProfile = useUpdateProfile(userId);
 
   const [displayName, setDisplayName] = useState("");
@@ -44,14 +42,12 @@ export function EditProfilePage() {
   const [profilePictureUrl, setProfilePictureUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  // Redirect unauthenticated users
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
       navigate({ to: "/" });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  // Pre-fill form when profile loads
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name ?? "");
@@ -99,11 +95,7 @@ export function EditProfilePage() {
   if (isLoading || !profile || !profile.handle) return <EditProfileSkeleton />;
 
   return (
-    <div
-      className="px-4 sm:px-6 py-10 max-w-xl mx-auto"
-      data-ocid="edit_profile.page"
-    >
-      {/* Page header */}
+    <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <button
           type="button"
@@ -115,7 +107,6 @@ export function EditProfilePage() {
           }
           className="w-9 h-9 rounded-lg bg-card/50 border border-border hover:bg-accent/10 hover:border-accent/30 flex items-center justify-center transition-smooth text-muted-foreground hover:text-accent"
           aria-label="Go back to profile"
-          data-ocid="edit_profile.back_button"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
@@ -134,9 +125,8 @@ export function EditProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
-        <form onSubmit={handleSubmit} data-ocid="edit_profile.form">
+        <form onSubmit={handleSubmit}>
           <div className="bg-midnight-card border border-purple-900/30 rounded-2xl p-6 sm:p-8 shadow-elevated space-y-6">
-            {/* Avatar Preview */}
             <div className="flex flex-col items-center gap-3">
               {avatarPreview ? (
                 <img
@@ -161,25 +151,12 @@ export function EditProfilePage() {
               </p>
             </div>
 
-            {/* Display Name */}
-            <div
-              className="space-y-1.5"
-              data-ocid="edit_profile.display_name_field"
-            >
+            <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <Label
-                  htmlFor="displayName"
-                  className="text-sm font-medium text-foreground font-body"
-                >
+                <Label htmlFor="displayName" className="text-sm font-medium text-foreground font-body">
                   Display Name <span className="text-destructive">*</span>
                 </Label>
-                <span
-                  className={`text-xs font-body ${
-                    displayName.length > MAX_DISPLAY_NAME * 0.9
-                      ? "text-destructive"
-                      : "text-muted-foreground"
-                  }`}
-                >
+                <span className={`text-xs font-body ${displayName.length > MAX_DISPLAY_NAME * 0.9 ? "text-destructive" : "text-muted-foreground"}`}>
                   {displayName.length}/{MAX_DISPLAY_NAME}
                 </span>
               </div>
@@ -187,32 +164,19 @@ export function EditProfilePage() {
                 id="displayName"
                 type="text"
                 value={displayName}
-                onChange={(e) =>
-                  setDisplayName(e.target.value.slice(0, MAX_DISPLAY_NAME))
-                }
+                onChange={(e) => setDisplayName(e.target.value.slice(0, MAX_DISPLAY_NAME))}
                 placeholder="Your display name"
                 className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 transition-smooth"
                 maxLength={MAX_DISPLAY_NAME}
-                data-ocid="edit_profile.display_name_input"
               />
             </div>
 
-            {/* Bio */}
-            <div className="space-y-1.5" data-ocid="edit_profile.bio_field">
+            <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <Label
-                  htmlFor="bio"
-                  className="text-sm font-medium text-foreground font-body"
-                >
+                <Label htmlFor="bio" className="text-sm font-medium text-foreground font-body">
                   Bio
                 </Label>
-                <span
-                  className={`text-xs font-body ${
-                    bio.length > MAX_BIO * 0.9
-                      ? "text-destructive"
-                      : "text-muted-foreground"
-                  }`}
-                >
+                <span className={`text-xs font-body ${bio.length > MAX_BIO * 0.9 ? "text-destructive" : "text-muted-foreground"}`}>
                   {bio.length}/{MAX_BIO}
                 </span>
               </div>
@@ -224,19 +188,11 @@ export function EditProfilePage() {
                 rows={4}
                 className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 resize-none transition-smooth"
                 maxLength={MAX_BIO}
-                data-ocid="edit_profile.bio_textarea"
               />
             </div>
 
-            {/* Profile Picture URL */}
-            <div
-              className="space-y-1.5"
-              data-ocid="edit_profile.avatar_url_field"
-            >
-              <Label
-                htmlFor="profilePictureUrl"
-                className="text-sm font-medium text-foreground font-body"
-              >
+            <div className="space-y-1.5">
+              <Label htmlFor="profilePictureUrl" className="text-sm font-medium text-foreground font-body">
                 Profile Picture URL
               </Label>
               <Input
@@ -246,20 +202,17 @@ export function EditProfilePage() {
                 onChange={(e) => handleAvatarUrlChange(e.target.value)}
                 placeholder="https://example.com/avatar.jpg"
                 className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 transition-smooth"
-                data-ocid="edit_profile.avatar_url_input"
               />
               <p className="text-xs text-muted-foreground font-body">
                 Paste a direct image URL to set your avatar.
               </p>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 type="submit"
                 disabled={updateProfile.isPending || !displayName.trim()}
                 className="flex-1 bg-accent hover:bg-accent/85 text-white font-body font-semibold gap-2 transition-smooth disabled:opacity-50"
-                data-ocid="edit_profile.submit_button"
               >
                 {updateProfile.isPending ? (
                   <span className="flex items-center gap-2">
@@ -283,18 +236,13 @@ export function EditProfilePage() {
                   })
                 }
                 className="flex-1 border-border/50 text-muted-foreground hover:text-foreground hover:border-border font-body transition-smooth"
-                data-ocid="edit_profile.cancel_button"
               >
                 Cancel
               </Button>
             </div>
 
-            {/* Mutation error */}
             {updateProfile.isError && (
-              <p
-                className="text-xs text-destructive font-body text-center"
-                data-ocid="edit_profile.error_state"
-              >
+              <p className="text-xs text-destructive font-body text-center">
                 Something went wrong. Please try again.
               </p>
             )}
@@ -303,4 +251,4 @@ export function EditProfilePage() {
       </motion.div>
     </div>
   );
-}
+                }
