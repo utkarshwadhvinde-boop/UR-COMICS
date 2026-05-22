@@ -5,10 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { uploadAvatarImage } from "@/services/uploadService";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Save, User } from "lucide-react";
+import { ArrowLeft, Camera, Save, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const MAX_DISPLAY_NAME = 100;
@@ -39,8 +40,11 @@ export function EditProfilePage() {
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
-  const [profilePictureUrl, setProfilePictureUrl] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
@@ -52,7 +56,7 @@ export function EditProfilePage() {
     if (profile) {
       setDisplayName(profile.display_name ?? "");
       setBio(profile.bio ?? "");
-      setProfilePictureUrl(profile.avatar_url ?? "");
+      setAvatarUrl(profile.avatar_url ?? "");
       setAvatarPreview(profile.avatar_url ?? null);
     }
   }, [profile]);
@@ -64,9 +68,26 @@ export function EditProfilePage() {
     .toUpperCase()
     .slice(0, 2);
 
-  function handleAvatarUrlChange(url: string) {
-    setProfilePictureUrl(url);
-    setAvatarPreview(url.trim() ? url.trim() : null);
+  async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setAvatarPreview(localUrl);
+
+    // Upload to Supabase
+    setUploading(true);
+    try {
+      const url = await uploadAvatarImage(userId, file);
+      setAvatarUrl(url);
+      toast.success("Photo uploaded!");
+    } catch {
+      toast.error("Failed to upload photo.");
+      setAvatarPreview(avatarUrl || null);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -79,7 +100,7 @@ export function EditProfilePage() {
       const updated = await updateProfile.mutateAsync({
         display_name: displayName.trim(),
         bio: bio.trim() || undefined,
-        avatar_url: profilePictureUrl.trim() || undefined,
+        avatar_url: avatarUrl.trim() || undefined,
       });
       toast.success("Profile updated!");
       navigate({
@@ -127,30 +148,66 @@ export function EditProfilePage() {
       >
         <form onSubmit={handleSubmit}>
           <div className="bg-midnight-card border border-purple-900/30 rounded-2xl p-6 sm:p-8 shadow-elevated space-y-6">
+
+            {/* Avatar Upload */}
             <div className="flex flex-col items-center gap-3">
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Profile avatar preview"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-accent/40 glow-accent-sm"
-                  onError={() => setAvatarPreview(null)}
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-display font-bold text-white border-2 border-accent/40 glow-accent-sm"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
-                  }}
+              <div className="relative">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Profile avatar preview"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-accent/40 glow-accent-sm"
+                    onError={() => setAvatarPreview(null)}
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-display font-bold text-white border-2 border-accent/40 glow-accent-sm"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
+                    }}
+                  >
+                    {initials}
+                  </div>
+                )}
+                {/* Camera button overlay */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-accent border-2 border-background flex items-center justify-center hover:bg-accent/80 transition-smooth"
                 >
-                  {initials}
-                </div>
-              )}
+                  {uploading ? (
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="w-3 h-3 text-white" />
+                  )}
+                </button>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarFileChange}
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="text-xs text-accent font-body hover:underline disabled:opacity-50"
+              >
+                {uploading ? "Uploading…" : "Change photo"}
+              </button>
+
               <p className="text-xs text-muted-foreground font-body flex items-center gap-1">
                 <User className="w-3 h-3" />@{profile.handle}
               </p>
             </div>
 
+            {/* Display Name */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <Label htmlFor="displayName" className="text-sm font-medium text-foreground font-body">
@@ -171,6 +228,7 @@ export function EditProfilePage() {
               />
             </div>
 
+            {/* Bio */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <Label htmlFor="bio" className="text-sm font-medium text-foreground font-body">
@@ -191,27 +249,11 @@ export function EditProfilePage() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="profilePictureUrl" className="text-sm font-medium text-foreground font-body">
-                Profile Picture URL
-              </Label>
-              <Input
-                id="profilePictureUrl"
-                type="url"
-                value={profilePictureUrl}
-                onChange={(e) => handleAvatarUrlChange(e.target.value)}
-                placeholder="https://example.com/avatar.jpg"
-                className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 transition-smooth"
-              />
-              <p className="text-xs text-muted-foreground font-body">
-                Paste a direct image URL to set your avatar.
-              </p>
-            </div>
-
+            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 type="submit"
-                disabled={updateProfile.isPending || !displayName.trim()}
+                disabled={updateProfile.isPending || uploading || !displayName.trim()}
                 className="flex-1 bg-accent hover:bg-accent/85 text-white font-body font-semibold gap-2 transition-smooth disabled:opacity-50"
               >
                 {updateProfile.isPending ? (
@@ -251,4 +293,4 @@ export function EditProfilePage() {
       </motion.div>
     </div>
   );
-                }
+            }
