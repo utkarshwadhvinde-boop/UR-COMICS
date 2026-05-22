@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { isValidImageFile, sanitizeBio, sanitizeDisplayName } from "@/lib/utils";
 import { uploadAvatarImage } from "@/services/uploadService";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Camera, Save, User } from "lucide-react";
@@ -71,12 +72,12 @@ export function EditProfilePage() {
   async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Show local preview immediately
+    if (!isValidImageFile(file)) {
+      toast.error("Invalid file. Use JPG/PNG/WebP under 10MB.");
+      return;
+    }
     const localUrl = URL.createObjectURL(file);
     setAvatarPreview(localUrl);
-
-    // Upload to Supabase
     setUploading(true);
     try {
       const url = await uploadAvatarImage(userId, file);
@@ -92,14 +93,20 @@ export function EditProfilePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!displayName.trim()) {
-      toast.error("Display name is required.");
+    const cleanName = sanitizeDisplayName(displayName);
+    if (!cleanName) {
+      toast.error("Display name is required and must be under 100 characters.");
+      return;
+    }
+    const cleanBio = sanitizeBio(bio);
+    if (cleanBio === null) {
+      toast.error("Bio must be under 300 characters.");
       return;
     }
     try {
       const updated = await updateProfile.mutateAsync({
-        display_name: displayName.trim(),
-        bio: bio.trim() || undefined,
+        display_name: cleanName,
+        bio: cleanBio || undefined,
         avatar_url: avatarUrl.trim() || undefined,
       });
       toast.success("Profile updated!");
@@ -148,8 +155,6 @@ export function EditProfilePage() {
       >
         <form onSubmit={handleSubmit}>
           <div className="bg-midnight-card border border-purple-900/30 rounded-2xl p-6 sm:p-8 shadow-elevated space-y-6">
-
-            {/* Avatar Upload */}
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
                 {avatarPreview ? (
@@ -163,14 +168,12 @@ export function EditProfilePage() {
                   <div
                     className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-display font-bold text-white border-2 border-accent/40 glow-accent-sm"
                     style={{
-                      background:
-                        "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
+                      background: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
                     }}
                   >
                     {initials}
                   </div>
                 )}
-                {/* Camera button overlay */}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -207,7 +210,6 @@ export function EditProfilePage() {
               </p>
             </div>
 
-            {/* Display Name */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <Label htmlFor="displayName" className="text-sm font-medium text-foreground font-body">
@@ -228,7 +230,6 @@ export function EditProfilePage() {
               />
             </div>
 
-            {/* Bio */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <Label htmlFor="bio" className="text-sm font-medium text-foreground font-body">
@@ -249,7 +250,6 @@ export function EditProfilePage() {
               />
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 type="submit"
@@ -293,4 +293,4 @@ export function EditProfilePage() {
       </motion.div>
     </div>
   );
-            }
+  }
