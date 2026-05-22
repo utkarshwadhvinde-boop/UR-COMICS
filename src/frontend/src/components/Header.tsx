@@ -41,7 +41,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           data-ocid="header.logo_link"
         >
           <img
-            src="/assets/img-20260428-wa0003-019e21dd-b107-767a-9daf-d9785d41d9cd.jpg"
+            src="/assets/IMG-20260428-WA0003.jpg"
             className="h-10 w-auto object-contain rounded-sm"
             alt="UR COMICS"
           />
