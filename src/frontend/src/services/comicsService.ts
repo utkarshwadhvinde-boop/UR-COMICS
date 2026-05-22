@@ -94,14 +94,34 @@ export async function updateComic(
 }
 
 export async function deleteComic(id: string): Promise<void> {
-  // Delete all files from storage
-  const { data: files } = await supabase.storage
+  // List top-level items (files + subfolders)
+  const { data: topLevel } = await supabase.storage
     .from("comics")
     .list(id);
-  
-  if (files && files.length > 0) {
-    const paths = files.map((f) => `${id}/${f.name}`);
-    await supabase.storage.from("comics").remove(paths);
+
+  if (topLevel && topLevel.length > 0) {
+    const allPaths: string[] = [];
+
+    for (const item of topLevel) {
+      if (item.id === null) {
+        // It's a folder — list files inside it
+        const { data: subFiles } = await supabase.storage
+          .from("comics")
+          .list(`${id}/${item.name}`);
+        if (subFiles && subFiles.length > 0) {
+          for (const subItem of subFiles) {
+            allPaths.push(`${id}/${item.name}/${subItem.name}`);
+          }
+        }
+      } else {
+        // It's a file
+        allPaths.push(`${id}/${item.name}`);
+      }
+    }
+
+    if (allPaths.length > 0) {
+      await supabase.storage.from("comics").remove(allPaths);
+    }
   }
 
   // Delete comic from database
