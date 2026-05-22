@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useResumeReading } from "@/hooks/useTrending";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
@@ -98,6 +99,7 @@ function ResumeReadingSection({ onClose }: { onClose: () => void }) {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, user, logout } = useAuth();
+const { data: profile } = useProfile(user?.id);
 
   const sidebarContent = (
     <nav
@@ -163,12 +165,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {isAuthenticated && (
         <NavLink
-          to={`/profile/${user?.id}`}
-          icon={User}
-          label="My Profile"
-          ocid="sidebar.profile_link"
-          onClick={onClose}
-        />
+  to={`/profile/${profile?.handle ?? user?.id}`}
+  icon={User}
+  label="My Profile"
+  ocid="sidebar.profile_link"
+  onClick={onClose}
+/>
       )}
 
       <NavLink
