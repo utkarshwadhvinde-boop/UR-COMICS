@@ -33,10 +33,10 @@ function EditProfileSkeleton() {
 export function EditProfilePage() {
   const navigate = useNavigate();
   const { handle } = useParams({ strict: false }) as { handle: string };
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const userId = user?.id ?? "";
 
-  const { data: profile, isLoading } = useProfile(handle || userId);
+  const { data: profile, isLoading: profileLoading } = useProfile(handle || userId);
   const updateProfile = useUpdateProfile(userId);
 
   const [displayName, setDisplayName] = useState("");
@@ -48,10 +48,10 @@ export function EditProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
+    if (!authLoading && !isAuthenticated) {
       navigate({ to: "/" });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (profile) {
@@ -119,8 +119,9 @@ export function EditProfilePage() {
     }
   }
 
-  if (!isAuthenticated && !isLoading) return null;
-  if (isLoading || !profile || !profile.handle) return <EditProfileSkeleton />;
+  if (authLoading || profileLoading) return <EditProfileSkeleton />;
+  if (!isAuthenticated) return null;
+  if (!profile || !profile.handle) return <EditProfileSkeleton />;
 
   return (
     <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto">
@@ -293,4 +294,4 @@ export function EditProfilePage() {
       </motion.div>
     </div>
   );
-  }
+            }
