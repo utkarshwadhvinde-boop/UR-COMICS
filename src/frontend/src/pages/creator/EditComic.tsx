@@ -10,9 +10,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "../../hooks/useAuth";
 import { useChapters } from "../../hooks/useChapters";
 import { useComic } from "../../hooks/useComic";
+import { isValidImageFile, sanitizeDescription, sanitizeTitle } from "../../lib/utils";
 import { deleteChapter } from "../../services/chaptersService";
 import {
   listGenres,
@@ -28,8 +30,7 @@ export function EditComicPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: comic, isLoading: comicLoading } = useComic(comicId);
-  const { data: chapters = [], isLoading: chaptersLoading } =
-    useChapters(comicId);
+  const { data: chapters = [], isLoading: chaptersLoading } = useChapters(comicId);
   const { data: genres = [] } = useQuery({
     queryKey: ["genres"],
     queryFn: listGenres,
@@ -56,6 +57,10 @@ export function EditComicPage() {
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!isValidImageFile(file)) {
+      toast.error("Invalid file. Use JPG/PNG/WebP under 10MB.");
+      return;
+    }
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
   };
@@ -67,19 +72,29 @@ export function EditComicPage() {
   };
 
   const handleSave = async () => {
-    if (!title.trim()) return;
+    const cleanTitle = sanitizeTitle(title);
+    if (!cleanTitle) {
+      toast.error("Please enter a valid title (max 150 characters).");
+      return;
+    }
+    const cleanDesc = sanitizeDescription(description);
+    if (cleanDesc === null) {
+      toast.error("Description is too long (max 1000 characters).");
+      return;
+    }
     setIsSaving(true);
     setError("");
     try {
       let cover_url = comic?.cover_url;
       if (coverFile) cover_url = await uploadCoverImage(comicId, coverFile);
       await updateComic(comicId, {
-        title: title.trim(),
-        description: description.trim() || undefined,
+        title: cleanTitle,
+        description: cleanDesc || undefined,
         cover_url,
       });
       await setComicGenres(comicId, selectedGenres);
       queryClient.invalidateQueries({ queryKey: ["comic", comicId] });
+      toast.success("Comic saved!");
       navigate({ to: "/creator" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
@@ -101,27 +116,15 @@ export function EditComicPage() {
 
   if (comicLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          background:
-            "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
-        }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)" }}>
         <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
       </div>
     );
   }
 
-if (!comic || comic.creator_id !== user?.id) {
+  if (!comic || comic.creator_id !== user?.id) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          background:
-            "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
-        }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)" }}>
         <div className="text-center text-white/60">
           <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-40" />
           <p>Comic not found or you don&apos;t have permission.</p>
@@ -131,13 +134,7 @@ if (!comic || comic.creator_id !== user?.id) {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background:
-          "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
-      }}
-    >
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)" }}>
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-white">Edit Comic</h1>
@@ -164,16 +161,11 @@ if (!comic || comic.creator_id !== user?.id) {
         )}
 
         <div className="flex gap-6">
-          {/* Cover */}
           <div>
             <label className="cursor-pointer block">
               <div className="w-32 h-44 rounded-xl overflow-hidden border-2 border-dashed border-white/20 hover:border-purple-500/50 flex items-center justify-center bg-white/5 transition-colors">
                 {coverPreview ? (
-                  <img
-                    src={coverPreview}
-                    alt={title}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={coverPreview} alt={title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-white/40 p-2">
                     <ImageIcon className="w-6 h-6 mx-auto mb-1" />
@@ -181,22 +173,13 @@ if (!comic || comic.creator_id !== user?.id) {
                   </div>
                 )}
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverChange}
-                className="hidden"
-              />
+              <input type="file" accept="image/*" onChange={handleCoverChange} className="hidden" />
             </label>
           </div>
 
-          {/* Info */}
           <div className="flex-1 space-y-4">
             <div>
-              <label
-                htmlFor="title-input"
-                className="block text-sm font-medium text-white/70 mb-2"
-              >
+              <label htmlFor="title-input" className="block text-sm font-medium text-white/70 mb-2">
                 Title
               </label>
               <input
@@ -204,14 +187,12 @@ if (!comic || comic.creator_id !== user?.id) {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={150}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500"
               />
             </div>
             <div>
-              <label
-                htmlFor="desc-input"
-                className="block text-sm font-medium text-white/70 mb-2"
-              >
+              <label htmlFor="desc-input" className="block text-sm font-medium text-white/70 mb-2">
                 Description
               </label>
               <textarea
@@ -219,13 +200,13 @@ if (!comic || comic.creator_id !== user?.id) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                maxLength={1000}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500 resize-none"
               />
             </div>
           </div>
         </div>
 
-        {/* Genres */}
         <div>
           <p className="block text-sm font-medium text-white/70 mb-3">Genres</p>
           <div className="flex flex-wrap gap-2">
@@ -246,7 +227,6 @@ if (!comic || comic.creator_id !== user?.id) {
           </div>
         </div>
 
-        {/* Chapters */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">Chapters</h2>
@@ -263,10 +243,7 @@ if (!comic || comic.creator_id !== user?.id) {
           {chaptersLoading ? (
             <div className="space-y-2">
               {["a", "b", "c"].map((k) => (
-                <div
-                  key={`skeleton-edit-${k}`}
-                  className="h-14 rounded-xl bg-white/5 animate-pulse"
-                />
+                <div key={`skeleton-edit-${k}`} className="h-14 rounded-xl bg-white/5 animate-pulse" />
               ))}
             </div>
           ) : chapters.length === 0 ? (
@@ -277,24 +254,16 @@ if (!comic || comic.creator_id !== user?.id) {
           ) : (
             <div className="space-y-2">
               {[...chapters]
-                .sort(
-                  (a: Chapter, b: Chapter) =>
-                    a.chapter_number - b.chapter_number,
-                )
+                .sort((a: Chapter, b: Chapter) => a.chapter_number - b.chapter_number)
                 .map((chapter: Chapter) => (
-                  <div
-                    key={chapter.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
-                  >
+                  <div key={chapter.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="flex-1">
                       <span className="text-white text-sm font-medium">
                         Chapter {chapter.chapter_number}
                         {chapter.title ? ` — ${chapter.title}` : ""}
                       </span>
                       {!chapter.is_published && (
-                        <span className="ml-2 text-xs text-yellow-400">
-                          Draft
-                        </span>
+                        <span className="ml-2 text-xs text-yellow-400">Draft</span>
                       )}
                     </div>
                     <Link
@@ -318,13 +287,10 @@ if (!comic || comic.creator_id !== user?.id) {
         </div>
       </div>
 
-      {/* Delete confirmation */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold text-white mb-2">
-              Delete Chapter?
-            </h3>
+            <h3 className="text-lg font-bold text-white mb-2">Delete Chapter?</h3>
             <p className="text-white/60 text-sm mb-6">
               This will permanently delete this chapter and all its pages.
             </p>
@@ -349,4 +315,4 @@ if (!comic || comic.creator_id !== user?.id) {
       )}
     </div>
   );
-}
+               }
