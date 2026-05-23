@@ -8,6 +8,7 @@ import { useGenres, useComicsByGenre, useSearchComics } from "../hooks/useGenres
 import { useTrending as useTrendingComics } from "../hooks/useTrending";
 import { useResumeReading } from "../hooks/useTrending";
 import type { Comic, Genre } from "../types/index";
+import { sanitizeSearch } from "../lib/utils";
 
 function ComicCard({ comic }: { comic: Comic }) {
   return (
@@ -126,7 +127,7 @@ export function HomePage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(sanitizeSearch(e.target.value))}
             onKeyDown={handleSearchKey}
             placeholder="Search comics, creators, genres..."
             className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-500 text-sm"
