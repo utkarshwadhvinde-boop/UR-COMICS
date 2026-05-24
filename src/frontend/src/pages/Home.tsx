@@ -15,7 +15,7 @@ function ComicCard({ comic }: { comic: Comic }) {
     <Link
       to="/comics/$comicId"
       params={{ comicId: comic.id }}
-      className="group flex-shrink-0 w-32 sm:w-36"
+      className="group flex-shrink-0 w-36 sm:w-40"
     >
       <div className="aspect-[9/14] rounded-xl overflow-hidden mb-2 border border-white/10 group-hover:border-purple-500/40 transition-all">
         {comic.cover_url ? (
@@ -59,7 +59,7 @@ function GenreRow({ genre }: { genre: Genre }) {
           ? ["a", "b", "c", "d", "e", "f"].map((k) => (
               <div
                 key={`hero-skel-${k}`}
-                className="flex-shrink-0 w-32 sm:w-36 aspect-[9/14] rounded-xl bg-white/5 animate-pulse"
+                className="flex-shrink-0 w-36 sm:w-40 aspect-[9/14] rounded-xl bg-white/5 animate-pulse"
               />
             ))
           : comics
@@ -205,7 +205,7 @@ export function HomePage() {
               ? ["a", "b", "c", "d", "e", "f", "g", "h"].map((k) => (
                   <div
                     key={`new-skel-${k}`}
-                    className="flex-shrink-0 w-32 sm:w-36 aspect-[9/14] rounded-xl bg-white/5 animate-pulse"
+                    className="flex-shrink-0 w-36 sm:w-40 aspect-[9/14] rounded-xl bg-white/5 animate-pulse"
                   />
                 ))
               : newArrivals
