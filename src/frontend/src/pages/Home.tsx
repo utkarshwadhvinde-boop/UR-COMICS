@@ -8,6 +8,7 @@ import { useGenres, useComicsByGenre, useSearchComics } from "../hooks/useGenres
 import { useTrending as useTrendingComics } from "../hooks/useTrending";
 import { useResumeReading } from "../hooks/useTrending";
 import type { Comic, Genre } from "../types/index";
+import { AdBanner } from "../components/AdBanner";
 import { sanitizeSearch } from "../lib/utils";
 
 function ComicCard({ comic }: { comic: Comic }) {
@@ -190,6 +191,15 @@ export function HomePage() {
           </section>
         )}
 
+{/* Ad Banner */}
+<div className="flex justify-center py-2">
+  <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
+</div>
+
+{/* New Arrivals */}
+<section>
+  <h2 className="text-lg font-bold text-white mb-3">New Arrivals</h2>
+        
         {/* New Arrivals */}
         <section>
           <h2 className="text-lg font-bold text-white mb-3">New Arrivals</h2>
