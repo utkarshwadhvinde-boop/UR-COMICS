@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AlertCircle, ArrowDown, ArrowUp, Eye, GripVertical, Save, Trash2, Upload, X } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, Eye, GripVertical, Info, Save, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useChapter } from "../../hooks/useChapter";
 import {
@@ -35,6 +35,48 @@ interface PageItem {
   id: string;
   file: File;
   preview: string;
+}
+
+function UploadTipBanner({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="rounded-xl border border-purple-500/30 bg-purple-900/20 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Info className="w-4 h-4 text-purple-400 flex-shrink-0" />
+          <span className="text-purple-300 text-sm font-semibold">Best way to upload your comic</span>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="grid grid-cols-1 gap-1.5 pl-6">
+        <p className="text-white/70 text-xs flex items-center gap-2">
+          <span className="text-purple-400">▪</span>
+          Each image should have <strong className="text-white">3 panels</strong>
+        </p>
+        <p className="text-white/70 text-xs flex items-center gap-2">
+          <span className="text-purple-400">▪</span>
+          Use <strong className="text-white">portrait format</strong> (tall, not wide)
+        </p>
+        <p className="text-white/70 text-xs flex items-center gap-2">
+          <span className="text-purple-400">▪</span>
+          Keep file size <strong className="text-white">under 10MB</strong> per image
+        </p>
+        <p className="text-white/70 text-xs flex items-center gap-2">
+          <span className="text-purple-400">▪</span>
+          Use <strong className="text-white">JPG or PNG</strong> format only
+        </p>
+        <p className="text-white/70 text-xs flex items-center gap-2">
+          <span className="text-purple-400">▪</span>
+          Clear lines and good contrast = <strong className="text-white">better reading experience</strong>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function SortablePage({
@@ -81,8 +123,6 @@ function SortablePage({
         alt={`Page ${index + 1}`}
         className="w-full h-full object-cover"
       />
-
-      {/* Drag handle */}
       <button
         type="button"
         {...attributes}
@@ -91,8 +131,6 @@ function SortablePage({
       >
         <GripVertical className="w-3 h-3" />
       </button>
-
-      {/* Remove button */}
       <button
         type="button"
         onClick={onRemove}
@@ -100,13 +138,9 @@ function SortablePage({
       >
         <X className="w-3 h-3 text-white" />
       </button>
-
-      {/* Page number */}
       <div className="absolute bottom-1 left-1 text-xs text-white bg-black/60 rounded px-1">
         {index + 1}
       </div>
-
-      {/* Move up/down for mobile */}
       <div className="absolute bottom-1 right-1 flex flex-col gap-0.5">
         <button
           type="button"
@@ -147,6 +181,7 @@ export function EditChapterPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [showTip, setShowTip] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -309,6 +344,9 @@ export function EditChapterPage() {
           </div>
         )}
 
+        {/* Upload Tip Banner */}
+        {showTip && <UploadTipBanner onDismiss={() => setShowTip(false)} />}
+
         {/* Metadata */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-6 space-y-4">
           <h2 className="text-lg font-bold text-white">Chapter Info</h2>
@@ -381,7 +419,7 @@ export function EditChapterPage() {
           </div>
         )}
 
-        {/* Upload new pages with drag-and-drop */}
+        {/* Upload new pages */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-6 space-y-4">
           <h2 className="text-lg font-bold text-white">
             {existingPages.length > 0 ? "Replace Pages" : "Upload Pages"}
@@ -473,4 +511,4 @@ export function EditChapterPage() {
       </div>
     </div>
   );
-    }
+  }
