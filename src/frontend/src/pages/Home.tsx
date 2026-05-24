@@ -1,15 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { BookOpen, ChevronRight, Search, TrendingUp, Zap } from "lucide-react";
 import { useState } from "react";
+import { AdBanner } from "../components/AdBanner";
 import { AuthModal } from "../components/AuthModal";
 import { useAuth } from "../hooks/useAuth";
 import { useComics } from "../hooks/useComics";
-import { useGenres, useComicsByGenre, useSearchComics } from "../hooks/useGenres";
-import { useTrending as useTrendingComics } from "../hooks/useTrending";
-import { useResumeReading } from "../hooks/useTrending";
-import type { Comic, Genre } from "../types/index";
-import { AdBanner } from "../components/AdBanner";
+import { useComicsByGenre, useGenres, useSearchComics } from "../hooks/useGenres";
+import { useResumeReading, useTrending as useTrendingComics } from "../hooks/useTrending";
 import { sanitizeSearch } from "../lib/utils";
+import type { Comic, Genre } from "../types/index";
 
 function ComicCard({ comic }: { comic: Comic }) {
   return (
@@ -91,8 +90,7 @@ export function HomePage() {
     <div
       className="min-h-screen"
       style={{
-        background:
-          "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
+        background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
       }}
     >
       {/* Hero */}
@@ -104,16 +102,13 @@ export function HomePage() {
               UR <span className="text-purple-400">COMICS</span>
             </h1>
             <p className="text-white/60 text-lg max-w-lg mx-auto mb-8">
-              Discover and read thousands of webtoons &amp; manhwa from creators
-              worldwide.
+              Discover and read thousands of webtoons &amp; manhwa from creators worldwide.
             </p>
             <button
               type="button"
               onClick={() => setShowAuth(true)}
               className="px-8 py-4 rounded-2xl font-bold text-white text-lg transition-all hover:scale-105 hover:shadow-2xl shadow-purple-500/25"
-              style={{
-                background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
-              }}
+              style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
             >
               Get Started — It&apos;s Free
             </button>
@@ -122,13 +117,12 @@ export function HomePage() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
-        {/* Ad Banner Top */}
-<div className="flex justify-center py-2">
-  <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
-</div>
 
-{/* Search */}
-<div className="relative max-w-2xl mx-auto">
+        {/* Ad Banner Top 728x90 */}
+        <div className="flex justify-center py-2">
+          <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
+        </div>
+
         {/* Search */}
         <div className="relative max-w-2xl mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -198,15 +192,11 @@ export function HomePage() {
           </section>
         )}
 
-{/* Ad Banner */}
-<div className="flex justify-center py-2">
-  <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
-</div>
+        {/* Ad Banner 300x250 */}
+        <div className="flex justify-center py-2">
+          <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
+        </div>
 
-{/* New Arrivals */}
-<section>
-  <h2 className="text-lg font-bold text-white mb-3">New Arrivals</h2>
-        
         {/* New Arrivals */}
         <section>
           <h2 className="text-lg font-bold text-white mb-3">New Arrivals</h2>
@@ -224,14 +214,21 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Genre Sections */}
-{genres.map((genre, idx) => (
-  <>
-    <GenreRow key={genre.id} genre={genre} />
-    {idx === 1 && (
-      <div className="flex justify-center py-2">
-        <AdBanner adKey="e70aff455b682d8f9c0eed8f01af1f25" width={160} height={600} />
+        {/* Genre Sections with ad after 2nd genre */}
+        {genres.map((genre, idx) => (
+          <div key={genre.id}>
+            <GenreRow genre={genre} />
+            {idx === 1 && (
+              <div className="flex justify-center py-2 mt-4">
+                <AdBanner adKey="e70aff455b682d8f9c0eed8f01af1f25" width={160} height={600} />
+              </div>
+            )}
+          </div>
+        ))}
+
       </div>
-    )}
-  </>
-))}
+
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+    </div>
+  );
+          }
