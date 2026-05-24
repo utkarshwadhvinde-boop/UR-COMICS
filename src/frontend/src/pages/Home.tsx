@@ -118,13 +118,13 @@ export function HomePage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
 
-        {/* Ad Banner Top 728x90 */}
-        <div className="flex justify-center py-2">
-          <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
-        </div>
+        {/* Ad Banner Top 728x90 - hidden on mobile */}
+<div className="hidden sm:flex justify-center py-2">
+  <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
+</div>
 
-        {/* Search */}
-        <div className="relative max-w-2xl mx-auto">
+{/* Search */}
+<div className="relative max-w-2xl mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <input
             type="text"
