@@ -122,6 +122,13 @@ export function HomePage() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+        {/* Ad Banner Top */}
+<div className="flex justify-center py-2">
+  <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
+</div>
+
+{/* Search */}
+<div className="relative max-w-2xl mx-auto">
         {/* Search */}
         <div className="relative max-w-2xl mx-auto">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -218,12 +225,13 @@ export function HomePage() {
         </section>
 
         {/* Genre Sections */}
-        {genres.map((genre) => (
-          <GenreRow key={genre.id} genre={genre} />
-        ))}
+{genres.map((genre, idx) => (
+  <>
+    <GenreRow key={genre.id} genre={genre} />
+    {idx === 1 && (
+      <div className="flex justify-center py-2">
+        <AdBanner adKey="e70aff455b682d8f9c0eed8f01af1f25" width={160} height={600} />
       </div>
-
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
-    </div>
-  );
-}
+    )}
+  </>
+))}
