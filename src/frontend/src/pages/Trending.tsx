@@ -58,7 +58,6 @@ function TrendingCard({
             <span className="text-xs font-body text-orange-300">
               {comic.view_count ?? 0}
             </span>
-            </span>
           </div>
         </div>
 
