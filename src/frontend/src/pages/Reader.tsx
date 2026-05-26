@@ -482,6 +482,7 @@ export function ReaderPage() {
 
   // Page counter
   const [currentPage, setCurrentPage] = useState(1);
+  const [activePage, setActivePage] = useState(0);
 
   const handleScrollProgress = useCallback(
     (pct: number) => {
