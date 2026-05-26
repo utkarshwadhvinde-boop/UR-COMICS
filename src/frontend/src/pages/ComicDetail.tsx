@@ -17,6 +17,8 @@ import {
   User,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 // ─── Chapter Row ──────────────────────────────────────────────────────────────
 function ChapterRow({
@@ -78,6 +80,10 @@ function ChapterRow({
 // ─── Comic Detail Page ────────────────────────────────────────────────────────
 export function ComicDetailPage() {
   const { comicId } = useParams({ from: "/comics/$comicId" });
+
+  useEffect(() => {
+    supabase.rpc("increment_view_count", { comic_id: comicId });
+  }, [comicId]);
   const {
     data: comic,
     isLoading: comicLoading,
