@@ -1,3 +1,4 @@
+import { AdBanner } from "@/components/AdBanner";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { PageLoader } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
@@ -566,16 +567,49 @@ export function ReaderPage() {
                 </p>
               </div>
             ) : (
-              <VirtualizedStrip
-                imageUrls={imageUrls}
-                chapterId={chapterId}
-                onScrollProgress={handleScrollProgress}
-                onCurrentPage={setCurrentPage}
-              />
+              <div className="flex flex-col items-center">
+                {/* Single page view */}
+                <img
+                  src={imageUrls[activePage]}
+                  alt={`Page ${activePage + 1}`}
+                  className="w-full max-w-2xl object-contain"
+                />
+
+                {/* Ad below page */}
+                <div className="flex justify-center py-4">
+                  <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
+                </div>
+
+                {/* Page counter */}
+                <p className="text-white/40 text-xs mb-4">
+                  {activePage + 1} / {imageUrls.length}
+                </p>
+
+                {/* Next button bottom right */}
+                <div className="fixed bottom-6 right-6 z-50">
+                  {activePage < imageUrls.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => { setActivePage(activePage + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      className="px-5 py-3 rounded-2xl font-bold text-white text-sm shadow-lg"
+                      style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
+                    >
+                      Next →
+                    </button>
+                  ) : nextChapter ? (
+                    <Link
+                      to="/comics/$comicId/chapters/$chapterId"
+                      params={{ comicId, chapterId: nextChapter.id }}
+                      className="px-5 py-3 rounded-2xl font-bold text-white text-sm shadow-lg"
+                      style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
+                    >
+                      Next Chapter →
+                    </Link>
+                  ) : (
+                    <div className="px-5 py-3 rounded-2xl font-bold text-white/40 text-sm bg-white/10">
+                      Finished ✓
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-    </motion.div>
-  );
-}
