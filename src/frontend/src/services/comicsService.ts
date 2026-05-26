@@ -6,7 +6,7 @@ export async function listComics(limit = 20): Promise<Comic[]> {
     .from("comics")
     .select(`*`)
     .eq("status", "published")
-    .order("created_at", { ascending: false })
+    .order("view_count", { ascending: false })
     .limit(limit);
   if (error) throw error;
   
@@ -212,6 +212,7 @@ function normalizeComic(raw: any): Comic {
     author_name: raw.author_name ?? null,
     status: raw.status,
     created_at: raw.created_at,
+view_count: raw.view_count ?? 0,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     genres: (raw.comic_genres ?? [])
       .map((cg: any) => cg.genres)
