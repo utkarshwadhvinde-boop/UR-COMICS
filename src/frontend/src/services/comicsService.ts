@@ -29,7 +29,7 @@ export async function getTrendingComics(limit = 10): Promise<Comic[]> {
     .from("comics")
     .select(`*`)
     .eq("status", "published")
-    .order("created_at", { ascending: false })
+    .order("view_count", { ascending: false })
     .limit(limit);
   if (error) throw error;
   
