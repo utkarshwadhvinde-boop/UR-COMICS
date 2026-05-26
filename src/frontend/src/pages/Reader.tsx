@@ -482,7 +482,6 @@ export function ReaderPage() {
   );
 
   // Page counter
-  const [currentPage, setCurrentPage] = useState(1);
   const [activePage, setActivePage] = useState(0);
 
   const handleScrollProgress = useCallback(
@@ -501,7 +500,7 @@ export function ReaderPage() {
   useEffect(() => {
     prefetchedRef.current = false;
     setPrefetching(false);
-    setCurrentPage(1);
+    setActivePage(0);
   }, [chapterId]);
 
   if (isLoading) return <PageLoader />;
@@ -538,7 +537,7 @@ export function ReaderPage() {
         chapter={chapter as Chapter}
         prevChapter={prevChapter as Chapter | null}
         nextChapter={nextChapter as Chapter | null}
-        currentPage={currentPage}
+        currentPage={activePage + 1}
         totalPages={imageUrls.length}
         prefetching={prefetching}
       />
