@@ -5,6 +5,13 @@ import { Toaster } from "sonner";
 import App from "./App";
 import "./index.css";
 
+// Intro sound
+const introSound = new Audio("/assets/intro-sound.wav");
+introSound.volume = 1;
+document.addEventListener("click", () => {
+  introSound.play().catch(() => {});
+}, { once: true });
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
