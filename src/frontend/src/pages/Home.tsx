@@ -88,7 +88,7 @@ export function HomePage() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
       }}
@@ -119,7 +119,7 @@ export function HomePage() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
 
         {/* Ad Banner Top 728x90 */}
-<div className="flex justify-center py-2">
+<div className="hidden sm:flex justify-center py-2">
   <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
 </div>
 
