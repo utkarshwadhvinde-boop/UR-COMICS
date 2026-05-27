@@ -21,7 +21,7 @@ function FloatingBubbles() {
     { text: "💬", size: 56, x: 62, delay: 5, duration: 9 },
   ];
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
       {bubbles.map((b, i) => (
         <div key={i} className="absolute" style={{
           bottom: "-80px", left: `${b.x}%`,
@@ -128,7 +128,7 @@ function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
     <Link
       to="/comics/$comicId"
       params={{ comicId: comic.id }}
-      style={{ display: "block", flexShrink: 0, width: "190px" }}
+      style={{ display: "block", flexShrink: 0, width: "160px" }}
     >
       <div
         ref={cardRef}
@@ -268,8 +268,8 @@ export function HomePage() {
       )}
 
       {/* Main content */}
-      <div style={{ position: "relative", zIndex: 10, maxWidth: "520px", margin: "0 auto", padding: "24px 16px 80px", display: "flex", flexDirection: "column", gap: "48px" }}>
-
+      <div style={{ position: "relative", zIndex: 10, width: "100%", padding: "24px 16px 80px", display: "flex", flexDirection: "column", gap: "48px", boxSizing: "border-box" }}>
+        
         {/* Ad 728x90 */}
         <div className="hidden sm:flex justify-center">
           <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
