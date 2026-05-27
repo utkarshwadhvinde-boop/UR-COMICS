@@ -85,7 +85,6 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
 
 // ─── Section Header ───────────────────────────────────────────
 function SectionHeader({ title, icon, showMore = true, genreId }: { title: string; icon: React.ReactNode; showMore?: boolean; genreId?: string }) {
-}: { title: string; icon: React.ReactNode; showMore?: boolean }) {
   return (
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg font-black text-white flex items-center gap-2">
