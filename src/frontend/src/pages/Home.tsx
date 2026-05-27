@@ -23,26 +23,20 @@ function FloatingBubbles() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
       {bubbles.map((b, i) => (
-        <div
-          key={i}
-          className="absolute"
-          style={{
-            bottom: "-80px",
-            left: `${b.x}%`,
-            fontSize: `${b.size}px`,
-            animation: `floatUp ${b.duration}s linear ${b.delay}s infinite`,
-            filter: "drop-shadow(0 0 10px rgba(139,92,246,0.7))",
-            opacity: 0.3,
-            willChange: "transform",
-          }}
-        >
+        <div key={i} className="absolute" style={{
+          bottom: "-80px", left: `${b.x}%`,
+          fontSize: `${b.size}px`,
+          animation: `floatUp ${b.duration}s linear ${b.delay}s infinite`,
+          filter: "drop-shadow(0 0 10px rgba(139,92,246,0.7))",
+          opacity: 0.3, willChange: "transform",
+        }}>
           {b.text}
         </div>
       ))}
-      <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-20 pointer-events-none"
-        style={{ background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)", transform: "translate(-30%, -30%)" }} />
-      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-15 pointer-events-none"
-        style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 70%)", transform: "translate(30%, 30%)" }} />
+      <div className="absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)", transform: "translate(-30%, -30%)", opacity: 0.2 }} />
+      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 70%)", transform: "translate(30%, 30%)", opacity: 0.15 }} />
     </div>
   );
 }
@@ -54,10 +48,8 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
   const applyTilt = (x: number, y: number, rect: DOMRect) => {
     const card = cardRef.current;
     if (!card) return;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const rx = ((y - cy) / cy) * -12;
-    const ry = ((x - cx) / cx) * 12;
+    const rx = ((y - rect.height / 2) / (rect.height / 2)) * -12;
+    const ry = ((x - rect.width / 2) / (rect.width / 2)) * 12;
     card.style.transform = `perspective(700px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.04)`;
     card.style.boxShadow = `${-ry * 2}px ${rx * 2}px 40px rgba(124,58,237,0.6)`;
   };
@@ -65,7 +57,7 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
   const resetTilt = () => {
     const card = cardRef.current;
     if (!card) return;
-    card.style.transform = "perspective(700px) rotateX(0deg) rotateY(0deg) scale(1)";
+    card.style.transform = "perspective(700px) rotateX(0) rotateY(0) scale(1)";
     card.style.boxShadow = "0 0 16px rgba(124,58,237,0.25), 0 0 0 1px rgba(124,58,237,0.2)";
   };
 
@@ -73,8 +65,7 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
     <Link
       to="/comics/$comicId"
       params={{ comicId: comic.id }}
-      className="block"
-      style={{ animation: `fadeUp 0.4s ease both`, animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}
+      style={{ display: "block", animation: `fadeUp 0.4s ease both`, animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}
     >
       <div
         ref={cardRef}
@@ -83,14 +74,11 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
         onTouchMove={(e) => { e.stopPropagation(); const t = e.touches[0]; const r = e.currentTarget.getBoundingClientRect(); applyTilt(t.clientX - r.left, t.clientY - r.top, r); }}
         onTouchEnd={resetTilt}
         style={{
-          aspectRatio: "9/14",
-          borderRadius: "16px",
-          overflow: "hidden",
-          position: "relative",
+          aspectRatio: "9/14", borderRadius: "16px", overflow: "hidden",
+          position: "relative", background: "#0d0118",
           boxShadow: "0 0 16px rgba(124,58,237,0.25), 0 0 0 1px rgba(124,58,237,0.2)",
           transition: "transform 0.15s ease, box-shadow 0.15s ease",
           willChange: "transform",
-          background: "#0d0118",
         }}
       >
         {comic.cover_url
@@ -99,16 +87,14 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
               <BookOpen style={{ width: 32, height: 32, color: "#a855f7" }} />
             </div>
         }
-        {/* Neon border */}
         <div style={{ position: "absolute", inset: 0, borderRadius: "16px", boxShadow: "inset 0 0 0 1px rgba(139,92,246,0.35)", pointerEvents: "none" }} />
-        {/* Bottom gradient */}
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
           background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 55%, transparent 100%)",
-          padding: "12px 10px 10px",
+          padding: "32px 12px 12px",
         }}>
-          <p style={{ color: "#fff", fontSize: "13px", fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{comic.title}</p>
-          <p style={{ color: "rgba(196,168,255,0.7)", fontSize: "11px", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <p style={{ color: "#fff", fontSize: "14px", fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{comic.title}</p>
+          <p style={{ color: "rgba(196,168,255,0.7)", fontSize: "12px", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {(comic as Comic & { author_name?: string }).author_name ?? "Unknown"}
           </p>
         </div>
@@ -117,7 +103,7 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
   );
 }
 
-// ─── Trending Card ────────────────────────────────────────────
+// ─── Trending Card (BIGGER) ───────────────────────────────────
 function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const baseTilt = [-5, 0, 5][index % 3];
@@ -125,10 +111,8 @@ function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
   const applyTilt = (x: number, y: number, rect: DOMRect) => {
     const card = cardRef.current;
     if (!card) return;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const rx = ((y - cy) / cy) * -15;
-    const ry = ((x - cx) / cx) * 15;
+    const rx = ((y - rect.height / 2) / (rect.height / 2)) * -15;
+    const ry = ((x - rect.width / 2) / (rect.width / 2)) * 15;
     card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.07)`;
     card.style.boxShadow = `${-ry * 3}px ${rx * 3}px 50px rgba(124,58,237,0.75)`;
   };
@@ -137,14 +121,14 @@ function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
     const card = cardRef.current;
     if (!card) return;
     card.style.transform = `perspective(900px) rotateZ(${baseTilt}deg)`;
-    card.style.boxShadow = "0 10px 35px rgba(124,58,237,0.35), 0 0 0 1px rgba(139,92,246,0.25)";
+    card.style.boxShadow = "0 10px 35px rgba(124,58,237,0.4), 0 0 0 1px rgba(139,92,246,0.3)";
   };
 
   return (
     <Link
       to="/comics/$comicId"
       params={{ comicId: comic.id }}
-      style={{ display: "block", flexShrink: 0, width: "140px" }}
+      style={{ display: "block", flexShrink: 0, width: "190px" }}
     >
       <div
         ref={cardRef}
@@ -153,42 +137,39 @@ function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
         onTouchMove={(e) => { e.stopPropagation(); const t = e.touches[0]; const r = e.currentTarget.getBoundingClientRect(); applyTilt(t.clientX - r.left, t.clientY - r.top, r); }}
         onTouchEnd={resetTilt}
         style={{
-          aspectRatio: "9/14",
-          borderRadius: "14px",
-          overflow: "hidden",
-          position: "relative",
+          aspectRatio: "9/14", borderRadius: "16px", overflow: "hidden",
+          position: "relative", background: "#0d0118",
           transform: `perspective(900px) rotateZ(${baseTilt}deg)`,
-          boxShadow: "0 10px 35px rgba(124,58,237,0.35), 0 0 0 1px rgba(139,92,246,0.25)",
+          boxShadow: "0 10px 35px rgba(124,58,237,0.4), 0 0 0 1px rgba(139,92,246,0.3)",
           transition: "transform 0.18s ease, box-shadow 0.18s ease",
           willChange: "transform",
-          background: "#0d0118",
           animation: `floatCard ${3 + index * 0.4}s ease-in-out ${index * 0.25}s infinite`,
         }}
       >
         {comic.cover_url
           ? <img src={comic.cover_url} alt={comic.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(124,58,237,0.2)" }}>
-              <BookOpen style={{ width: 28, height: 28, color: "#a855f7" }} />
+              <BookOpen style={{ width: 32, height: 32, color: "#a855f7" }} />
             </div>
         }
         {/* Rank badge */}
         <div style={{
-          position: "absolute", top: 8, left: 8,
-          width: 28, height: 28, borderRadius: "50%",
+          position: "absolute", top: 10, left: 10,
+          width: 32, height: 32, borderRadius: "50%",
           background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
           boxShadow: "0 0 14px rgba(124,58,237,0.9)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          color: "#fff", fontSize: "12px", fontWeight: 900,
+          color: "#fff", fontSize: "13px", fontWeight: 900,
         }}>
           {index + 1}
         </div>
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
           background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%)",
-          padding: "10px 8px 8px",
+          padding: "36px 12px 12px",
         }}>
-          <p style={{ color: "#fff", fontSize: "12px", fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{comic.title}</p>
-          <p style={{ color: "rgba(196,168,255,0.65)", fontSize: "10px", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <p style={{ color: "#fff", fontSize: "14px", fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{comic.title}</p>
+          <p style={{ color: "rgba(196,168,255,0.65)", fontSize: "12px", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {(comic as Comic & { author_name?: string }).author_name ?? "Unknown"}
           </p>
         </div>
@@ -201,15 +182,15 @@ function TrendingCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
 function SectionHeader({ title, icon, showMore = true }: { title: string; icon: React.ReactNode; showMore?: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-      <h2 style={{ display: "flex", alignItems: "center", gap: "8px", margin: 0, fontSize: "18px", fontWeight: 900, color: "#fff" }}>
+      <h2 style={{ display: "flex", alignItems: "center", gap: "10px", margin: 0, fontSize: "22px", fontWeight: 900, color: "#fff" }}>
         {icon}
         <span style={{ background: "linear-gradient(to right, #fff, #c4b5fd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           {title}
         </span>
       </h2>
       {showMore && (
-        <Link to="/trending" style={{ color: "#a855f7", fontSize: "13px", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
-          More <ChevronRight style={{ width: 12, height: 12 }} />
+        <Link to="/trending" style={{ color: "#a855f7", fontSize: "14px", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
+          More <ChevronRight style={{ width: 14, height: 14 }} />
         </Link>
       )}
     </div>
@@ -235,7 +216,7 @@ function GenreSection({ genre }: { genre: Genre }) {
   if (!isLoading && comics.length === 0) return null;
   return (
     <section>
-      <SectionHeader title={genre.name} icon={<span style={{ color: "#a855f7", fontSize: "16px" }}>◆</span>} />
+      <SectionHeader title={genre.name} icon={<span style={{ color: "#a855f7", fontSize: "18px" }}>◆</span>} />
       <ComicGrid comics={comics.slice(0, 8)} loading={isLoading} />
     </section>
   );
@@ -287,10 +268,10 @@ export function HomePage() {
       )}
 
       {/* Main content */}
-      <div style={{ position: "relative", zIndex: 10, maxWidth: "520px", margin: "0 auto", padding: "0 16px 80px", display: "flex", flexDirection: "column", gap: "40px" }}>
+      <div style={{ position: "relative", zIndex: 10, maxWidth: "520px", margin: "0 auto", padding: "24px 16px 80px", display: "flex", flexDirection: "column", gap: "48px" }}>
 
         {/* Ad 728x90 */}
-        <div style={{ display: "none" }} className="sm:flex justify-center">
+        <div className="hidden sm:flex justify-center">
           <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
         </div>
 
@@ -303,18 +284,11 @@ export function HomePage() {
             onChange={(e) => setSearchQuery(sanitizeSearch(e.target.value))}
             placeholder="Search comics, creators, genres..."
             style={{
-              width: "100%",
-              paddingLeft: "48px",
-              paddingRight: "16px",
-              paddingTop: "16px",
-              paddingBottom: "16px",
-              borderRadius: "16px",
-              background: "rgba(124,58,237,0.1)",
-              border: "1px solid rgba(124,58,237,0.3)",
-              color: "#fff",
-              fontSize: "16px",
-              outline: "none",
-              boxSizing: "border-box",
+              width: "100%", paddingLeft: "48px", paddingRight: "16px",
+              paddingTop: "16px", paddingBottom: "16px",
+              borderRadius: "16px", background: "rgba(124,58,237,0.1)",
+              border: "1px solid rgba(124,58,237,0.3)", color: "#fff",
+              fontSize: "16px", outline: "none", boxSizing: "border-box",
               backdropFilter: "blur(8px)",
             }}
           />
@@ -323,7 +297,7 @@ export function HomePage() {
         {/* Search Results */}
         {searchQuery.trim() && (
           <section>
-            <SectionHeader title={`"${searchQuery}"`} icon={<Search style={{ width: 18, height: 18, color: "#a855f7" }} />} showMore={false} />
+            <SectionHeader title={`"${searchQuery}"`} icon={<Search style={{ width: 20, height: 20, color: "#a855f7" }} />} showMore={false} />
             {searchResults.length === 0
               ? <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px" }}>No comics found.</p>
               : <ComicGrid comics={searchResults} />}
@@ -333,27 +307,25 @@ export function HomePage() {
         {/* Continue Reading */}
         {isAuthenticated && resumeComics.length > 0 && (
           <section>
-            <SectionHeader title="Continue Reading" icon={<Zap style={{ width: 18, height: 18, color: "#facc15" }} />} showMore={false} />
+            <SectionHeader title="Continue Reading" icon={<Zap style={{ width: 20, height: 20, color: "#facc15" }} />} showMore={false} />
             <ComicGrid comics={resumeComics} />
           </section>
         )}
 
-        {/* Trending */}
+        {/* Trending — bigger cards, horizontal scroll */}
         {trending.length > 0 && (
           <section>
-            <SectionHeader title="Trending Now" icon={<TrendingUp style={{ width: 18, height: 18, color: "#fb923c" }} />} />
+            <SectionHeader title="Trending Now" icon={<TrendingUp style={{ width: 20, height: 20, color: "#fb923c" }} />} />
             <div style={{
-              borderRadius: "20px",
-              padding: "20px 16px",
+              borderRadius: "20px", padding: "24px 20px",
               background: "linear-gradient(135deg, rgba(124,58,237,0.1), rgba(109,40,217,0.05))",
               border: "1px solid rgba(124,58,237,0.2)",
               backdropFilter: "blur(8px)",
-              overflowX: "auto",
-              overflowY: "hidden",
+              overflowX: "auto", overflowY: "hidden",
               WebkitOverflowScrolling: "touch",
               touchAction: "pan-x",
             }}>
-              <div style={{ display: "flex", gap: "24px", paddingBottom: "8px", width: "max-content" }}>
+              <div style={{ display: "flex", gap: "28px", paddingBottom: "8px", width: "max-content", alignItems: "flex-end" }}>
                 {trending.map((comic, i) => (
                   <TrendingCard key={comic.id} comic={comic} index={i} />
                 ))}
@@ -369,16 +341,16 @@ export function HomePage() {
 
         {/* New Arrivals */}
         <section>
-          <SectionHeader title="New Arrivals" icon={<span style={{ color: "#4ade80", fontSize: "18px" }}>✦</span>} showMore={false} />
+          <SectionHeader title="New Arrivals" icon={<span style={{ color: "#4ade80", fontSize: "20px" }}>✦</span>} showMore={false} />
           <ComicGrid comics={newArrivals.slice(0, 18)} loading={newLoading} />
         </section>
 
         {/* Genres */}
         {genres.map((genre, idx) => (
-          <div key={genre.id} style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+          <div key={genre.id}>
             <GenreSection genre={genre} />
             {idx === 1 && (
-              <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
+              <div style={{ display: "flex", justifyContent: "center", paddingTop: "48px" }}>
                 <AdBanner adKey="e70aff455b682d8f9c0eed8f01af1f25" width={160} height={600} />
               </div>
             )}
@@ -398,7 +370,7 @@ export function HomePage() {
         }
         @keyframes floatCard {
           0%, 100% { margin-top: 0; }
-          50% { margin-top: -8px; }
+          50% { margin-top: -10px; }
         }
         @keyframes pulse {
           0%, 100% { opacity: 0.4; }
@@ -413,4 +385,4 @@ export function HomePage() {
       <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   );
-                            }
+      }
