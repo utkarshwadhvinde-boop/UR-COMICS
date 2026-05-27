@@ -84,7 +84,8 @@ function ComicCard({ comic, index = 0 }: { comic: Comic; index?: number }) {
 }
 
 // ─── Section Header ───────────────────────────────────────────
-function SectionHeader({ title, icon, showMore = true }: { title: string; icon: React.ReactNode; showMore?: boolean }) {
+function SectionHeader({ title, icon, showMore = true, genreId }: { title: string; icon: React.ReactNode; showMore?: boolean; genreId?: string }) {
+}: { title: string; icon: React.ReactNode; showMore?: boolean }) {
   return (
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg font-black text-white flex items-center gap-2">
@@ -94,8 +95,11 @@ function SectionHeader({ title, icon, showMore = true }: { title: string; icon: 
         </span>
       </h2>
       {showMore && (
-        <Link to="/trending" className="text-purple-400 text-sm hover:text-purple-300 flex items-center gap-1 transition-colors">
-          View all <ChevronRight className="w-3 h-3" />
+        <Link
+          to={genreId ? `/genre/${genreId}` : "/trending"}
+          className="text-purple-400 text-sm hover:text-purple-300 flex items-center gap-1 transition-colors"
+        >
+          More <ChevronRight className="w-3 h-3" />
         </Link>
       )}
     </div>
@@ -105,7 +109,7 @@ function SectionHeader({ title, icon, showMore = true }: { title: string; icon: 
 // ─── Comic Grid ───────────────────────────────────────────────
 function ComicGrid({ comics, loading }: { comics: Comic[]; loading?: boolean }) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
       {loading
         ? Array.from({ length: 6 }).map((_, i) => (
             <div key={`skel-${i}`} className="aspect-[9/14] rounded-2xl bg-purple-900/20 animate-pulse" />
@@ -123,7 +127,7 @@ function GenreSection({ genre }: { genre: Genre }) {
   if (!isLoading && comics.length === 0) return null;
   return (
     <section>
-      <SectionHeader title={genre.name} icon={<span className="text-purple-400">◆</span>} />
+      <SectionHeader title={genre.name} icon={<span className="text-purple-400">◆</span>} genreId={genre.id} />
       <ComicGrid comics={comics.slice(0, 12)} loading={isLoading} />
     </section>
   );
