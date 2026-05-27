@@ -10,33 +10,11 @@ import { useResumeReading, useTrending as useTrendingComics } from "../hooks/use
 import { sanitizeSearch } from "../lib/utils";
 import type { Comic, Genre } from "../types/index";
 
-// ─── Floating Bubbles ─────────────────────────────────────────
 function FloatingBubbles() {
-  const bubbles = [
-    { text: "💭", size: 52, x: 5, delay: 0, duration: 9 },
-    { text: "💬", size: 44, x: 20, delay: 2, duration: 11 },
-    { text: "💭", size: 60, x: 72, delay: 1, duration: 10 },
-    { text: "💬", size: 48, x: 88, delay: 3, duration: 8 },
-    { text: "💭", size: 40, x: 50, delay: 4, duration: 12 },
-    { text: "💬", size: 56, x: 62, delay: 5, duration: 9 },
-  ];
   return (
-    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
-      {bubbles.map((b, i) => (
-        <div key={i} className="absolute" style={{
-          bottom: "-80px", left: `${b.x}%`,
-          fontSize: `${b.size}px`,
-          animation: `floatUp ${b.duration}s linear ${b.delay}s infinite`,
-          filter: "drop-shadow(0 0 10px rgba(139,92,246,0.7))",
-          opacity: 0.3, willChange: "transform",
-        }}>
-          {b.text}
-        </div>
-      ))}
-      <div className="absolute top-0 left-0 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)", transform: "translate(-30%, -30%)", opacity: 0.2 }} />
-      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 70%)", transform: "translate(30%, 30%)", opacity: 0.15 }} />
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed 0%, transparent 70%)", opacity: 0.2 }} />
+      <div style={{ position: "absolute", bottom: "-10%", right: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #4f46e5 0%, transparent 70%)", opacity: 0.15 }} />
     </div>
   );
 }
@@ -276,7 +254,7 @@ export function HomePage() {
         </div>
 
         {/* Search */}
-        <div style={{ position: "relative", width: "100%" }}>
+        <div style={{ position: "relative", width: "100%", boxSizing: "border-box" }}>
           <Search style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", width: "20px", height: "20px", color: "rgba(255,255,255,0.35)" }} />
           <input
             type="text"
