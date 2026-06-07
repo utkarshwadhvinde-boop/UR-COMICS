@@ -42,6 +42,13 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
               <BookOpen style={{ width: 24, height: 24, color: "#a855f7" }} />
             </div>
         }
+        {/* Shine line */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0,
+          height: "1px",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
+          pointerEvents: "none",
+        }} />
         {/* Rank badge */}
         {rank !== undefined && (
           <div style={{
