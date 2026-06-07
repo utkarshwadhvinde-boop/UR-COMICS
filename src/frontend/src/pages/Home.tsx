@@ -25,7 +25,8 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
         overflow: "hidden",
         position: "relative",
         background: "#111",
-        border: "1px solid rgba(124,58,237,0.2)",
+        border: "1px solid rgba(124,58,237,0.35)",
+        boxShadow: "0 0 12px rgba(124,58,237,0.2), 0 4px 16px rgba(0,0,0,0.4)",
       }}>
         {comic.cover_url
           ? <img
