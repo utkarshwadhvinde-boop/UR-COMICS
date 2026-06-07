@@ -140,9 +140,8 @@ function ComicGrid({ comics, loading }: { comics: Comic[]; loading?: boolean }) 
             <div key={i} style={{ aspectRatio: "9/14", borderRadius: "12px", background: "rgba(124,58,237,0.1)" }} />
           ))
         : comics.map((comic) => <ComicCard key={comic.id} comic={comic} />)}
+      {!loading && comics.length % 2 !== 0 && <div />}
     </div>
-  );
-}
 
 // ─── Genre Section ────────────────────────────────────────────
 function GenreSection({ genre }: { genre: Genre }) {
