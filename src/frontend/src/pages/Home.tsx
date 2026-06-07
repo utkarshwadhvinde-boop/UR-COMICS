@@ -49,6 +49,13 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
           background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
           pointerEvents: "none",
         }} />
+        {/* Top gradient overlay */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0,
+          height: "40%",
+          background: "linear-gradient(to bottom, rgba(124,58,237,0.08), transparent)",
+          pointerEvents: "none",
+        }} />
         {/* Rank badge */}
         {rank !== undefined && (
           <div style={{
