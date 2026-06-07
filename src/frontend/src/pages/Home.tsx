@@ -209,7 +209,7 @@ export function HomePage() {
       <div style={{ padding: "16px 14px 0" }}>
 
         {/* Ad 728x90 desktop */}
-        <div className="hidden sm:flex justify-center" style={{ marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
           <AdBanner adKey="0411000e4f313322c3ae696f00a3d412" width={728} height={90} />
         </div>
 
