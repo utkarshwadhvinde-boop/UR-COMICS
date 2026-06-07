@@ -23,7 +23,7 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
       <div style={{
         width: "100%",
         aspectRatio: "9/14",
-        borderRadius: "10px",
+        borderRadius: "14px",
         overflow: "hidden",
         position: "relative",
         background: "#111",
@@ -105,7 +105,7 @@ function ComicGrid({ comics, loading, withRank = false }: {
     return (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ aspectRatio: "9/14", borderRadius: "10px", background: "rgba(124,58,237,0.1)" }} />
+          <div key={i} style={{ aspectRatio: "9/14", borderRadius: "14px", background: "rgba(124,58,237,0.1)" }} />
         ))}
       </div>
     );
