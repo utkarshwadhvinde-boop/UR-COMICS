@@ -293,6 +293,12 @@ export function HomePage() {
           <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
         </div>
 
+        {/* Adsterra Native Banner */}
+        <div style={{ margin: "24px 0" }} dangerouslySetInnerHTML={{ __html: `
+          <script async="async" data-cfasync="false" src="https://pl29733096.effectivecpmnetwork.com/7bae4762c4983cf85a11ff8f46ad1053/invoke.js"></script>
+          <div id="container-7bae4762c4983cf85a11ff8f46ad1053"></div>
+        `}} />
+
         <Divider />
 
         {/* New Arrivals */}
