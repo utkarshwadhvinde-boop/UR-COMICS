@@ -10,8 +10,10 @@ export function useTrending(limit = 20) {
   return useQuery<Comic[]>({
     queryKey: TRENDING_QUERY_KEY,
     queryFn: () => getTrendingComics(limit),
-    staleTime: 60 * 60 * 1000,
+    staleTime: 0,
     refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
   });
 }
 
