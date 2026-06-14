@@ -81,8 +81,11 @@ function ChapterRow({
 export function ComicDetailPage() {
   const { comicId } = useParams({ from: "/comics/$comicId" });
 
-  useEffect(() => {
-    supabase.rpc("increment_view_count", { comic_id: comicId });
+useEffect(() => {
+    supabase.rpc("increment_view_count", { comic_id: comicId })
+      .then(({ error }) => {
+        if (error) console.error("View count error:", error);
+      });
   }, [comicId]);
   const {
     data: comic,
