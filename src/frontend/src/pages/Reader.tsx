@@ -7,6 +7,7 @@ import { useChapter } from "@/hooks/useChapter";
 import { useChapters } from "@/hooks/useChapters";
 import { useSaveReadProgress } from "@/hooks/useReadProgress";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 import type { Chapter } from "@/types/index";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { BookOpen, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -380,6 +381,10 @@ export function ReaderPage() {
   });
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    supabase.rpc("increment_view_count", { comic_id: comicId });
+  }, [comicId]);
 
   const {
     data: chapter,
