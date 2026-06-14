@@ -9,12 +9,18 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
   const [phase, setPhase] = useState<"ink" | "logo" | "tagline" | "exit">("ink");
 
   useEffect(() => {
-    // Play sound
-    try {
-      const audio = new Audio("/assets/intro-sound.mp3");
-      audio.volume = 0.7;
-      audio.play().catch(() => {});
-    } catch {}
+    // Play sound on first interaction
+    const playSound = () => {
+      try {
+        const audio = new Audio("/assets/intro-sound.wav");
+        audio.volume = 0.7;
+        audio.play().catch(() => {});
+      } catch {}
+      document.removeEventListener("touchstart", playSound);
+      document.removeEventListener("click", playSound);
+    };
+    document.addEventListener("touchstart", playSound, { once: true });
+    document.addEventListener("click", playSound, { once: true });
 
     // Animation sequence
     const t1 = setTimeout(() => setPhase("logo"), 600);
