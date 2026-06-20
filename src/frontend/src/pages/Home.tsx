@@ -87,10 +87,11 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
 }
 
 // ─── Section Header ───────────────────────────────────────────
-function SectionHeader({ title, icon, showMore = true }: {
+function SectionHeader({ title, icon, showMore = true, moreTo = "/trending" }: {
   title: string;
   icon: React.ReactNode;
   showMore?: boolean;
+  moreTo?: string;
 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
@@ -99,7 +100,7 @@ function SectionHeader({ title, icon, showMore = true }: {
         {title}
       </h2>
       {showMore && (
-        <Link to="/trending" style={{ color: "#a855f7", fontSize: "13px", textDecoration: "none", display: "flex", alignItems: "center", gap: "2px" }}>
+        <Link to={moreTo} style={{ color: "#a855f7", fontSize: "13px", textDecoration: "none", display: "flex", alignItems: "center", gap: "2px" }}>
           More <ChevronRight style={{ width: 13, height: 13 }} />
         </Link>
       )}
@@ -143,6 +144,7 @@ function GenreSection({ genre }: { genre: Genre }) {
       <SectionHeader
         title={genre.name}
         icon={<span style={{ color: "#a855f7", fontSize: "13px" }}>◆</span>}
+        moreTo={`/genre/${genre.id}`}
       />
       <ComicGrid comics={comics.slice(0, 6)} loading={isLoading} />
     </section>
