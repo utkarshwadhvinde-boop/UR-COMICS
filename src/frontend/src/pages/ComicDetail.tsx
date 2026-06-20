@@ -82,6 +82,7 @@ function ChapterRow({
   const { comicId } = useParams({ from: "/comics/$comicId" });
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     supabase.rpc("increment_view_count", { comic_id: comicId })
