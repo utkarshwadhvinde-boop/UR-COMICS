@@ -249,28 +249,29 @@ function ChapterRow({
                     </Badge>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2">
-                    {/* Like button */}
+                    {/* Like + Bookmark buttons */}
                     <button
                       type="button"
-                      onClick={handleLike}
+                      onClick={handleBookmark}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
                         padding: "10px 18px",
                         borderRadius: "10px",
-                        border: liked ? "1px solid rgba(255,50,50,0.5)" : "1px solid rgba(255,255,255,0.15)",
-                        background: liked ? "rgba(255,50,50,0.15)" : "rgba(255,255,255,0.05)",
-                        color: liked ? "#ff3232" : "rgba(255,255,255,0.5)",
+                        border: bookmarked ? "1px solid rgba(250,204,21,0.5)" : "1px solid rgba(255,255,255,0.15)",
+                        background: bookmarked ? "rgba(250,204,21,0.15)" : "rgba(255,255,255,0.05)",
+                        color: bookmarked ? "#facc15" : "rgba(255,255,255,0.5)",
                         fontSize: "14px",
                         fontWeight: 700,
                         cursor: "pointer",
                         transition: "all 0.2s ease",
                       }}
                     >
-                      <span style={{ fontSize: "18px" }}>{liked ? "❤️" : "🤍"}</span>
-                      {likeCount}
+                      <span style={{ fontSize: "18px" }}>{bookmarked ? "🔖" : "🔖"}</span>
+                      {bookmarked ? "Saved" : "Save"}
                     </button>
+                    {/* Like button */}
                     {/* Continue Reading button — shown when progress exists */}
                     {progress?.last_chapter_id && (
                       <Button
