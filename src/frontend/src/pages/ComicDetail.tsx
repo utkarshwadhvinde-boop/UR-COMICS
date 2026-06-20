@@ -96,6 +96,8 @@ function ChapterRow({
       .then(({ data }) => { if (data) setLikeCount(data.like_count ?? 0); });
     supabase.from("likes").select("id").eq("comic_id", comicId)
       .then(({ data }) => { if (data && data.length > 0) setLiked(true); });
+    supabase.from("bookmarks").select("id").eq("comic_id", comicId)
+      .then(({ data }) => { if (data && data.length > 0) setBookmarked(true); });
   }, [comicId]);
 
   const handleLike = async () => {
