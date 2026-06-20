@@ -78,15 +78,34 @@ function ChapterRow({
 }
 
 // ─── Comic Detail Page ────────────────────────────────────────────────────────
-export function ComicDetailPage() {
+ export function ComicDetailPage() {
   const { comicId } = useParams({ from: "/comics/$comicId" });
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
-useEffect(() => {
+  useEffect(() => {
     supabase.rpc("increment_view_count", { comic_id: comicId })
       .then(({ error }) => {
         if (error) console.error("View count error:", error);
       });
   }, [comicId]);
+
+  useEffect(() => {
+    supabase.from("comics").select("like_count").eq("id", comicId).single()
+      .then(({ data }) => { if (data) setLikeCount(data.like_count ?? 0); });
+    supabase.from("likes").select("id").eq("comic_id", comicId)
+      .then(({ data }) => { if (data && data.length > 0) setLiked(true); });
+  }, [comicId]);
+
+  const handleLike = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.rpc("toggle_like", { p_comic_id: comicId });
+    if (data) {
+      setLiked(data.liked);
+      setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
+    }
+  };
   const {
     data: comic,
     isLoading: comicLoading,
