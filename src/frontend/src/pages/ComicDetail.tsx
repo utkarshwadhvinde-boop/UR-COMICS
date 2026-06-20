@@ -249,7 +249,29 @@ function ChapterRow({
                     </Badge>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2">
-                    {/* Like + Bookmark buttons */}
+                    {/* Bookmark button */}
+                    <button
+                      type="button"
+                      onClick={handleBookmark}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "10px 18px",
+                        borderRadius: "10px",
+                        border: bookmarked ? "1px solid rgba(250,204,21,0.5)" : "1px solid rgba(255,255,255,0.15)",
+                        background: bookmarked ? "rgba(250,204,21,0.15)" : "rgba(255,255,255,0.05)",
+                        color: bookmarked ? "#facc15" : "rgba(255,255,255,0.5)",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <span style={{ fontSize: "18px" }}>🔖</span>
+                      {bookmarked ? "Saved" : "Save"}
+                    </button>
+                    {/* Like button */}
                     <button
                       type="button"
                       onClick={handleBookmark}
