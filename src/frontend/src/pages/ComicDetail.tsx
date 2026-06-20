@@ -107,6 +107,19 @@ function ChapterRow({
       setLikeCount(prev => data.liked ? prev + 1 : prev - 1);
     }
   };
+
+   const handleBookmark = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (bookmarked) {
+      await supabase.from("bookmarks").delete().eq("comic_id", comicId).eq("user_id", user.id);
+      setBookmarked(false);
+    } else {
+      await supabase.from("bookmarks").insert({ comic_id: comicId, user_id: user.id });
+      setBookmarked(true);
+    }
+  };
+   
   const {
     data: comic,
     isLoading: comicLoading,
