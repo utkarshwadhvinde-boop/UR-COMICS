@@ -56,6 +56,9 @@ const EditProfilePage = lazy(() =>
 const PrivacyPolicyPage = lazy(() =>
   import("@/pages/PrivacyPolicy").then((m) => ({ default: m.PrivacyPolicyPage })),
 );
+const GenrePage = lazy(() =>
+  import("@/pages/Genre").then((m) => ({ default: m.GenrePage })),
+);
 
 function RootComponent() {
   return (
@@ -182,6 +185,12 @@ const privacyPolicyRoute = createRoute({
   component: PrivacyPolicyPage,
 });
 
+const genreRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/genre/$genreId",
+  component: GenrePage,
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   comicDetailRoute,
@@ -195,7 +204,8 @@ const routeTree = rootRoute.addChildren([
   faqRoute,
   profileRoute,
   editProfileRoute,
-  privacyPolicyRoute
+  privacyPolicyRoute,
+  genreRoute,
 ]);
 
 export const router = createRouter({ routeTree });
