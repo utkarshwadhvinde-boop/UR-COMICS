@@ -571,55 +571,82 @@ export function ReaderPage() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col items-center">
-                {/* Single page view */}
-                <img
-                  src={imageUrls[activePage]}
-                  alt={`Page ${activePage + 1}`}
-                  className="w-full max-w-2xl object-contain"
-                />
+              <div className="flex flex-col items-center w-full">
+                {/* All pages stacked - webtoon style */}
+                {imageUrls.map((url, i) => (
+                  <div key={url} id={`page-${i}`} style={{ width: "100%", maxWidth: "800px" }}>
+                    <img
+                      src={url}
+                      alt={`Page ${i + 1}`}
+                      style={{ width: "100%", display: "block", objectFit: "contain" }}
+                      loading={i < 3 ? "eager" : "lazy"}
+                    />
+                    {/* Ad after middle page */}
+                    {i === Math.floor(imageUrls.length / 2) - 1 && (
+                      <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
+                        <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
+                      </div>
+                    )}
+                  </div>
+                ))}
 
-                {/* Ad below page */}
-                <div className="flex justify-center py-4">
-                  <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
-                </div>
-
-                {/* Page counter */}
-                <p className="text-white/40 text-xs mb-4">
-                  {activePage + 1} / {imageUrls.length}
-                </p>
-
-                {/* Next button bottom right */}
-                <div className="fixed bottom-6 right-6 z-50">
-                  {activePage < imageUrls.length - 1 ? (
-                    <button
-                      type="button"
-                      onClick={() => { setActivePage(activePage + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className="px-5 py-3 rounded-2xl font-bold text-white text-sm shadow-lg"
-                      style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
-                    >
-                      Next →
-                    </button>
-                  ) : nextChapter ? (
+                {/* Next Chapter / Finished at bottom */}
+                <div style={{ padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+                    {imageUrls.length} pages
+                  </p>
+                  {nextChapter ? (
                     <Link
                       to="/comics/$comicId/chapters/$chapterId"
                       params={{ comicId, chapterId: nextChapter.id }}
-                      className="px-5 py-3 rounded-2xl font-bold text-white text-sm shadow-lg"
-                      style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
+                      style={{
+                        padding: "14px 32px",
+                        borderRadius: "14px",
+                        fontWeight: 800,
+                        color: "#fff",
+                        fontSize: "15px",
+                        background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+                        textDecoration: "none",
+                        display: "inline-block",
+                      }}
                     >
                       Next Chapter →
                     </Link>
                   ) : (
-                    <div className="px-5 py-3 rounded-2xl font-bold text-white/40 text-sm bg-white/10">
-                      Finished ✓
+                    <div style={{ padding: "14px 32px", borderRadius: "14px", fontWeight: 800, color: "rgba(255,255,255,0.4)", fontSize: "15px", background: "rgba(255,255,255,0.05)" }}>
+                      ✓ Finished
                     </div>
                   )}
                 </div>
+
+                {/* Floating scroll to next page button */}
+                <div style={{ position: "fixed", bottom: "80px", right: "16px", zIndex: 50 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = document.getElementById(`page-${activePage + 1}`);
+                      if (next) {
+                        next.scrollIntoView({ behavior: "smooth" });
+                        setActivePage(prev => Math.min(prev + 1, imageUrls.length - 1));
+                      }
+                    }}
+                    style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+                      border: "none",
+                      color: "#fff",
+                      fontSize: "18px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 12px rgba(124,58,237,0.4)",
+                    }}
+                  >
+                    ↓
+                  </button>
+                </div>
               </div>
             )}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-    </motion.div>
-  );
-}
