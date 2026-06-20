@@ -650,3 +650,9 @@ export function ReaderPage() {
                 </div>
               </div>
             )}
+</motion.div>
+        </AnimatePresence>
+      </main>
+    </motion.div>
+  );
+}
