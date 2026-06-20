@@ -17,7 +17,7 @@ import {
   User,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // ─── Chapter Row ──────────────────────────────────────────────────────────────
