@@ -4,9 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useComics } from "@/hooks/useComics";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/lib/supabase";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { AlertCircle, BookOpen, Edit2, Eye } from "lucide-react";
 import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import type { Comic } from "@/types/index"; 
 
 function ProfileSkeleton() {
   return (
@@ -91,6 +94,21 @@ export function ProfilePage() {
   const { data: allComics } = useComics();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [savedComics, setSavedComics] = useState<Comic[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("bookmarks")
+      .select("comic_id, comics(*)")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) {
+          const comics = data.map((b: any) => b.comics).filter(Boolean);
+          setSavedComics(comics);
+        }
+      });
+  }, [user]);
 
   const isOwnProfile = !!profile && !!user && profile.id === user.id;
   const creatorComics = (allComics ?? []).filter(
@@ -230,6 +248,33 @@ export function ProfilePage() {
           )}
         </div>
       </motion.div>
+
+      {/* Saved Comics Section */}
+      {isOwnProfile && savedComics.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          style={{ marginBottom: "32px" }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center">
+              <span style={{ fontSize: "16px" }}>🔖</span>
+            </div>
+            <h2 className="font-display text-xl font-bold text-foreground">
+              Saved Comics
+            </h2>
+            <Badge variant="secondary" className="bg-accent/15 text-accent border-accent/20 font-body">
+              {savedComics.length}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {savedComics.map((comic, i) => (
+              <ComicCard key={comic.id} comic={comic} index={i} />
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* Creator Comics Section */}
       {profile.is_creator && (
