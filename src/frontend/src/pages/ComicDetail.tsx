@@ -19,6 +19,7 @@ import {
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Comments } from "@/components/Comments";
 
 // ─── Chapter Row ──────────────────────────────────────────────────────────────
 function ChapterRow({
@@ -338,6 +339,14 @@ function ChapterRow({
         </div>
       </section>
 
+     {/* ── Comments ─────────────────────────────────────────────────── */}
+      <div style={{ padding: "0 16px" }}>
+        <Comments
+          comicId={comicId}
+          creatorId={comic?.creator_id}
+        />
+      </div>
+      
       {/* ── Chapter List ─────────────────────────────────────────────── */}
       <section
         className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
