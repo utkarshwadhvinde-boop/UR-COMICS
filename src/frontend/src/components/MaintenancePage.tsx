@@ -102,6 +102,42 @@ export function MaintenancePage() {
         ))}
       </div>
 
+      {/* Secret dev access */}
+      <div style={{ marginBottom: "24px", display: "flex", gap: "8px" }}>
+        <input
+          type="password"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+          placeholder="Dev access..."
+          style={{
+            padding: "8px 14px",
+            borderRadius: "8px",
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#fff",
+            fontSize: "13px",
+            outline: "none",
+            width: "160px",
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleUnlock}
+          style={{
+            padding: "8px 14px",
+            borderRadius: "8px",
+            background: "rgba(124,58,237,0.3)",
+            border: "1px solid rgba(124,58,237,0.3)",
+            color: "#fff",
+            fontSize: "13px",
+            cursor: "pointer",
+          }}
+        >
+          Enter
+        </button>
+      </div>
+
       {/* Social links */}
       <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px", textAlign: "center" }}>
         Follow us on Instagram{" "}
