@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
-
-const BUCKET = "comics";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export async function uploadChapterPage(
   comicId: string,
@@ -8,42 +7,21 @@ export async function uploadChapterPage(
   pageIndex: number,
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${comicId}/${chapterId}/${String(pageIndex).padStart(4, "0")}.${ext}`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return await uploadToCloudinary(file, `urcomics/${comicId}/${chapterId}`);
 }
 
 export async function uploadCoverImage(
   comicId: string,
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${comicId}/cover.${ext}`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return await uploadToCloudinary(file, `urcomics/${comicId}/covers`);
 }
 
 export async function uploadAvatarImage(
   userId: string,
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${userId}/avatar.${ext}`;
-  const { error } = await supabase.storage
-    .from("avatars")
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-  return data.publicUrl;
+  return await uploadToCloudinary(file, `urcomics/avatars/${userId}`);
 }
 
 export interface UploadSessionState {
