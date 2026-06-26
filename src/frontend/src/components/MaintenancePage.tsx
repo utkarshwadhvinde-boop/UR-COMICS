@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+const SECRET_CODE = "urcomics2026";
 
 const TARGET_DATE = new Date("2026-07-05T00:00:00");
 
@@ -15,11 +16,29 @@ function getTimeLeft() {
 
 export function MaintenancePage() {
   const [time, setTime] = useState(getTimeLeft());
+  const [input, setInput] = useState("");
+  const [unlocked, setUnlocked] = useState(
+    localStorage.getItem("dev_access") === "true"
+  );
 
   useEffect(() => {
     const timer = setInterval(() => setTime(getTimeLeft()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  if (unlocked) {
+    window.location.reload();
+    return null;
+  }
+
+  const handleUnlock = () => {
+    if (input === SECRET_CODE) {
+      localStorage.setItem("dev_access", "true");
+      setUnlocked(true);
+    } else {
+      alert("Wrong code!");
+    }
+  };
 
   return (
     <div style={{
