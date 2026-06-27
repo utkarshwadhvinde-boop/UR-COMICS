@@ -29,6 +29,7 @@ export function CreateChapterPage() {
       const chapter = await createChapter({
         comic_id: comicId,
         title: title.trim(),
+        subtitle: subtitle.trim() || null,
         chapter_number: chNum,
       });
       await queryClient.invalidateQueries({
