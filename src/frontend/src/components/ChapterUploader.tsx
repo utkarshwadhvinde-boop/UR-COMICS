@@ -79,7 +79,7 @@ export function ChapterUploader({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    addFiles(Array.from(e.dataTransfer.files));
+    addFiles(Array.from(e.dataTransfer.files), isOwner);
   };
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
