@@ -109,7 +109,7 @@ export function Comments({ comicId, chapterId, creatorId }: CommentsProps) {
     if (!user) return;
     if (liked) {
       await supabase.from("comment_likes").delete().eq("comment_id", commentId).eq("user_id", user.id);
-      await supabase.from("comments").update({ like_count: supabase.rpc("decrement", { x: 1 }) }).eq("id", commentId);
+      await supabase.from("comments").update({ like_count: (comments.find(c => c.id === commentId)?.like_count ?? 1) - 1 }).eq("id", commentId);
     } else {
       await supabase.from("comment_likes").insert({ comment_id: commentId, user_id: user.id });
       await supabase.from("comments").update({ like_count: supabase.rpc("increment", { x: 1 }) }).eq("id", commentId);
