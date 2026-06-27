@@ -142,12 +142,12 @@ export function MaintenancePage() {
       <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "13px", textAlign: "center" }}>
         Follow us on Instagram{" "}
         <a
-          href="https://instagram.com/ur.comics"
+          href="https://instagram.com/zaddy_novel"
           style={{ color: "#a855f7", textDecoration: "none", fontWeight: 700 }}
           target="_blank"
           rel="noreferrer"
         >
-          @ur.comics
+          @zaddy_novel
         </a>
         {" "}for updates! 
       </p>
