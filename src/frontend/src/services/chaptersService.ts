@@ -62,6 +62,7 @@ export async function createChapter(input: {
   comic_id: string;
   chapter_number: number;
   title?: string;
+  subtitle?: string | null;
   creator_id?: string;
 }): Promise<Chapter> {
   const { data, error } = await supabase
