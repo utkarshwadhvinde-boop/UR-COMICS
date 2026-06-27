@@ -11,7 +11,9 @@ export function ChapterUploader({
   onImagesReady,
   maxImages = 50,
 }: ChapterUploaderProps) {
+  const MAX_SIZE_BYTES = 60 * 1024 * 1024; // 60MB
   const [files, setFiles] = useState<File[]>([]);
+  const [totalSize, setTotalSize] = useState(0);
   const [previews, setPreviews] = useState<string[]>([]);
   const [stretchMode, setStretchMode] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
