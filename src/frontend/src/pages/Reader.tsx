@@ -234,8 +234,8 @@ function ReaderChrome({
             Chapter {chapter.chapter_number}
           </p>
           <p className="text-sm font-display text-foreground truncate max-w-[200px] sm:max-w-sm">
-            {chapter.title}
-          </p>
+  {chapter.title}{chapter.subtitle ? ` — ${chapter.subtitle}` : ""}
+     </p>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
