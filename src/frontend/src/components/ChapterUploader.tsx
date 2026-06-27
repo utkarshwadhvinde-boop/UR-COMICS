@@ -21,22 +21,37 @@ export function ChapterUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback(
-    (raw: File[]) => {
+    (raw: File[], isOwner = false) => {
       const images = raw.filter((f) => f.type.startsWith("image/"));
       setFiles((prev) => {
+        const newTotal = isOwner ? 0 : [...prev, ...images].reduce((acc, f) => acc + f.size, 0);
+        if (!isOwner && newTotal > MAX_SIZE_BYTES) {
+          alert("Episode size limit reached! Max 60MB per chapter.");
+          const allowed: File[] = [];
+          let size = prev.reduce((acc, f) => acc + f.size, 0);
+          for (const f of images) {
+            if (size + f.size <= MAX_SIZE_BYTES) { allowed.push(f); size += f.size; }
+          }
+          const combined = [...prev, ...allowed].slice(0, maxImages);
+          setTotalSize(size);
+          setPreviews((prevUrls) => {
+            const next = [...prevUrls];
+            for (let i = prevUrls.length; i < combined.length; i++) next.push(URL.createObjectURL(combined[i]));
+            return next;
+          });
+          return combined;
+        }
         const combined = [...prev, ...images].slice(0, maxImages);
-        // Build previews in sync
+        setTotalSize(combined.reduce((acc, f) => acc + f.size, 0));
         setPreviews((prevUrls) => {
           const next = [...prevUrls];
-          for (let i = prevUrls.length; i < combined.length; i++) {
-            next.push(URL.createObjectURL(combined[i]));
-          }
+          for (let i = prevUrls.length; i < combined.length; i++) next.push(URL.createObjectURL(combined[i]));
           return next;
         });
         return combined;
       });
     },
-    [maxImages],
+    [maxImages, MAX_SIZE_BYTES],
   );
 
   const removeFile = (index: number) => {
