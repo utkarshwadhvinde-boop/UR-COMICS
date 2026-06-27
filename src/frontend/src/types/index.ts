@@ -15,6 +15,7 @@ export interface Chapter {
   comic_id: string;
   chapter_number: number;
   title: string | null;
+  subtitle: string | null;
   is_published: boolean;
   created_at: string;
   updated_at: string;
