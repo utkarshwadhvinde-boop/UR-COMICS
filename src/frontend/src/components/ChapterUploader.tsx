@@ -72,7 +72,7 @@ export function ChapterUploader({
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    addFiles(Array.from(e.target.files ?? []));
+    addFiles(Array.from(e.target.files ?? []), isOwner);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
