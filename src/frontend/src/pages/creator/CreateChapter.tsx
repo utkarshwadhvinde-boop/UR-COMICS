@@ -16,6 +16,7 @@ export function CreateChapterPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
   const [number, setNumber] = useState<string>("1");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
