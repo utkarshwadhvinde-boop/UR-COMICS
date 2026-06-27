@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { Eye, Pencil, Upload, X } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
@@ -11,6 +12,8 @@ export function ChapterUploader({
   onImagesReady,
   maxImages = 50,
 }: ChapterUploaderProps) {
+  const { user } = useAuth();
+  const isOwner = user?.email === "utkarshwadhvinde@gmail.com";
   const MAX_SIZE_BYTES = 60 * 1024 * 1024; // 60MB
   const [files, setFiles] = useState<File[]>([]);
   const [totalSize, setTotalSize] = useState(0);
