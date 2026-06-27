@@ -97,6 +97,18 @@ export function CreateChapterPage() {
           />
         </div>
 
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+  <label style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
+    Episode Title <span style={{ color: "rgba(255,255,255,0.3)" }}>(optional)</span>
+  </label>
+  <input
+    value={subtitle}
+    onChange={(e) => setSubtitle(e.target.value)}
+    placeholder="e.g. The First Sun of Circle Part 1"
+    style={{ padding: "10px 14px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(124,58,237,0.3)", color: "#fff", fontSize: "14px", outline: "none", boxSizing: "border-box", width: "100%" }}
+  />
+</div>
+
         <Button
           type="submit"
           disabled={isSubmitting || !title.trim()}
