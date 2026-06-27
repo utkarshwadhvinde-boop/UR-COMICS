@@ -123,16 +123,20 @@ export function ChapterUploader({
       {/* Page count + controls row */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <span className="font-body text-sm text-muted-foreground">
-          <span
-            className={
-              files.length >= maxImages ? "text-destructive" : "text-foreground"
-            }
-          >
-            {files.length}
-          </span>
-          {" / "}
-          {maxImages} pages
-        </span>
+  <span
+    className={
+      files.length >= maxImages ? "text-destructive" : "text-foreground"
+    }
+  >
+    {files.length}
+  </span>
+  {" / "}
+  {maxImages} pages
+  {" · "}
+  <span style={{ color: totalSize > MAX_SIZE_BYTES ? "#ff4444" : "rgba(255,255,255,0.5)" }}>
+    {(totalSize / (1024 * 1024)).toFixed(1)} MB / 60 MB
+  </span>
+</span>
         <div className="flex items-center gap-3">
           {files.length > 0 && (
             <button
