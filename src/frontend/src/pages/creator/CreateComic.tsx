@@ -43,6 +43,7 @@ export default function CreateComic() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [isAiGenerated, setIsAiGenerated] = useState(false);
 
   const [pages, setPages] = useState<File[]>([]);
   const [pagePreviews, setPagePreviews] = useState<string[]>([]);
@@ -139,11 +140,13 @@ export default function CreateComic() {
     const uploadedPaths: string[] = [];
     try {
       const comic = await createComic({
-        title: cleanTitle,
-        description: cleanDesc || undefined,
-        cover_url: undefined,
-        creator_id: user.id,
-      });
+  title: cleanTitle,
+  description: cleanDesc || undefined,
+  cover_url: undefined,
+  creator_id: user.id,
+  is_ai_generated: isAiGenerated,
+  ai_status: isAiGenerated ? "pending" : "none",
+});
       comicId = comic.id;
 
       if (coverFile) {
