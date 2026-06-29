@@ -115,13 +115,20 @@ const { data: profile } = useProfile(user?.id);
           ocid="sidebar.home_link"
           onClick={onClose}
         />
-        <NavLink
-          to="/trending"
-          icon={Flame}
-          label="Trending"
-          ocid="sidebar.trending_link"
-          onClick={onClose}
-        />
+  <NavLink
+  to="/trending"
+  icon={Flame}
+  label="Trending"
+  ocid="sidebar.trending_link"
+  onClick={onClose}
+/>
+<NavLink
+  to="/novels"
+  icon={BookOpen}
+  label="Novels"
+  ocid="sidebar.novels_link"
+  onClick={onClose}
+/>
       </div>
 
       {/* Continue reading */}
