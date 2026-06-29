@@ -28,7 +28,7 @@ export function PrivacyPolicyPage() {
 
           <div>
             <h2 className="text-lg font-bold text-white mb-2">5. Advertising</h2>
-            <p>We use Google AdSense to display advertisements. Google may use cookies to show relevant ads based on your visits to this and other websites.</p>
+            <p>We use Adsterra to display advertisements. Google may use cookies to show relevant ads based on your visits to this and other websites.</p>
           </div>
 
           <div>
