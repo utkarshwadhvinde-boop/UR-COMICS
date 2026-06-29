@@ -195,6 +195,14 @@ const { data: profile } = useProfile(user?.id);
         onClick={onClose}
       />
 
+      <NavLink
+  to="/terms"
+  icon={User}
+  label="Terms & Conditions"
+  ocid="sidebar.terms_link"
+  onClick={onClose}
+/>
+
       {/* Auth */}
       <div className="mt-auto pt-3 px-2">
         {isAuthenticated ? (
