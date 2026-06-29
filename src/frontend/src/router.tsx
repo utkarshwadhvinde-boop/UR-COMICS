@@ -59,6 +59,21 @@ const PrivacyPolicyPage = lazy(() =>
 const GenrePage = lazy(() =>
   import("@/pages/Genre").then((m) => ({ default: m.GenrePage })),
 );
+const NovelListPage = lazy(() =>
+  import("@/pages/NovelList").then((m) => ({ default: m.NovelListPage })),
+);
+const NovelDetailPage = lazy(() =>
+  import("@/pages/NovelDetail").then((m) => ({ default: m.NovelDetailPage })),
+);
+const NovelReaderPage = lazy(() =>
+  import("@/pages/NovelReader").then((m) => ({ default: m.NovelReaderPage })),
+);
+const CreateNovelPage = lazy(() =>
+  import("@/pages/creator/CreateNovel").then((m) => ({ default: m.CreateNovelPage })),
+);
+const EditNovelChapterPage = lazy(() =>
+  import("@/pages/creator/EditNovelChapter").then((m) => ({ default: m.EditNovelChapterPage })),
+);
 
 function RootComponent() {
   return (
