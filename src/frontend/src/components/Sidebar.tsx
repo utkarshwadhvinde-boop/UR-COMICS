@@ -149,6 +149,13 @@ const { data: profile } = useProfile(user?.id);
             ocid="sidebar.new_comic_link"
             onClick={onClose}
           />
+          <NavLink
+            to="/creator/novels/new"
+            icon={BookOpen}
+            label="New Novel"
+            ocid="sidebar.new_novel_link"
+            onClick={onClose}
+          />
         </div>
       )}
 
