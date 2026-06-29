@@ -24,6 +24,10 @@ export async function uploadAvatarImage(
   return await uploadToCloudinary(file, `urcomics/avatars/${userId}`);
 }
 
+export async function uploadImage(file: File): Promise<string> {
+  return await uploadToCloudinary(file, `urcomics/novels`);
+}
+
 export interface UploadSessionState {
   comicId: string;
   chapterId: string;
