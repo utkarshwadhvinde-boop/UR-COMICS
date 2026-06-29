@@ -266,7 +266,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   editProfileRoute,
   privacyPolicyRoute,
-  termsRoute
+  termsRoute,
   genreRoute,
   novelListRoute,
   novelDetailRoute,
