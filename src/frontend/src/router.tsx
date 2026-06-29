@@ -206,6 +206,44 @@ const genreRoute = createRoute({
   component: GenrePage,
 });
 
+const novelListRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/novels",
+  component: NovelListPage,
+});
+
+const novelDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/novels/$novelId",
+  component: NovelDetailPage,
+});
+
+const novelReaderRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/novels/$novelId/chapters/$chapterId",
+  component: NovelReaderPage,
+});
+
+const createNovelRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/creator/novels/new",
+  component: () => (
+    <CreatorGuard>
+      <CreateNovelPage />
+    </CreatorGuard>
+  ),
+});
+
+const editNovelChapterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/creator/novels/$novelId/chapters/$chapterId",
+  component: () => (
+    <CreatorGuard>
+      <EditNovelChapterPage />
+    </CreatorGuard>
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   homeRoute,
   comicDetailRoute,
@@ -221,6 +259,11 @@ const routeTree = rootRoute.addChildren([
   editProfileRoute,
   privacyPolicyRoute,
   genreRoute,
+  novelListRoute,
+  novelDetailRoute,
+  novelReaderRoute,
+  createNovelRoute,
+  editNovelChapterRoute,
 ]);
 
 export const router = createRouter({ routeTree });
