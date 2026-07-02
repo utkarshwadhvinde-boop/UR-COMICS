@@ -6,6 +6,7 @@ export async function listComics(limit = 20): Promise<Comic[]> {
     .from("comics")
     .select(`*`)
     .eq("status", "published")
+    eq("is_ai_generated", false)
     .order("view_count", { ascending: false })
     .limit(limit);
   if (error) throw error;
