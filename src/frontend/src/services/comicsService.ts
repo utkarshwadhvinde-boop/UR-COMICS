@@ -69,6 +69,8 @@ export async function createComic(input: {
   description?: string;
   cover_url?: string;
   creator_id: string;
+  is_ai_generated?: boolean;
+  ai_status?: string;
 }): Promise<Comic> {
   const { data, error } = await supabase
     .from("comics")
