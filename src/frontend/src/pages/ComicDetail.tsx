@@ -234,8 +234,25 @@ function ChapterRow({
                 >
                   <h1 className="font-display text-4xl sm:text-5xl text-foreground leading-tight">
                     {comic.title}
+                    {(comic as any).is_ai_generated && (
+                      <span style={{
+                        display: "inline-block",
+                        marginLeft: "10px",
+                        padding: "3px 10px",
+                        borderRadius: "6px",
+                        background: "rgba(0,0,0,0.5)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        color: "rgba(255,255,255,0.6)",
+                        fontSize: "12px",
+                        fontWeight: 800,
+                        letterSpacing: "1px",
+                        verticalAlign: "middle",
+                      }}>
+                        AI
+                      </span>
+                    )}
                   </h1>
-                  <p className="font-body text-sm text-muted-foreground max-w-lg leading-relaxed">
+                  <p className="font-body text-sm text-muted-foreground max-w-lg leading-relaxed">       
                     {comic.description}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1">
