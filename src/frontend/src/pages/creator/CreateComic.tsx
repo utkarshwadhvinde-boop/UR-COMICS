@@ -285,6 +285,40 @@ export default function CreateComic() {
               </div>
             </div>
 
+            {/* AI toggle */}
+<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", borderRadius: "12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(124,58,237,0.2)", boxSizing: "border-box" }}>
+  <div>
+    <p style={{ color: "#fff", fontSize: "14px", fontWeight: 700, margin: "0 0 4px" }}>
+      AI Generated Content
+    </p>
+    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", margin: 0 }}>
+      Turn on if this comic uses AI generated artwork
+    </p>
+  </div>
+  <button
+    type="button"
+    onClick={() => setIsAiGenerated(v => !v)}
+    style={{
+      width: "48px", height: "26px", borderRadius: "13px", border: "none", cursor: "pointer", flexShrink: 0,
+      background: isAiGenerated ? "linear-gradient(135deg, #7c3aed, #8b5cf6)" : "rgba(255,255,255,0.1)",
+      position: "relative", transition: "background 0.2s",
+    }}
+  >
+    <span style={{
+      position: "absolute", top: "3px", width: "20px", height: "20px", borderRadius: "50%", background: "#fff",
+      transition: "left 0.2s", left: isAiGenerated ? "25px" : "3px",
+    }} />
+  </button>
+</div>
+
+{isAiGenerated && (
+  <div style={{ padding: "12px 16px", borderRadius: "10px", background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", boxSizing: "border-box" }}>
+    <p style={{ color: "#a78bfa", fontSize: "13px", margin: 0, lineHeight: 1.5 }}>
+      Your comic will be reviewed before publishing. AI comics do not appear in trending and are not eligible for monetization.
+    </p>
+  </div>
+)}
+
             <button
               type="button"
               onClick={handleNextStep0}
