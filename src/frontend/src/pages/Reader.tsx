@@ -575,13 +575,36 @@ export function ReaderPage() {
               <div className="flex flex-col items-center w-full">
                 {/* All pages stacked - webtoon style */}
                 {imageUrls.map((url, i) => (
-                  <div key={url} id={`page-${i}`} style={{ width: "100%", maxWidth: "800px" }}>
+                  <div key={url} id={`page-${i}`} style={{ width: "100%", maxWidth: "800px", position: "relative" }}>
                     <img
                       src={url}
                       alt={`Page ${i + 1}`}
-                      style={{ width: "100%", display: "block", objectFit: "contain" }}
+                      style={{ width: "100%", display: "block", objectFit: "contain", filter: !user && i > 0 ? "blur(8px)" : "none" }}
                       loading={i < 3 ? "eager" : "lazy"}
                     />
+                    {/* Login wall after first page */}
+                    {!user && i === 1 && (
+                      <div style={{
+                        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+                        zIndex: 10, padding: "24px", boxSizing: "border-box",
+                      }}>
+                        <p style={{ color: "#fff", fontSize: "20px", fontWeight: 800, marginBottom: "8px", textAlign: "center" }}>
+                          Login to continue reading
+                        </p>
+                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", marginBottom: "24px", textAlign: "center" }}>
+                          Create a free account to read unlimited comics
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginWall(true)}
+                          style={{ padding: "14px 32px", borderRadius: "12px", background: "linear-gradient(135deg, #7c3aed, #8b5cf6)", border: "none", color: "#fff", fontSize: "15px", fontWeight: 800, cursor: "pointer" }}
+                        >
+                          Sign In / Sign Up
+                        </button>
+                      </div>
+                    )}
                     {/* Ad after middle page */}
                     {i === Math.floor(imageUrls.length / 2) - 1 && (
                       <div style={{ display: "flex", justifyContent: "center", padding: "16px 0" }}>
