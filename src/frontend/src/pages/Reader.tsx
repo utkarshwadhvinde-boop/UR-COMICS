@@ -677,6 +677,9 @@ export function ReaderPage() {
 </motion.div>
         </AnimatePresence>
       </main>
+    {showLoginWall && (
+        <AuthModal open={showLoginWall} onClose={() => setShowLoginWall(false)} />
+      )}
     </motion.div>
   );
 }
