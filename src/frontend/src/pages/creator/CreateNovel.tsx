@@ -2,8 +2,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { uploadImage } from "@/services/uploadService";
 import { useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+
+interface Genre {
+  id: string;
+  name: string;
+}
 
 export function CreateNovelPage() {
   const { user } = useAuth();
@@ -13,7 +18,21 @@ export function CreateNovelPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    supabase.from("genres").select("*").order("name").then(({ data }) => {
+      setGenres(data ?? []);
+    });
+  }, []);
+
+  const toggleGenre = (id: string) => {
+    setSelectedGenres(prev =>
+      prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]
+    );
+  };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,6 +56,13 @@ export function CreateNovelPage() {
         cover_url,
       }).select().single();
       if (error) throw error;
+
+      if (selectedGenres.length > 0) {
+        await supabase.from("novel_genres").insert(
+          selectedGenres.map(genre_id => ({ novel_id: data.id, genre_id }))
+        );
+      }
+
       toast.success("Novel created!");
       navigate({ to: "/novels/$novelId", params: { novelId: data.id } });
     } catch {
@@ -84,7 +110,7 @@ export function CreateNovelPage() {
       </div>
 
       {/* Description */}
-      <div style={{ marginBottom: "24px" }}>
+      <div style={{ marginBottom: "20px" }}>
         <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "8px" }}>
           Description (optional)
         </label>
@@ -95,6 +121,29 @@ export function CreateNovelPage() {
           rows={4}
           style={{ width: "100%", padding: "12px 14px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(124,58,237,0.3)", color: "#fff", fontSize: "14px", outline: "none", boxSizing: "border-box", resize: "vertical" }}
         />
+      </div>
+
+      {/* Genres */}
+      <div style={{ marginBottom: "24px" }}>
+        <label style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", display: "block", marginBottom: "10px" }}>
+          Genres (optional)
+        </label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          {genres.map(g => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => toggleGenre(g.id)}
+              style={{
+                padding: "6px 14px", borderRadius: "20px", fontSize: "13px", fontWeight: 600, cursor: "pointer", border: "none",
+                background: selectedGenres.includes(g.id) ? "linear-gradient(135deg, #7c3aed, #8b5cf6)" : "rgba(255,255,255,0.06)",
+                color: selectedGenres.includes(g.id) ? "#fff" : "rgba(255,255,255,0.5)",
+              }}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       <button
