@@ -1,4 +1,5 @@
 import { AdBanner } from "@/components/AdBanner";
+import { AuthModal } from "@/components/AuthModal";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { PageLoader } from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
