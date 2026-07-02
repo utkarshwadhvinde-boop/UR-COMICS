@@ -57,18 +57,30 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
           background: "linear-gradient(to bottom, rgba(124,58,237,0.08), transparent)",
           pointerEvents: "none",
         }} />
-        {/* Rank badge */}
-        {rank !== undefined && (
-          <div style={{
-            position: "absolute", top: 8, left: 8,
-            width: 24, height: 24, borderRadius: "50%",
-            background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontSize: "11px", fontWeight: 900,
-          }}>
-            {rank}
-          </div>
-        )}
+    {/* Rank badge */}
+        {rank !== undefined && (
+          <div style={{
+            position: "absolute", top: 8, left: 8,
+            width: 24, height: 24, borderRadius: "50%",
+            background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontSize: "11px", fontWeight: 900,
+          }}>
+            {rank}
+          </div>
+        )}
+        {/* AI badge */}
+        {(comic as any).is_ai_generated && (
+          <div style={{
+            position: "absolute", top: 8, right: 8,
+            padding: "2px 7px", borderRadius: "6px",
+            background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.2)",
+            color: "rgba(255,255,255,0.7)", fontSize: "9px", fontWeight: 800,
+            letterSpacing: "0.5px",
+          }}>
+            AI
+          </div>
+        )}
         {/* Bottom info */}
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
