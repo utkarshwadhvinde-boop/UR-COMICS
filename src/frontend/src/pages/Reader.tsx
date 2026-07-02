@@ -381,7 +381,8 @@ export function ReaderPage() {
   });
   const navigate = useNavigate();
   const { user } = useAuth();
-
+  const [showLoginWall, setShowLoginWall] = useState(false);
+  
   useEffect(() => {
     supabase.rpc("increment_view_count", { comic_id: comicId });
   }, [comicId]);
