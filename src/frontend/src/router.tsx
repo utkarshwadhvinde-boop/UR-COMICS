@@ -62,6 +62,9 @@ const GenrePage = lazy(() =>
 const TermsAndConditionsPage = lazy(() =>
   import("@/pages/TermsAndConditions").then((m) => ({ default: m.TermsAndConditionsPage })),
 );
+const AdminDashboardPage = lazy(() =>
+  import("@/pages/AdminDashboard").then((m) => ({ default: m.AdminDashboardPage })),
+);
 const NovelListPage = lazy(() =>
   import("@/pages/NovelList").then((m) => ({ default: m.NovelListPage })),
 );
@@ -202,10 +205,17 @@ const privacyPolicyRoute = createRoute({
   path: "/privacy-policy",
   component: PrivacyPolicyPage,
 });
+
 const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/terms",
   component: TermsAndConditionsPage,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminDashboardPage,
 });
 
 const genreRoute = createRoute({
@@ -267,6 +277,7 @@ const routeTree = rootRoute.addChildren([
   editProfileRoute,
   privacyPolicyRoute,
   termsRoute,
+  adminRoute,
   genreRoute,
   novelListRoute,
   novelDetailRoute,
