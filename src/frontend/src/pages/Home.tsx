@@ -22,23 +22,23 @@ function ComicCard({ comic, rank }: { comic: Comic; rank?: number }) {
       onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
       <div style={{
-        width: "100%",
-        aspectRatio: "9/14",
-        borderRadius: "14px",
-        overflow: "hidden",
-        position: "relative",
-        background: "#111",
-        border: "1px solid rgba(124,58,237,0.35)",
-        boxShadow: "0 0 12px rgba(124,58,237,0.2), 0 4px 16px rgba(0,0,0,0.4)",
-        transition: "transform 0.15s ease",
-      }}>
-        {comic.cover_url
-          ? <img
-              src={comic.cover_url}
-              alt={comic.title}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              loading="lazy"
-            />
+        width: "100%",
+        aspectRatio: "9/14",
+        borderRadius: "14px",
+        overflow: "hidden",
+        position: "relative",
+        background: "#111",
+        border: "1px solid rgba(124,58,237,0.35)",
+        boxShadow: "0 0 12px rgba(124,58,237,0.2), 0 4px 16px rgba(0,0,0,0.4)",
+        transition: "transform 0.15s ease",
+      }}>
+        {comic.cover_url
+          ? <img
+              src={comic.cover_url}
+              alt={comic.title}
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "#111" }}
+              loading="lazy"
+            />
           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a0b2e" }}>
               <BookOpen style={{ width: 24, height: 24, color: "#a855f7" }} />
             </div>
