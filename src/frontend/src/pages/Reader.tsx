@@ -678,6 +678,11 @@ export function ReaderPage() {
 </motion.div>
         </AnimatePresence>
       </main>
+      {/* Chapter Comments */}
+      <div style={{ padding: "0 16px 40px", maxWidth: "800px", margin: "0 auto", boxSizing: "border-box", width: "100%" }}>
+        <Comments comicId={comicId} chapterId={chapterId} />
+      </div>
+      
     {showLoginWall && (
         <AuthModal open={showLoginWall} onClose={() => setShowLoginWall(false)} />
       )}
