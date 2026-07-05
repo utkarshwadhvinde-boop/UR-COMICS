@@ -492,4 +492,31 @@ export function ProfilePage() {
                 border: "2px solid #111111",
                 boxShadow: "3px 3px 0px #111111",
                 maxWidth: "400px",
-                margin: "12px au
+                margin: "12px auto",
+                boxSizing: "border-box"
+              }}
+            >
+              <BookOpen style={{ width: "32px", height: "32px", margin: "0 auto 12px auto", color: "#555555", opacity: 0.5 }} />
+              <p style={{ fontFamily: "monospace, sans-serif", fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", margin: "0 0 4px 0", color: "#111111" }}>
+                No serializations
+              </p>
+              <p style={{ fontFamily: "serif", fontSize: "13px", color: "#555555", margin: 0 }}>
+                This user hasn't launched any public comic records yet.
+              </p>
+            </div>
+          ) : (
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+              data-ocid="profile.comics.list"
+              style={{ boxSizing: "border-box" }}
+            >
+              {creatorComics.map((comic, i) => (
+                <ComicCard key={comic.id} comic={comic} index={i} />
+              ))}
+            </div>
+          )}
+        </motion.section>
+      )}
+    </div>
+  );
+}
