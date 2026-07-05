@@ -4,7 +4,7 @@ import { IntroAnimation } from "./components/IntroAnimation";
 import { MaintenancePage } from "./components/MaintenancePage";
 import { router } from "./router";
 
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 const DEV_ACCESS = localStorage.getItem("dev_access") === "true";
 
 export default function App() {
