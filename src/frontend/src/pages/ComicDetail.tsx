@@ -474,6 +474,247 @@ export function ComicDetailPage() {
                         fontSize: "12px", 
                         fontWeight: 900, 
                         textTransform: 'uppercase',
+                        cursor: "pointer",
+                        boxShadow: '2px 2px 0px #111111',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <span>🔖</span>{bookmarked ? "Saved" : "Save"}
+                    </button>
+
+                    {/* Like Core Core Interaction Button */}
+                    <button 
+                      type="button" 
+                      onClick={handleLike} 
+                      style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "6px", 
+                        padding: "10px 14px", 
+                        borderRadius: "0px", 
+                        border: "2px solid #111111", 
+                        background: liked ? "#ffffff" : "#ffffff", 
+                        color: "#111111", 
+                        fontFamily: 'monospace, sans-serif',
+                        fontSize: "12px", 
+                        fontWeight: 900, 
+                        textTransform: 'uppercase',
+                        cursor: "pointer",
+                        boxShadow: '2px 2px 0px #111111',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <span>{liked ? "❤️" : "🤍"}</span>{likeCount}
+                    </button>
+
+                    {/* Report Alert Button Block */}
+                    <button 
+                      type="button" 
+                      onClick={() => setShowReportModal(true)} 
+                      style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "4px", 
+                        padding: "10px 14px", 
+                        borderRadius: "0px", 
+                        border: "2px solid #111111", 
+                        background: "#ffffff", 
+                        color: "#cc0000", 
+                        fontFamily: 'monospace, sans-serif',
+                        fontSize: "12px", 
+                        fontWeight: 900, 
+                        textTransform: 'uppercase',
+                        cursor: "pointer",
+                        boxShadow: '2px 2px 0px #111111',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <AlertTriangle style={{ width: '12px', height: '12px' }} /> Report
+                    </button>
+
+                  </div>
+                </motion.div>
+              ) : null}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Chapters Index Listing Main Canvas Layout Frame */}
+      <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 16px', boxSizing: 'border-box' }} data-ocid="comic_detail.chapters_section">
+        {/* Newspaper Style Block Section Header Grid */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          marginBottom: '24px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              backgroundColor: '#111111',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box'
+            }}>
+              <Layers style={{ width: '16px', height: '16px', color: '#fbbf24' }} />
+            </div>
+            <h2 style={{
+              fontFamily: 'monospace, sans-serif',
+              fontSize: '22px',
+              fontWeight: '900',
+              textTransform: 'uppercase',
+              margin: '0',
+              color: '#111111'
+            }}>
+              Chapters Grid
+            </h2>
+            {!chaptersLoading && (
+              <span style={{ fontFamily: 'monospace, sans-serif', fontSize: '13px', fontWeight: 'bold', color: '#555555' }}>
+                ({publishedChapters.length})
+              </span>
+            )}
+          </div>
+          <div style={{ marginTop: '12px', width: '100%', height: '3px', backgroundColor: '#111111', boxSizing: 'border-box' }} />
+        </div>
+
+        {/* Loading Framework States Skeletons */}
+        {chaptersLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', boxSizing: 'border-box' }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', backgroundColor: '#ffffff', border: '2px solid #111111', boxSizing: 'border-box' }}>
+                <Skeleton className="w-8 h-8" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <Skeleton className="h-4 w-1/3" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+                  <Skeleton className="h-3 w-1/4" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {chaptersError && <ErrorFallback message="Failed to load chapters." onRetry={() => refetchChapters()} />}
+
+        {/* Blank State Canvas Wrapper */}
+        {!chaptersLoading && !chaptersError && publishedChapters.length === 0 && (
+          <div 
+            data-ocid="comic_detail.empty_state"
+            style={{
+              textAlign: 'center',
+              padding: '48px 16px',
+              backgroundColor: '#ffffff',
+              border: '2px solid #111111',
+              boxShadow: '3px 3px 0px #111111',
+              maxWidth: '450px',
+              margin: '24px auto',
+              boxSizing: 'border-box'
+            }}
+          >
+            <div style={{ width: '48px', height: '48px', backgroundColor: '#f5f0e8', border: '2px solid #111111', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 16px auto' }}>
+              <Lock style={{ width: '20px', height: '20px', color: '#cc0000', margin: '0 auto' }} />
+            </div>
+            <p style={{ fontFamily: 'monospace, sans-serif', fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0' }}>No chapters yet</p>
+            <p style={{ fontFamily: 'serif', fontSize: '13px', color: '#555555', margin: '0' }}>The creator hasn't published any chapters yet. Check back soon!</p>
+          </div>
+        )}
+
+        {/* Population Grid Index Row Mapping Container */}
+        {!chaptersLoading && !chaptersError && publishedChapters.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', boxSizing: 'border-box' }}>
+            {publishedChapters.map((ch, i) => <ChapterRow key={ch.id} chapter={ch} comicId={comicId} index={i} />)}
+          </div>
+        )}
+      </section>
+
+      {/* Interactive Core Public Comments Canvas Panel Block Container */}
+      <section style={{ maxWidth: '1000px', margin: '0 auto 48px auto', padding: '0 16px', boxSizing: 'border-box' }}>
+        <div style={{ 
+          backgroundColor: '#ffffff', 
+          border: '2px solid #111111', 
+          boxShadow: '4px 4px 0px #111111', 
+          padding: '20px 16px', 
+          boxSizing: 'border-box' 
+        }}>
+          <Comments comicId={comicId} creatorId={comic?.creator_id} />
+        </div>
+      </section>
+
+      {/* System Framework Report Abuse Modal Overlay Panel Box */}
+      {showReportModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(17,17,17,0.75)", backdropFilter: "blur(2px)", padding: "16px", boxSizing: "border-box" }}>
+          <div style={{ 
+            background: "#ffffff", 
+            border: "3px solid #111111", 
+            boxShadow: '6px 6px 0px #111111',
+            padding: "24px", 
+            width: "100%", 
+            maxWidth: "420px", 
+            boxSizing: "border-box",
+            borderRadius: '0px'
+          }}>
+            <h3 style={{ color: "#111111", fontFamily: 'monospace, sans-serif', textTransform: 'uppercase', fontSize: "18px", fontWeight: 900, margin: '0 0 16px 0', borderBottom: '2px solid #111111', paddingBottom: '8px' }}>
+              Report Comic Content
+            </h3>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px", boxSizing: 'border-box' }}>
+              {REPORT_REASONS.map(reason => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setReportReason(reason)}
+                  style={{
+                    padding: "10px 12px", 
+                    borderRadius: "0px", 
+                    textAlign: "left", 
+                    cursor: "pointer", 
+                    fontSize: "12px", 
+                    fontFamily: 'serif',
+                    fontWeight: reportReason === reason ? "bold" : "normal", 
+                    border: "2px solid #111111",
+                    background: reportReason === reason ? "#fbbf24" : "#f5f0e8",
+                    color: "#111111",
+                    boxShadow: reportReason === reason ? '1px 1px 0px #111111' : 'none',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={reportDetails}
+              onChange={(e) => setReportDetails(e.target.value)}
+              placeholder="Provide clear additional contextual documentation details (optional)..."
+              rows={3}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "0px", background: "#ffffff", border: "2px solid #111111", color: "#111111", fontFamily: 'serif', fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "none", marginBottom: "16px" }}
+            />
+
+            <div style={{ display: "flex", gap: "12px", boxSizing: 'border-box' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowReportModal(false)} 
+                style={{ flex: 1, padding: "10px", borderRadius: "0px", background: "#ffffff", border: "2px solid #111111", color: "#111111", fontFamily: 'monospace, sans-serif', fontWeight: 'bold', textTransform: 'uppercase', cursor: "pointer", boxSizing: 'border-box' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleReport} 
+                disabled={isReporting || !reportReason} 
+                style={{ 
+                  flex: 1, 
+                  padding: "10px", 
+                  borderRadius: "0px", 
+                  background: "#cc0000", 
+                  border: "2px solid #111111", 
+                  color: "#ffffff", 
+                  fontFamily: 'monospace, sans-serif', 
+                  fontWeight: 900, 
+                  textTransform: 'uppercase',
                   cursor: "pointer", 
                   opacity: isReporting || !reportReason ? 0.5 : 1,
                   boxSizing: 'border-box'
@@ -487,5 +728,5 @@ export function ComicDetailPage() {
       )}
     </div>
   );
-            }
+                    }
          
