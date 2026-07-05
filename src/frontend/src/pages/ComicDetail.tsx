@@ -473,4 +473,19 @@ export function ComicDetailPage() {
                         fontFamily: 'monospace, sans-serif',
                         fontSize: "12px", 
                         fontWeight: 900, 
+                        textTransform: 'uppercase',
+                  cursor: "pointer", 
+                  opacity: isReporting || !reportReason ? 0.5 : 1,
+                  boxSizing: 'border-box'
+                }}
+              >
+                {isReporting ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+            }
          
