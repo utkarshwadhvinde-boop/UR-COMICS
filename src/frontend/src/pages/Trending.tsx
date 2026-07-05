@@ -7,11 +7,22 @@ import { motion } from "motion/react";
 
 function TrendingCardSkeleton() {
   return (
-    <div className="bg-midnight-card rounded-xl overflow-hidden border border-purple-900/20">
-      <Skeleton className="w-full aspect-[9/14] bg-purple-900/20" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-4 w-3/4 bg-purple-900/20" />
-        <Skeleton className="h-3 w-1/2 bg-purple-900/20" />
+    <div style={{
+      backgroundColor: '#ffffff',
+      borderRadius: '0px',
+      border: '2px solid #111111',
+      boxShadow: '3px 3px 0px #111111',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      boxSizing: 'border-box'
+    }}>
+      <div style={{ width: '100%', aspectRatio: '9/14', backgroundColor: 'rgba(17, 17, 17, 0.08)', position: 'relative' }}>
+        <Skeleton className="w-full h-full" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+      </div>
+      <div style={{ padding: '12px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <Skeleton className="h-4 w-3/4" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+        <Skeleton className="h-3 w-1/2" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
       </div>
     </div>
   );
@@ -28,46 +39,134 @@ function TrendingCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4 }}
       viewport={{ once: true }}
-      transition={{ delay: Math.min(rank * 0.06, 0.4) }}
+      transition={{ delay: Math.min(rank * 0.06, 0.4), duration: 0.2 }}
       data-ocid={`trending.item.${rank}`}
+      style={{ boxSizing: 'border-box' }}
     >
       <Link
         to="/comics/$comicId"
         params={{ comicId: comic.id }}
-        className="group block bg-midnight-card rounded-xl overflow-hidden border border-purple-900/20 hover:border-accent/40 transition-colors-fast"
         data-ocid={`trending.card_link.${rank}`}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#ffffff',
+          borderRadius: '0px',
+          border: '2px solid #111111',
+          boxShadow: '3px 3px 0px #111111',
+          overflow: 'hidden',
+          textDecoration: 'none',
+          color: '#111111',
+          boxSizing: 'border-box',
+          height: '100%',
+          transition: 'box-shadow 0.15s ease'
+        }}
       >
-        {/* Cover */}
-        <div className="relative w-full aspect-[9/14] overflow-hidden bg-purple-900/20">
+        {/* Cover Canvas Container */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '9/14',
+          overflow: 'hidden',
+          backgroundColor: '#111111',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box'
+        }}>
           <img
             src={comic.cover_url ?? ""}
             alt={comic.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              boxSizing: 'border-box'
+            }}
           />
-          {/* Rank badge */}
-          <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/70 border border-accent/50 flex items-center justify-center">
-            <span className="text-xs font-display font-bold text-accent">
-              {rank}
-            </span>
+          
+          {/* Rank Badge - Sharp Red Manga Block */}
+          <div style={{
+            position: 'absolute',
+            top: '0px',
+            left: '0px',
+            backgroundColor: '#cc0000',
+            color: '#ffffff',
+            borderRight: '2px solid #111111',
+            borderBottom: '2px solid #111111',
+            fontFamily: 'monospace, sans-serif',
+            fontWeight: '900',
+            fontSize: '13px',
+            padding: '4px 10px',
+            boxSizing: 'border-box',
+            zIndex: 2
+          }}>
+            #{rank}
           </div>
-          {/* Hot score badge */}
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/70 border border-orange-500/40">
-            <Flame className="w-2.5 h-2.5 text-orange-400" />
-            <span className="text-xs font-body text-orange-300">
+
+          {/* Views Score Tag */}
+          <div style={{
+            position: 'absolute',
+            top: '6px',
+            right: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '2px 8px',
+            backgroundColor: '#111111',
+            border: '1px solid #fbbf24',
+            borderRadius: '0px',
+            boxSizing: 'border-box',
+            zIndex: 2
+          }}>
+            <Flame style={{ width: '12px', height: '12px', color: '#fbbf24' }} />
+            <span style={{
+              fontSize: '11px',
+              fontFamily: 'monospace, sans-serif',
+              fontWeight: 'bold',
+              color: '#fbbf24'
+            }}>
               {comic.view_count ?? 0}
             </span>
           </div>
         </div>
 
-        {/* Info */}
-        <div className="p-3">
-          <h3 className="font-body text-sm font-medium text-foreground truncate mb-1 group-hover:text-accent transition-colors-fast">
+        {/* Info Area */}
+        <div style={{
+          padding: '10px',
+          backgroundColor: '#ffffff',
+          borderTop: '2px solid #111111',
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          boxSizing: 'border-box'
+        }}>
+          <h3 style={{
+            fontFamily: 'serif',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            color: '#111111',
+            margin: '0 0 4px 0',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            boxSizing: 'border-box'
+          }}>
             {comic.title}
           </h3>
-          <p className="text-xs text-muted-foreground font-body">
-            {comic.view_count ?? 0} views
+          <p style={{
+            margin: '0',
+            fontFamily: 'monospace, sans-serif',
+            fontSize: '11px',
+            color: '#555555',
+            textTransform: 'uppercase',
+            boxSizing: 'border-box'
+          }}>
+            {comic.view_count ?? 0} VIEWS
           </p>
         </div>
       </Link>
@@ -84,55 +183,163 @@ export function TrendingPage() {
   }));
 
   return (
-    <div className="px-4 sm:px-6 py-8" data-ocid="trending.page">
-      {/* Page header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center">
-          <TrendingUp className="w-5 h-5 text-accent" />
-        </div>
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
+    <div 
+      data-ocid="trending.page"
+      style={{
+        backgroundColor: '#f5f0e8',
+        backgroundImage: 'radial-gradient(#fbbf24 1.2px, transparent 1.2px)',
+        backgroundSize: '12px 12px',
+        minHeight: '100vh',
+        padding: '32px 16px',
+        boxSizing: 'border-box',
+        color: '#111111'
+      }}
+    >
+      {/* Newspaper Style Page Header */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        marginBottom: '32px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            width: '38px',
+            height: '38px',
+            backgroundColor: '#fbbf24',
+            border: '2px solid #111111',
+            boxShadow: '2px 2px 0px #111111',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxSizing: 'border-box'
+          }}>
+            <TrendingUp style={{ width: '18px', height: '18px', color: '#111111' }} />
+          </div>
+          <h1 style={{
+            fontFamily: 'monospace, sans-serif',
+            fontSize: '28px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '-0.5px',
+            margin: '0',
+            color: '#111111',
+            boxSizing: 'border-box'
+          }}>
             Trending Now
           </h1>
-          <p className="text-muted-foreground font-body text-sm">
-            Ranked by reads and views in the last 24 hours
-          </p>
         </div>
+        
+        <p style={{
+          margin: '6px 0 0 0',
+          fontFamily: 'serif',
+          fontSize: '14px',
+          fontStyle: 'italic',
+          color: '#444444',
+          boxSizing: 'border-box'
+        }}>
+          Ranked by reads and views in the last 24 hours
+        </p>
+
+        {/* Thick Comic Ink Lines Divider */}
+        <div style={{
+          marginTop: '16px',
+          width: '100%',
+          height: '4px',
+          backgroundColor: '#111111',
+          boxSizing: 'border-box'
+        }} />
+        <div style={{
+          width: '100%',
+          height: '1px',
+          backgroundColor: '#111111',
+          marginTop: '2px',
+          boxSizing: 'border-box'
+        }} />
       </div>
 
-      {/* Grid */}
+      {/* Grid Layout Canvas */}
       {trendingLoading ? (
         <div
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4"
           data-ocid="trending.loading_state"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '16px',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
         >
           {Array.from({ length: 12 }).map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
             <TrendingCardSkeleton key={i} />
           ))}
         </div>
       ) : trendingComics.length === 0 ? (
         <div
-          className="text-center py-24 text-muted-foreground font-body"
           data-ocid="trending.empty_state"
+          style={{
+            textAlign: 'center',
+            padding: '64px 16px',
+            backgroundColor: '#ffffff',
+            border: '3px solid #111111',
+            boxShadow: '4px 4px 0px #111111',
+            boxSizing: 'border-box',
+            maxWidth: '500px',
+            margin: '40px auto'
+          }}
         >
-          <Flame className="w-12 h-12 mx-auto mb-4 opacity-30" />
-          <p className="text-lg font-medium text-foreground mb-1">
+          <Flame style={{ width: '44px', height: '44px', margin: '0 auto 16px auto', color: '#cc0000' }} />
+          <p style={{
+            fontFamily: 'monospace, sans-serif',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            margin: '0 0 8px 0',
+            color: '#111111'
+          }}>
             Nothing trending yet
           </p>
-          <p className="text-sm">
+          <p style={{
+            fontFamily: 'serif',
+            fontSize: '14px',
+            color: '#444444',
+            margin: '0 0 24px 0'
+          }}>
             Be the first to start reading and make something popular!
           </p>
           <Link
             to="/"
-            className="inline-block mt-6 px-5 py-2 rounded-lg bg-accent/15 border border-accent/30 text-accent text-sm font-body hover:bg-accent/25 transition-colors-fast"
             data-ocid="trending.browse_link"
+            style={{
+              display: 'inline-block',
+              padding: '10px 20px',
+              backgroundColor: '#fbbf24',
+              color: '#111111',
+              fontFamily: 'monospace, sans-serif',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              border: '2px solid #111111',
+              boxShadow: '2px 2px 0px #111111',
+              boxSizing: 'border-box'
+            }}
           >
             Browse All Comics
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+          gap: '16px',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
           {trendingComics.map(({ comic, rank }) => (
             <TrendingCard key={comic.id} comic={comic} rank={rank} />
           ))}
@@ -140,4 +347,5 @@ export function TrendingPage() {
       )}
     </div>
   );
-}
+        }
+              
