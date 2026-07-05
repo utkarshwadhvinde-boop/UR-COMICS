@@ -1,57 +1,70 @@
 export function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)" }}>
-      <div className="max-w-3xl mx-auto px-4 py-12 text-white">
-        <h1 className="text-3xl font-black mb-2">Privacy Policy</h1>
-        <p className="text-white/40 text-sm mb-8">Last updated: May 18, 2026</p>
-
-        <section className="space-y-6 text-white/80 text-sm leading-relaxed">
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">1. Information We Collect</h2>
-            <p>We collect your email address when you create an account, comics and chapters you upload, and your reading history and preferences.</p>
+    <div 
+      style={{ 
+        minHeight: "100vh", 
+        backgroundColor: "#f5f0e8", 
+        backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
+        backgroundSize: "12px 12px",
+        padding: "48px 16px",
+        boxSizing: "border-box"
+      }}
+    >
+      <div 
+        style={{ 
+          maxWidth: "800px", 
+          margin: "0 auto", 
+          backgroundColor: "#ffffff",
+          border: "4px solid #111111",
+          boxShadow: "8px 8px 0px #111111",
+          padding: "40px 32px",
+          boxSizing: "border-box"
+        }}
+      >
+        {/* Dossier Header */}
+        <div style={{ borderBottom: "4px solid #111111", paddingBottom: "24px", marginBottom: "32px", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px", boxSizing: "border-box" }}>
+            <h1 style={{ 
+              margin: 0, 
+              fontFamily: "serif", 
+              fontSize: "42px", 
+              fontWeight: "900", 
+              color: "#111111",
+              lineHeight: "1.1",
+              letterSpacing: "-1px"
+            }}>
+              Privacy Policy
+            </h1>
+            
+            <div style={{ 
+              backgroundColor: "#fbbf24", 
+              border: "2px solid #111111", 
+              padding: "6px 12px",
+              boxShadow: "2px 2px 0px #111111",
+              transform: "rotate(2deg)",
+              boxSizing: "border-box"
+            }}>
+              <p style={{ 
+                margin: 0, 
+                fontFamily: "monospace, sans-serif", 
+                fontSize: "11px", 
+                fontWeight: "900", 
+                textTransform: "uppercase", 
+                color: "#111111" 
+              }}>
+                Updated: May 18, 2026
+              </p>
+            </div>
           </div>
+        </div>
 
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">2. How We Use Your Information</h2>
-            <p>We use your information to provide and improve our services, allow you to publish and read comics, and send important account notifications.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">3. Third Party Services</h2>
-            <p>We use Supabase for database and authentication, Vercel for hosting, and Google AdSense for displaying advertisements.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">4. Cookies</h2>
-            <p>We use cookies to keep you logged in and improve your experience on our website.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">5. Advertising</h2>
-            <p>We use Adsterra to display advertisements. Google may use cookies to show relevant ads based on your visits to this and other websites.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">6. Data Security</h2>
-            <p>We take reasonable measures to protect your personal information. However, no method of transmission over the internet is 100% secure.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">7. Children's Privacy</h2>
-            <p>Our service is not directed to children under 13. We do not knowingly collect personal information from children under 13.</p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">8. Contact Us</h2>
-            <p>If you have any questions about this Privacy Policy, please contact us at: <a href="mailto:urcomics2@gmail.com" className="text-purple-400 hover:underline">urcomics2@gmail.com</a></p>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-white mb-2">9. Changes to This Policy</h2>
-            <p>We may update this policy at any time. Continued use of our website after changes means you accept the new policy.</p>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
+        {/* Legal Clauses Container */}
+        <section style={{ display: "flex", flexDirection: "column", gap: "32px", boxSizing: "border-box" }}>
+          
+          <div style={{ boxSizing: "border-box" }}>
+            <h2 style={{ 
+              fontFamily: "monospace, sans-serif", 
+              fontSize: "14px", 
+              fontWeight: "900", 
+              color
+        
