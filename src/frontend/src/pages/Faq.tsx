@@ -71,23 +71,62 @@ function FaqItem({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="border border-purple-900/30 rounded-lg overflow-hidden bg-midnight-card"
       data-ocid={`faq.item.${index + 1}`}
+      style={{
+        border: "2px solid #111111",
+        borderRadius: "0px",
+        overflow: "hidden",
+        backgroundColor: "#ffffff",
+        boxShadow: "3px 3px 0px #111111",
+        marginBottom: "14px",
+        boxSizing: "border-box",
+      }}
     >
       <button
         type="button"
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-purple-900/20 transition-colors-fast"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         data-ocid={`faq.toggle.${index + 1}`}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 20px",
+          textAlign: "left",
+          background: open ? "#f5f0e8" : "#ffffff",
+          border: "none",
+          cursor: "pointer",
+          boxSizing: "border-box",
+          transition: "background-color 0.1s ease",
+        }}
+        onMouseEnter={(e) => {
+          if (!open) e.currentTarget.style.backgroundColor = "#fffdf9";
+        }}
+        onMouseLeave={(e) => {
+          if (!open) e.currentTarget.style.backgroundColor = "#ffffff";
+        }}
       >
-        <span className="font-body text-sm text-foreground pr-4">
+        <span style={{
+          fontFamily: "serif",
+          fontSize: "15px",
+          fontWeight: "900",
+          color: "#111111",
+          paddingRight: "16px",
+          lineHeight: "1.4",
+          boxSizing: "border-box"
+        }}>
           {question}
         </span>
         <ChevronDown
-          className={`w-4 h-4 shrink-0 text-accent transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
+          style={{
+            width: "16px",
+            height: "16px",
+            flexShrink: 0,
+            color: "#111111",
+            transition: "transform 0.2s ease",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+          }}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -96,11 +135,27 @@ function FaqItem({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.18 }}
+            style={{ boxSizing: "border-box" }}
           >
-            <p className="px-5 pb-4 text-sm text-muted-foreground font-body leading-relaxed">
-              {answer}
-            </p>
+            <div style={{
+              padding: "0px 20px 16px 20px",
+              backgroundColor: "#f5f0e8",
+              borderTop: "2px solid #111111",
+              boxSizing: "border-box"
+            }}>
+              <p style={{
+                margin: 0,
+                paddingTop: "14px",
+                fontSize: "14px",
+                color: "#222222",
+                fontFamily: "serif",
+                lineHeight: "1.6",
+                boxSizing: "border-box"
+              }}>
+                {answer}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -123,73 +178,160 @@ export function FaqPage() {
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12" data-ocid="faq.page">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent/15 border border-accent/30 mb-4">
-          <HelpCircle className="w-6 h-6 text-accent" />
+    <div 
+      style={{
+        backgroundColor: "#f5f0e8",
+        backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
+        backgroundSize: "12px 12px",
+        minHeight: "100vh",
+        width: "100%",
+        boxSizing: "border-box"
+      }}
+    >
+      <div 
+        className="max-w-2xl mx-auto px-4 py-12" 
+        data-ocid="faq.page"
+        style={{ boxSizing: "border-box" }}
+      >
+        {/* Header Block Section */}
+        <div style={{ textAlign: "center", marginBottom: "40px", boxSizing: "border-box" }}>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "48px",
+            height: "48px",
+            borderRadius: "0px",
+            backgroundColor: "#fbbf24",
+            border: "2px solid #111111",
+            boxShadow: "2px 2px 0px #111111",
+            marginBottom: "16px",
+            boxSizing: "border-box"
+          }}>
+            <HelpCircle style={{ width: "24px", height: "24px", color: "#111111" }} />
+          </div>
+          <h1 style={{
+            fontFamily: "serif",
+            fontSize: "36px",
+            fontWeight: "900",
+            color: "#111111",
+            margin: "0 0 6px 0",
+            letterSpacing: "-0.5px"
+          }}>
+            Help &amp; FAQ
+          </h1>
+          <p style={{
+            margin: 0,
+            fontFamily: "monospace, sans-serif",
+            textTransform: "uppercase",
+            fontSize: "12px",
+            fontWeight: "bold",
+            color: "#555555"
+          }}>
+            Everything you need to know about UR COMICS.
+          </p>
         </div>
-        <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-          Help &amp; FAQ
-        </h1>
-        <p className="text-muted-foreground font-body text-sm">
-          Everything you need to know about UR COMICS.
-        </p>
-      </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search questions…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-midnight-card border border-purple-900/30 text-foreground placeholder:text-muted-foreground font-body text-sm focus:outline-none focus:border-accent/60 transition-colors-fast"
-          data-ocid="faq.search_input"
-        />
-      </div>
+        {/* Search Field Anchor Box */}
+        <div style={{ position: "relative", marginBottom: "24px", boxSizing: "border-box" }}>
+          <Search style={{
+            position: "absolute",
+            left: "14px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "16px",
+            height: "16px",
+            color: "#111111"
+          }} />
+          <input
+            type="text"
+            placeholder="SEARCH QUESTIONS..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-ocid="faq.search_input"
+            style={{
+              width: "100%",
+              padding: "12px 16px 12px 40px",
+              borderRadius: "0px",
+              backgroundColor: "#ffffff",
+              border: "2px solid #111111",
+              color: "#111111",
+              boxShadow: "3px 3px 0px #111111",
+              fontFamily: "monospace, sans-serif",
+              fontSize: "13px",
+              fontWeight: "bold",
+              outline: "none",
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
 
-      {/* Category filters */}
-      <div className="flex gap-2 flex-wrap mb-8">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1.5 rounded-full text-xs font-body font-medium transition-colors-fast border ${
-              activeCategory === cat
-                ? "bg-accent/20 border-accent/50 text-accent"
-                : "bg-transparent border-purple-900/30 text-muted-foreground hover:border-accent/30 hover:text-foreground"
-            }`}
-            data-ocid={`faq.category_filter.${cat.toLowerCase()}`}
+        {/* Category Badge Filter Lane */}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "32px", boxSizing: "border-box" }}>
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                data-ocid={`faq.category_filter.${cat.toLowerCase()}`}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "0px",
+                  fontSize: "11px",
+                  fontFamily: "monospace, sans-serif",
+                  fontWeight: "900",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  border: "2px solid #111111",
+                  backgroundColor: isActive ? "#111111" : "#ffffff",
+                  color: isActive ? "#ffffff" : "#111111",
+                  boxShadow: isActive ? "none" : "2px 2px 0px #111111",
+                  transform: isActive ? "translate(2px, 2px)" : "none",
+                  transition: "all 0.1s ease",
+                  boxSizing: "border-box"
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Items Content Container Shell */}
+        {filtered.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+            {filtered.map((item, idx) => (
+              <FaqItem
+                key={item.id}
+                question={item.question}
+                answer={item.answer}
+                index={idx}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Empty Search Fallback Template Display */
+          <div
+            data-ocid="faq.empty_state"
+            style={{
+              textAlign: "center",
+              padding: "48px 16px",
+              backgroundColor: "#ffffff",
+              border: "2px solid #111111",
+              boxShadow: "4px 4px 0px #111111",
+              boxSizing: "border-box"
+            }}
           >
-            {cat}
-          </button>
-        ))}
+            <HelpCircle style={{ width: "32px", height: "32px", margin: "0 auto 12px auto", color: "#111111", opacity: 0.4 }} />
+            <p style={{ margin: 0, fontFamily: "monospace, sans-serif", fontSize: "13px", fontWeight: "bold", textTransform: "uppercase", color: "#111111" }}>
+              No results found for "{search}"
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Items */}
-      {filtered.length > 0 ? (
-        <div className="space-y-2">
-          {filtered.map((item, idx) => (
-            <FaqItem
-              key={item.id}
-              question={item.question}
-              answer={item.answer}
-              index={idx}
-            />
-          ))}
-        </div>
-      ) : (
-        <div
-          className="text-center py-16 text-muted-foreground font-body"
-          data-ocid="faq.empty_state"
-        >
-          <HelpCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p>No results found for &ldquo;{search}&rdquo;.</p>
-        </div>
-      )}
+      <style>{`* { box-sizing: border-box; }`}</style>
     </div>
   );
-}
+            }
