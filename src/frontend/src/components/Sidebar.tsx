@@ -40,15 +40,25 @@ function NavLink({
     <Link
       to={to as "/"}
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 text-sm rounded-lg mx-2 transition-colors-fast ${
-        isActive
-          ? "text-accent bg-purple-900/40 font-medium"
-          : "text-muted-foreground hover:text-foreground hover:bg-purple-900/30"
-      }`}
       data-ocid={ocid}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "10px 16px",
+        margin: "2px 8px",
+        textDecoration: "none",
+        fontSize: "13px",
+        fontWeight: isActive ? 900 : 600,
+        fontFamily: "monospace",
+        color: isActive ? "#cc0000" : "#111",
+        background: isActive ? "#fbbf2420" : "transparent",
+        borderLeft: isActive ? "3px solid #cc0000" : "3px solid transparent",
+        transition: "all 0.15s ease",
+      }}
     >
-      <Icon className="w-4 h-4 shrink-0" />
-      <span className="font-body">{label}</span>
+      <Icon style={{ width: 16, height: 16, flexShrink: 0 }} />
+      <span>{label}</span>
     </Link>
   );
 }
@@ -56,183 +66,125 @@ function NavLink({
 function ResumeReadingSection({ onClose }: { onClose: () => void }) {
   const { data: resumeItems, isLoading } = useResumeReading(undefined);
 
-  if (isLoading) {
-    return (
-      <div className="px-4 py-2">
-        {[1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-8 bg-purple-900/20 rounded mb-1 animate-pulse"
-          />
-        ))}
-      </div>
-    );
-  }
-
+  if (isLoading) return null;
   if (!resumeItems?.length) return null;
 
   return (
-    <div className="px-2 mb-1">
-      <p className="px-4 py-1 text-xs text-muted-foreground font-body uppercase tracking-wider">
+    <div style={{ padding: "0 8px", marginBottom: "8px" }}>
+      <p style={{ padding: "4px 16px", fontSize: "10px", color: "#999", fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px" }}>
         Continue Reading
       </p>
-      {(resumeItems as import("@/types/index").Comic[])
-        .slice(0, 3)
-        .map((comic, idx) => (
-          <Link
-            key={comic.id}
-            to="/comics/$comicId"
-            params={{ comicId: comic.id }}
-            onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg mx-0 transition-colors-fast text-muted-foreground hover:text-foreground hover:bg-purple-900/30 group"
-            data-ocid={`sidebar.resume_item.${idx + 1}`}
-          >
-            <BookOpen className="w-3.5 h-3.5 shrink-0 text-accent/60 group-hover:text-accent" />
-            <span className="font-body text-xs truncate flex-1">
-              {comic.title}
-            </span>
-          </Link>
-        ))}
+      {(resumeItems as import("@/types/index").Comic[]).slice(0, 3).map((comic, idx) => (
+        <Link
+          key={comic.id}
+          to="/comics/$comicId"
+          params={{ comicId: comic.id }}
+          onClick={onClose}
+          data-ocid={`sidebar.resume_item.${idx + 1}`}
+          style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px", textDecoration: "none", color: "#555", fontSize: "12px", fontFamily: "serif" }}
+        >
+          <BookOpen style={{ width: 12, height: 12, flexShrink: 0, color: "#cc0000" }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{comic.title}</span>
+        </Link>
+      ))}
     </div>
   );
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, user, logout } = useAuth();
-const { data: profile } = useProfile(user?.id);
+  const { data: profile } = useProfile(user?.id);
 
   const sidebarContent = (
     <nav
-      className="flex flex-col h-full py-4 overflow-y-auto"
+      style={{ display: "flex", flexDirection: "column", height: "100%", padding: "16px 0", overflowY: "auto", background: "#f5f0e8" }}
       aria-label="Sidebar navigation"
     >
+      {/* Screentone header */}
+      <div style={{
+        margin: "0 8px 16px",
+        padding: "12px 16px",
+        background: "#111",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0, opacity: 0.15,
+          backgroundImage: "radial-gradient(circle, #fbbf24 1px, transparent 1px)",
+          backgroundSize: "10px 10px",
+          pointerEvents: "none",
+        }} />
+        <p style={{ color: "#cc0000", fontSize: "10px", fontWeight: 900, fontFamily: "monospace", letterSpacing: "2px", margin: 0, textTransform: "uppercase" }}>
+          UR COMICS
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "9px", fontFamily: "monospace", margin: "2px 0 0" }}>
+          Read. Create. Discover.
+        </p>
+      </div>
+
       {/* Main links */}
-      <div className="space-y-0.5 mb-3">
-        <NavLink
-          to="/"
-          icon={Home}
-          label="Home"
-          ocid="sidebar.home_link"
-          onClick={onClose}
-        />
-  <NavLink
-  to="/trending"
-  icon={Flame}
-  label="Trending"
-  ocid="sidebar.trending_link"
-  onClick={onClose}
-/>
-<NavLink
-  to="/novels"
-  icon={BookOpen}
-  label="Novels"
-  ocid="sidebar.novels_link"
-  onClick={onClose}
-/>
+      <div style={{ marginBottom: "8px" }}>
+        <NavLink to="/" icon={Home} label="Home" ocid="sidebar.home_link" onClick={onClose} />
+        <NavLink to="/trending" icon={Flame} label="Trending" ocid="sidebar.trending_link" onClick={onClose} />
+        <NavLink to="/novels" icon={BookOpen} label="Novels" ocid="sidebar.novels_link" onClick={onClose} />
       </div>
 
       {/* Continue reading */}
       {isAuthenticated && <ResumeReadingSection onClose={onClose} />}
 
-      <div className="mx-4 border-t border-purple-900/30 my-3" />
+      {/* Divider */}
+      <div style={{ margin: "8px 16px", height: "2px", background: "#111" }} />
 
       {/* Creator links */}
       {isAuthenticated && (
-        <div className="space-y-0.5 mb-3">
-          <p className="px-6 py-1 text-xs text-muted-foreground font-body uppercase tracking-wider">
+        <div style={{ marginBottom: "8px" }}>
+          <p style={{ padding: "4px 16px", fontSize: "10px", color: "#999", fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px" }}>
             Creator
           </p>
-          <NavLink
-            to="/creator"
-            icon={Layers}
-            label="My Studio"
-            ocid="sidebar.creator_link"
-            onClick={onClose}
-          />
-          <NavLink
-            to="/creator/comics/new"
-            icon={BookOpen}
-            label="New Comic"
-            ocid="sidebar.new_comic_link"
-            onClick={onClose}
-          />
-          <NavLink
-            to="/creator/novels/new"
-            icon={BookOpen}
-            label="New Novel"
-            ocid="sidebar.new_novel_link"
-            onClick={onClose}
-          />
+          <NavLink to="/creator" icon={Layers} label="My Studio" ocid="sidebar.creator_link" onClick={onClose} />
+          <NavLink to="/creator/comics/new" icon={BookOpen} label="New Comic" ocid="sidebar.new_comic_link" onClick={onClose} />
+          <NavLink to="/creator/novels/new" icon={BookOpen} label="New Novel" ocid="sidebar.new_novel_link" onClick={onClose} />
         </div>
       )}
 
-      <div className="mx-4 border-t border-purple-900/30 my-3" />
+      {/* Divider */}
+      <div style={{ margin: "8px 16px", height: "2px", background: "#111" }} />
 
-      {/* FAQ */}
-      <NavLink
-        to="/faq"
-        icon={HelpCircle}
-        label="Help & FAQ"
-        ocid="sidebar.faq_link"
-        onClick={onClose}
-      />
-
+      {/* Other links */}
+      <NavLink to="/faq" icon={HelpCircle} label="Help & FAQ" ocid="sidebar.faq_link" onClick={onClose} />
       {isAuthenticated && (
-        <NavLink
-  to={`/profile/${profile?.handle ?? user?.id}`}
-  icon={User}
-  label="My Profile"
-  ocid="sidebar.profile_link"
-  onClick={onClose}
-/>
+        <NavLink to={`/profile/${profile?.handle ?? user?.id}`} icon={User} label="My Profile" ocid="sidebar.profile_link" onClick={onClose} />
       )}
-
-      <NavLink
-        to="/privacy-policy"
-        icon={User}
-        label="Privacy Policy"
-        ocid="sidebar.privacy_link"
-        onClick={onClose}
-      />
-
-      <NavLink
-  to="/terms"
-  icon={User}
-  label="Terms & Conditions"
-  ocid="sidebar.terms_link"
-  onClick={onClose}
-/>
+      <NavLink to="/privacy-policy" icon={User} label="Privacy Policy" ocid="sidebar.privacy_link" onClick={onClose} />
+      <NavLink to="/terms" icon={User} label="Terms & Conditions" ocid="sidebar.terms_link" onClick={onClose} />
 
       {/* Auth */}
-      <div className="mt-auto pt-3 px-2">
+      <div style={{ marginTop: "auto", padding: "12px 8px 0", borderTop: "2px solid #111" }}>
         {isAuthenticated ? (
           <>
             {user && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-900/20 mx-0 mb-1">
-                <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent font-display text-sm font-bold shrink-0">
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "#fff", border: "2px solid #111", margin: "0 8px 8px", boxShadow: "2px 2px 0px #111" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#cc0000", border: "2px solid #111", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "12px", fontWeight: 900, fontFamily: "monospace", flexShrink: 0 }}>
                   {(user.email ?? user.id).slice(0, 1).toUpperCase()}
                 </div>
-                <span className="font-body text-xs text-muted-foreground truncate">
-                  {(user.email ?? user.id).slice(0, 20)}…
+                <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#333", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {(user.email ?? user.id).slice(0, 18)}…
                 </span>
               </div>
             )}
             <button
               type="button"
-              onClick={() => {
-                logout();
-                onClose();
-              }}
-              className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors-fast text-muted-foreground hover:text-foreground hover:bg-purple-900/30 font-body"
+              onClick={() => { logout(); onClose(); }}
               data-ocid="sidebar.logout_button"
+              style={{ display: "flex", width: "100%", alignItems: "center", gap: "10px", padding: "10px 16px", background: "none", border: "none", cursor: "pointer", color: "#cc0000", fontSize: "13px", fontWeight: 700, fontFamily: "monospace" }}
             >
-              <LogOut className="w-4 h-4 shrink-0" />
+              <LogOut style={{ width: 16, height: 16 }} />
               Sign Out
             </button>
           </>
         ) : (
-          <div className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-lg text-accent font-body opacity-60">
-            <LogIn className="w-4 h-4 shrink-0" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", color: "#999", fontSize: "13px", fontFamily: "monospace" }}>
+            <LogIn style={{ width: 16, height: 16 }} />
             Sign In via Home
           </div>
         )}
@@ -242,19 +194,16 @@ const { data: profile } = useProfile(user?.id);
 
   return (
     <>
-      {/* Desktop sidebar — always visible */}
+      {/* Desktop sidebar */}
       <aside
         className="hidden md:flex flex-col fixed left-0 top-16 bottom-0 w-60 z-40"
-        style={{
-          background: "rgba(26, 11, 46, 0.85)",
-          borderRight: "1px solid rgba(139, 92, 246, 0.18)",
-        }}
+        style={{ background: "#f5f0e8", borderRight: "3px solid #111" }}
         data-ocid="sidebar.panel"
       >
         {sidebarContent}
       </aside>
 
-      {/* Mobile overlay + drawer */}
+      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 z-40"
@@ -262,17 +211,12 @@ const { data: profile } = useProfile(user?.id);
           onKeyDown={onClose}
           role="presentation"
           aria-hidden="true"
-          style={{ background: "rgba(0,0,0,0.6)" }}
+          style={{ background: "rgba(0,0,0,0.5)" }}
         />
       )}
       <aside
-        className={`md:hidden fixed left-0 top-16 bottom-0 w-60 z-50 flex flex-col transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{
-          background: "rgba(26, 11, 46, 0.97)",
-          borderRight: "1px solid rgba(139, 92, 246, 0.3)",
-        }}
+        className={`md:hidden fixed left-0 top-16 bottom-0 w-60 z-50 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ background: "#f5f0e8", borderRight: "3px solid #111" }}
         aria-hidden={!isOpen}
         data-ocid="sidebar.mobile_panel"
       >
@@ -280,4 +224,4 @@ const { data: profile } = useProfile(user?.id);
       </aside>
     </>
   );
-}
+      }
