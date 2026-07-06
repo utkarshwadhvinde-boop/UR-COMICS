@@ -49,6 +49,17 @@ export async function getTrendingComics(limit = 10): Promise<Comic[]> {
   }));
 }
 
+export async function listComicsByCreator(creatorId: string): Promise<Comic[]> {
+  const { data, error } = await supabase
+    .from("comics")
+    .select(`*, genres:comic_genres(genre:genres(*))`)
+    .eq("creator_id", creatorId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as Comic[];
+}
+
+
 export async function getComic(id: string): Promise<Comic | null> {
   const { data, error } = await supabase
     .from("comics")
