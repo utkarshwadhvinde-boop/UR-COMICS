@@ -202,19 +202,6 @@ export async function getUserComics(userId: string): Promise<Comic[]> {
   if (error) throw error;
   return (data ?? []).map(normalizeComic);
 }
-export async function setComicGenres(
-  comicId: string,
-  genreIds: string[],
-): Promise<void> {
-  await supabase.from("comic_genres").delete().eq("comic_id", comicId);
-  if (genreIds.length > 0) {
-    const rows = genreIds.map((genre_id) => ({ comic_id: comicId, genre_id }));
-    const { error } = await supabase
-      .from("comic_genres")
-      .insert(rows as unknown as never[]);
-    if (error) throw error;
-  }
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeComic(raw: any): Comic {
