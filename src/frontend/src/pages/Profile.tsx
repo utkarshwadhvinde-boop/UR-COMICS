@@ -161,7 +161,7 @@ export function ProfilePage() {
 
   const isOwnProfile = !!profile && !!user && profile.id === user.id;
   const creatorComics = (allComics ?? []).filter(
-    (c) => profile && c.author_id === profile.id,
+    (c) => profile && c.creator_id  === profile.id,
   );
 
   const initials = profile?.display_name
