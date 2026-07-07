@@ -241,21 +241,6 @@ export function ReaderPage() {
               </div>
             )}
 
-            {/* Page number stamp */}
-            <div style={{
-              position: "absolute", bottom: 8, right: 8,
-              background: "#111",
-              color: "#fff",
-              fontFamily: "monospace",
-              fontSize: "10px",
-              fontWeight: 900,
-              padding: "2px 6px",
-              border: "1px solid #cc0000",
-            }}>
-              {i + 1}
-            </div>
-          </div>
-        ))}
 
         {/* Chapter navigation */}
         <div style={{ width: "100%", maxWidth: "800px", padding: "24px 16px", borderTop: "3px solid #111", display: "flex", gap: "12px", background: "#f5f0e8" }}>
