@@ -63,6 +63,18 @@ export async function listComics(limit = 20): Promise<Comic[]> {
   return (data ?? []).map(normalizeComic);
 }
 
+export async function getComicsByGenre(genreId: string): Promise<Comic[]> {
+  const { data, error } = await supabase
+    .from("comic_genres")
+    .select(`comics(*, comic_genres(genres(*)))`)
+    .eq("genre_id", genreId);
+  if (error) throw error;
+  return (data ?? [])
+    .map((row: any) => row.comics)
+    .filter(Boolean)
+    .map(normalizeComic);
+}
+
 export async function searchComics(query: string): Promise<Comic[]> {
   const { data, error } = await supabase
     .from("comics")
