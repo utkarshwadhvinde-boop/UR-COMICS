@@ -1,6 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { listGenres } from "@/services/comicsService";
-import { createComic } from "@/services/comicsService";
+import { listGenres, createComic, updateComic, setComicGenres } from "@/services/comicsService";
 import { uploadCoverImage } from "@/services/uploadService";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
