@@ -98,10 +98,10 @@ export function CreateComicPage() {
       });
       if (coverFile) {
         const cover_url = await uploadCoverImage(comic.id, coverFile);
-        await import("@/services/comicsService").then(m => m.updateComic(comic.id, { cover_url }));
+       await updateComic(comic.id, { cover_url });
       }
       if (selectedGenres.length > 0) {
-        await import("@/services/comicsService").then(m => m.setComicGenres(comic.id, selectedGenres));
+       await setComicGenres(comic.id, selectedGenres);
       }
       toast.success("Comic created!");
       navigate({ to: "/creator/comics/$comicId", params: { comicId: comic.id } });
