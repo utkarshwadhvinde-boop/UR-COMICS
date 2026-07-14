@@ -267,8 +267,8 @@ export function ReaderPage() {
         {/* Comments */}
         <div style={{ width: "100%", maxWidth: "800px", padding: "0 16px 40px" }}>
           <Comments comicId={comicId} chapterId={chapterId} />
-      )}
         </div>
+            )}
 
       {/* Scroll down button */}
       <AnimatePresence>
