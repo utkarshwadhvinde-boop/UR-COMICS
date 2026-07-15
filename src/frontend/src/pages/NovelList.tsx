@@ -1,4 +1,4 @@
-Import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
