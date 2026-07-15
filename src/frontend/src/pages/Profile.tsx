@@ -1,4 +1,4 @@
-import { Badge } from "@/components/ui/badge";
+Import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,23 +16,24 @@ function ProfileSkeleton() {
     <div
       className="px-4 sm:px-6 py-10 max-w-4xl mx-auto"
       data-ocid="profile.loading_state"
-      style={{ boxSizing: "border-box" }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "24px", marginBottom: "40px", boxSizing: "border-box" }} className="sm:flex-row sm:items-start">
-        <Skeleton className="w-24 h-24 shrink-0" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.1)", border: "2px solid #111111" }} />
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", flexGrow: 1, width: "100%", boxSizing: "border-box" }}>
-          <Skeleton className="h-7 w-48" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
-          <Skeleton className="h-4 w-28" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
-          <Skeleton className="h-4 w-full max-w-sm" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
+        <Skeleton className="w-24 h-24 rounded-full bg-purple-900/30 shrink-0" />
+        <div className="space-y-3 flex-1 w-full">
+          <Skeleton className="h-7 w-48 bg-purple-900/30" />
+          <Skeleton className="h-4 w-28 bg-purple-900/30" />
+          <Skeleton className="h-4 w-full max-w-sm bg-purple-900/30" />
+          <Skeleton className="h-4 w-3/4 max-w-xs bg-purple-900/30" />
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" style={{ boxSizing: "border-box" }}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ backgroundColor: "#ffffff", border: "2px solid #111111", boxShadow: "3px 3px 0px #111111", padding: "8px", boxSizing: "border-box" }}>
-            <Skeleton className="w-full aspect-[9/14]" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.08)" }} />
-            <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <Skeleton className="h-4 w-3/4" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.08)" }} />
-              <Skeleton className="h-3 w-1/2" style={{ borderRadius: 0, backgroundColor: "rgba(17, 17, 17, 0.05)" }} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+          <div key={i} className="bg-midnight-card rounded-xl overflow-hidden">
+            <Skeleton className="w-full aspect-[9/14] bg-purple-900/30" />
+            <div className="p-3 space-y-2">
+              <Skeleton className="h-4 w-3/4 bg-purple-900/30" />
+              <Skeleton className="h-3 w-1/2 bg-purple-900/30" />
             </div>
           </div>
         ))}
@@ -55,81 +56,31 @@ function ComicCard({
       viewport={{ once: true }}
       transition={{ delay: Math.min(index * 0.07, 0.5) }}
       data-ocid={`profile.comic.item.${index + 1}`}
-      style={{ boxSizing: "border-box" }}
     >
       <Link
         to="/comics/$comicId"
         params={{ comicId: comic.id }}
+        className="group block bg-midnight-card rounded-xl overflow-hidden border border-purple-900/20 hover:border-accent/40 transition-colors-fast shadow-card"
         data-ocid={`profile.comic.link.${index + 1}`}
-        style={{ textDecoration: "none", display: "block", boxSizing: "border-box" }}
       >
-        <div 
-          style={{
-            width: "100%",
-            aspectRatio: "9/14",
-            borderRadius: "0px",
-            overflow: "hidden",
-            position: "relative",
-            background: "#ffffff",
-            border: "2px solid #111111",
-            boxShadow: "3px 3px 0px #111111",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            boxSizing: "border-box",
-            transition: "transform 0.1s ease, box-shadow 0.1s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "5px 5px 0px #111111";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0px)";
-            e.currentTarget.style.boxShadow = "3px 3px 0px #111111";
-          }}
-        >
-          {/* Cover Media Canvas Area */}
-          <div style={{ flexGrow: 1, width: "100%", position: "relative", overflow: "hidden", background: "#f5f0e8", boxSizing: "border-box" }}>
-            {comic.cover_url ? (
-              <img
-                src={comic.cover_url}
-                alt={comic.title}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                loading="lazy"
-              />
-            ) : (
-              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <BookOpen style={{ width: 24, height: 24, color: "#111111" }} />
-              </div>
-            )}
-          </div>
-
-          {/* Descriptive Info Label */}
-          <div style={{
-            padding: "10px 8px",
-            background: "#ffffff",
-            borderTop: "2px solid #111111",
-            boxSizing: "border-box"
-          }}>
-            <h3 style={{
-              color: "#111111",
-              fontSize: "13px",
-              fontFamily: "serif",
-              fontWeight: "900",
-              margin: 0,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              boxSizing: "border-box"
-            }}>
-              {comic.title}
-            </h3>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px", boxSizing: "border-box" }}>
-              <Eye style={{ width: "12px", height: "12px", color: "#555555" }} />
-              <span style={{ fontSize: "10px", fontFamily: "monospace, sans-serif", textTransform: "uppercase", color: "#555555" }}>
-                View Comic
-              </span>
-            </div>
+        <div className="relative w-full aspect-[9/14] overflow-hidden bg-purple-900/20">
+          <img
+            src={comic.cover_url ?? ""}
+            alt={comic.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
+        <div className="p-3">
+          <h3 className="font-body text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors-fast">
+            {comic.title}
+          </h3>
+          <div className="flex items-center gap-1 mt-1">
+            <Eye className="w-3 h-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground font-body">
+              View comic
+            </span>
           </div>
         </div>
       </Link>
@@ -161,7 +112,7 @@ export function ProfilePage() {
 
   const isOwnProfile = !!profile && !!user && profile.id === user.id;
   const creatorComics = (allComics ?? []).filter(
-    (c) => profile && c.creator_id  === profile.id,
+    (c) => profile && c.author_id === profile.id,
   );
 
   const initials = profile?.display_name
@@ -173,82 +124,42 @@ export function ProfilePage() {
         .slice(0, 2)
     : (handle?.slice(0, 2).toUpperCase() ?? "??");
 
-  if (isLoading) {
-    return (
-      <div style={{ backgroundColor: "#f5f0e8", minHeight: "100vh", width: "100%" }}>
-        <ProfileSkeleton />
-      </div>
-    );
-  }
+  if (isLoading) return <ProfileSkeleton />;
 
   if (error || !profile) {
     return (
       <div
-        className="flex flex-col items-center justify-center min-h-[80vh] px-4"
+        className="flex flex-col items-center justify-center min-h-[60vh] px-4"
         data-ocid="profile.error_state"
-        style={{
-          backgroundColor: "#f5f0e8",
-          backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
-          backgroundSize: "12px 12px",
-          boxSizing: "border-box"
-        }}
       >
-        <div style={{
-          background: "#ffffff",
-          border: "2px solid #111111",
-          boxShadow: "4px 4px 0px #111111",
-          padding: "40px 24px",
-          maxWidth: "380px",
-          width: "100%",
-          textAlign: "center",
-          boxSizing: "border-box"
-        }}>
-          <AlertCircle style={{ width: "40px", height: "40px", color: "#cc0000", margin: "0 auto 16px auto" }} />
-          <h2 style={{ fontFamily: "monospace, sans-serif", textTransform: "uppercase", fontSize: "20px", fontWeight: "900", color: "#111111", margin: "0 0 8px 0" }}>
+        <div className="bg-midnight-card border border-purple-900/30 rounded-2xl p-10 max-w-sm w-full text-center shadow-elevated">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4 opacity-80" />
+          <h2 className="font-display text-xl font-bold text-foreground mb-2">
             Profile Not Found
           </h2>
-          <p style={{ fontFamily: "serif", fontSize: "14px", color: "#555555", margin: "0 0 24px 0" }}>
-            We couldn't locate a valid profile record for <span style={{ fontWeight: "bold", color: "#111111" }}>@{handle}</span>.
+          <p className="text-muted-foreground font-body text-sm mb-6">
+            We couldn't find a profile for{" "}
+            <span className="text-accent font-medium">@{handle}</span>.
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", boxSizing: "border-box" }}>
-            <button
+          <div className="flex flex-col gap-3">
+            <Button
               type="button"
+              variant="outline"
+              className="w-full border-accent/30 text-accent hover:bg-accent/10"
               onClick={() => refetch()}
               data-ocid="profile.retry_button"
-              style={{
-                width: "100%",
-                padding: "10px",
-                backgroundColor: "#fbbf24",
-                border: "2px solid #111111",
-                fontFamily: "monospace, sans-serif",
-                fontWeight: "900",
-                textTransform: "uppercase",
-                color: "#111111",
-                cursor: "pointer",
-                boxShadow: "2px 2px 0px #111111"
-              }}
             >
               Try Again
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-foreground"
               onClick={() => navigate({ to: "/" })}
               data-ocid="profile.home_button"
-              style={{
-                width: "100%",
-                padding: "10px",
-                backgroundColor: "#ffffff",
-                border: "2px solid #111111",
-                fontFamily: "monospace, sans-serif",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                color: "#555555",
-                cursor: "pointer",
-                boxShadow: "2px 2px 0px #111111"
-              }}
             >
               Back to Home
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -259,63 +170,29 @@ export function ProfilePage() {
     <div
       className="px-4 sm:px-6 py-10 max-w-4xl mx-auto"
       data-ocid="profile.page"
-      style={{
-        backgroundColor: "#f5f0e8",
-        backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
-        backgroundSize: "12px 12px",
-        minHeight: "100vh",
-        color: "#111111",
-        boxSizing: "border-box"
-      }}
     >
-      {/* Profile Passport Info Header Card Frame */}
+      {/* Profile Header Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        style={{
-          backgroundColor: "#ffffff",
-          border: "4px solid #111111",
-          boxShadow: "5px 5px 0px #111111",
-          padding: "24px",
-          marginBottom: "32px",
-          boxSizing: "border-box"
-        }}
+        transition={{ duration: 0.4 }}
+        className="bg-midnight-card border border-purple-900/30 rounded-2xl p-6 sm:p-8 mb-8 shadow-elevated"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px", boxSizing: "border-box" }} className="sm:flex-row sm:items-start">
-          {/* Avatar Graphic Canvas */}
-          <div style={{ shrink: 0, display: "flex", justifyContent: "center", boxSizing: "border-box" }} data-ocid="profile.avatar">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          {/* Avatar */}
+          <div className="shrink-0" data-ocid="profile.avatar">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.display_name ?? ""}
-                style={{
-                  width: "88px",
-                  height: "88px",
-                  borderRadius: "0px",
-                  objectFit: "cover",
-                  border: "3px solid #111111",
-                  boxShadow: "2px 2px 0px #111111",
-                  boxSizing: "border-box"
-                }}
+                className="w-24 h-24 rounded-full object-cover border-2 border-accent/40 glow-accent-sm"
               />
             ) : (
               <div
+                className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-display font-bold text-white border-2 border-accent/40 glow-accent-sm"
                 style={{
-                  width: "88px",
-                  height: "88px",
-                  borderRadius: "0px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                  fontFamily: "monospace, sans-serif",
-                  fontWeight: "900",
-                  color: "#111111",
-                  backgroundColor: "#fbbf24",
-                  border: "3px solid #111111",
-                  boxShadow: "2px 2px 0px #111111",
-                  boxSizing: "border-box"
+                  background:
+                    "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
                 }}
               >
                 {initials}
@@ -323,130 +200,75 @@ export function ProfilePage() {
             )}
           </div>
 
-          {/* Identity Info Typography Block */}
-          <div style={{ flexGrow: 1, minWidth: "0", display: "flex", flexDirection: "column", boxSizing: "border-box" }} className="text-center sm:text-left">
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "4px", boxSizing: "border-box" }} className="sm:flex-row sm:items-center">
-              <h1 style={{
-                fontFamily: "serif",
-                fontSize: "26px",
-                fontWeight: "900",
-                color: "#111111",
-                margin: 0,
-                lineHeight: "1.2",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                boxSizing: "border-box"
-              }}>
+          {/* Info */}
+          <div className="flex-1 min-w-0 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground truncate">
                 {profile.display_name}
               </h1>
               {profile.is_creator && (
                 <span
+                  className="inline-flex items-center gap-1.5 bg-accent text-white text-xs px-3 py-1 rounded-full font-bold tracking-wide shrink-0"
                   data-ocid="profile.creator_badge"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    backgroundColor: "#111111",
-                    color: "#ffffff",
-                    fontFamily: "monospace, sans-serif",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    padding: "2px 8px",
-                    width: "fit-content",
-                    margin: "0 auto",
-                    boxSizing: "border-box"
-                  }}
-                  className="sm:ml-2 sm:margin-0"
                 >
-                  <BookOpen style={{ width: "11px", height: "11px", color: "#fbbf24" }} />
+                  <BookOpen className="w-3 h-3" />
                   Creator
                 </span>
               )}
             </div>
-            
-            <p style={{ margin: "0 0 12px 0", fontFamily: "monospace, sans-serif", fontSize: "13px", color: "#555555", fontWeight: "bold" }}>
+            <p className="text-muted-foreground font-body text-sm mb-3">
               @{profile.handle ?? handle}
             </p>
-            
             {profile.bio && (
-              <p style={{
-                margin: 0,
-                fontFamily: "serif",
-                fontSize: "14px",
-                lineHeight: "1.5",
-                color: "#333333",
-                maxWidth: "500px",
-                boxSizing: "border-box"
-              }}>
+              <p className="text-foreground/80 font-body text-sm leading-relaxed max-w-lg">
                 {profile.bio}
               </p>
             )}
           </div>
 
-          {/* Edit Account Button Block (Restricted Visibility) */}
+          {/* Edit button (own profile only) */}
           {isOwnProfile && (
-            <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", boxSizing: "border-box" }}>
+            <div className="shrink-0">
               <Link
                 to="/profile/$handle/edit"
                 params={{ handle: profile.handle ?? profile.id }}
                 data-ocid="profile.edit_button"
-                style={{ textDecoration: "none", boxSizing: "border-box" }}
               >
-                <button
+                <Button
                   type="button"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "8px 14px",
-                    backgroundColor: "#fbbf24",
-                    border: "2px solid #111111",
-                    boxShadow: "2px 2px 0px #111111",
-                    color: "#111111",
-                    fontFamily: "monospace, sans-serif",
-                    fontSize: "12px",
-                    fontWeight: "900",
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                    boxSizing: "border-box"
-                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-accent/30 text-accent hover:bg-accent/10 gap-2 transition-smooth"
                 >
-                  <Edit2 style={{ width: "12px", height: "12px" }} />
+                  <Edit2 className="w-3.5 h-3.5" />
                   Edit Profile
-                </button>
+                </Button>
               </Link>
             </div>
           )}
         </div>
       </motion.div>
 
-      {/* Saved Comics Grid Listing Block */}
+      {/* Saved Comics Section */}
       {isOwnProfile && savedComics.length > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.05 }}
-          style={{ marginBottom: "40px", boxSizing: "border-box" }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          style={{ marginBottom: "32px" }}
         >
-          {/* Section Split Indicator Header */}
-          <div style={{ display: "flex", flexDirection: "column", marginBottom: "20px", boxSizing: "border-box" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
-              <div style={{ width: "28px", height: "28px", backgroundColor: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box" }}>
-                <span style={{ fontSize: "14px" }}>🔖</span>
-              </div>
-              <h2 style={{ fontFamily: "monospace, sans-serif", fontSize: "18px", fontWeight: "900", textTransform: "uppercase", margin: 0, color: "#111111" }}>
-                Saved Bookmarks
-              </h2>
-              <span style={{ fontFamily: "monospace, sans-serif", fontSize: "12px", fontWeight: "bold", backgroundColor: "#111111", color: "#ffffff", padding: "2px 6px", boxSizing: "border-box" }}>
-                {savedComics.length}
-              </span>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center">
+              <span style={{ fontSize: "16px" }}>🔖</span>
             </div>
-            <div style={{ marginTop: "10px", width: "100%", height: "2px", backgroundColor: "#111111", boxSizing: "border-box" }} />
+            <h2 className="font-display text-xl font-bold text-foreground">
+              Saved Comics
+            </h2>
+            <Badge variant="secondary" className="bg-accent/15 text-accent border-accent/20 font-body">
+              {savedComics.length}
+            </Badge>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" style={{ boxSizing: "border-box" }}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {savedComics.map((comic, i) => (
               <ComicCard key={comic.id} comic={comic} index={i} />
             ))}
@@ -454,61 +276,45 @@ export function ProfilePage() {
         </motion.section>
       )}
 
-      {/* Creator Dashboard Publications Section Block */}
+      {/* Creator Comics Section */}
       {profile.is_creator && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.1 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
           data-ocid="profile.comics_section"
-          style={{ boxSizing: "border-box" }}
         >
-          {/* Section Split Indicator Header */}
-          <div style={{ display: "flex", flexDirection: "column", marginBottom: "20px", boxSizing: "border-box" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
-              <div style={{ width: "28px", height: "28px", backgroundColor: "#111111", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box" }}>
-                <BookOpen style={{ width: "14px", height: "14px", color: "#fbbf24" }} />
-              </div>
-              <h2 style={{ fontFamily: "monospace, sans-serif", fontSize: "18px", fontWeight: "900", textTransform: "uppercase", margin: 0, color: "#111111" }}>
-                Published Issues
-              </h2>
-              {creatorComics.length > 0 && (
-                <span style={{ fontFamily: "monospace, sans-serif", fontSize: "12px", fontWeight: "bold", backgroundColor: "#111111", color: "#ffffff", padding: "2px 6px", boxSizing: "border-box" }}>
-                  {creatorComics.length}
-                </span>
-              )}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-accent" />
             </div>
-            <div style={{ marginTop: "10px", width: "100%", height: "2px", backgroundColor: "#111111", boxSizing: "border-box" }} />
+            <h2 className="font-display text-xl font-bold text-foreground">
+              Published Comics
+            </h2>
+            {creatorComics.length > 0 && (
+              <Badge
+                variant="secondary"
+                className="bg-accent/15 text-accent border-accent/20 font-body"
+              >
+                {creatorComics.length}
+              </Badge>
+            )}
           </div>
 
           {creatorComics.length === 0 ? (
-            /* Blank Publication Display Panel Panel Box */
             <div
+              className="bg-midnight-card border border-purple-900/20 rounded-xl p-10 text-center"
               data-ocid="profile.comics.empty_state"
-              style={{
-                textAlign: "center",
-                padding: "40px 16px",
-                backgroundColor: "#ffffff",
-                border: "2px solid #111111",
-                boxShadow: "3px 3px 0px #111111",
-                maxWidth: "400px",
-                margin: "12px auto",
-                boxSizing: "border-box"
-              }}
             >
-              <BookOpen style={{ width: "32px", height: "32px", margin: "0 auto 12px auto", color: "#555555", opacity: 0.5 }} />
-              <p style={{ fontFamily: "monospace, sans-serif", fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", margin: "0 0 4px 0", color: "#111111" }}>
-                No serializations
-              </p>
-              <p style={{ fontFamily: "serif", fontSize: "13px", color: "#555555", margin: 0 }}>
-                This user hasn't launched any public comic records yet.
+              <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground opacity-40" />
+              <p className="text-muted-foreground font-body text-sm">
+                No published comics yet.
               </p>
             </div>
           ) : (
             <div
               className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
               data-ocid="profile.comics.list"
-              style={{ boxSizing: "border-box" }}
             >
               {creatorComics.map((comic, i) => (
                 <ComicCard key={comic.id} comic={comic} index={i} />
@@ -519,4 +325,4 @@ export function ProfilePage() {
       )}
     </div>
   );
-}
+          }
