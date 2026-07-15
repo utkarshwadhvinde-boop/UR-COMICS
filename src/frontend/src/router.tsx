@@ -1,18 +1,15 @@
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Layout } from "@/components/Layout";
-import { PageLoader } from "@/components/LoadingSpinner";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import {
-  Outlet,
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from "@tanstack/react-router";
-import { Suspense, lazy } from "react";
+import { createRouter, createRoute, createRootRoute, Outlet, lazy } from "@tanstack/react-router";
+import { Suspense } from "react";
+import { PageLoader } from "./components/LoadingSpinner";
+import { Layout } from "./components/Layout";
+import { CreatorGuard } from "./components/CreatorGuard";
 
-// Lazy-load pages
+// ─── Lazy imports ─────────────────────────────────────────────────────────────
 const HomePage = lazy(() =>
   import("@/pages/Home").then((m) => ({ default: m.HomePage })),
+);
+const TrendingPage = lazy(() =>
+  import("@/pages/Trending").then((m) => ({ default: m.TrendingPage })),
 );
 const ComicDetailPage = lazy(() =>
   import("@/pages/ComicDetail").then((m) => ({ default: m.ComicDetailPage })),
@@ -20,32 +17,20 @@ const ComicDetailPage = lazy(() =>
 const ReaderPage = lazy(() =>
   import("@/pages/Reader").then((m) => ({ default: m.ReaderPage })),
 );
-const CreatorDashboardPage = lazy(() =>
-  import("@/pages/creator/Dashboard").then((m) => ({
-    default: m.CreatorDashboardPage,
-  })),
+const CreatorDashboard = lazy(() =>
+  import("@/pages/creator/Dashboard").then((m) => ({ default: m.CreatorDashboard })),
 );
-const CreateComicPage = lazy(() => import("@/pages/creator/CreateComic"));
+const CreateComicPage = lazy(() =>
+  import("@/pages/creator/CreateComic").then((m) => ({ default: m.CreateComicPage })),
+);
 const EditComicPage = lazy(() =>
-  import("@/pages/creator/EditComic").then((m) => ({
-    default: m.EditComicPage,
-  })),
+  import("@/pages/creator/EditComic").then((m) => ({ default: m.EditComicPage })),
 );
 const CreateChapterPage = lazy(() =>
-  import("@/pages/creator/CreateChapter").then((m) => ({
-    default: m.CreateChapterPage,
-  })),
+  import("@/pages/creator/CreateChapter").then((m) => ({ default: m.CreateChapterPage })),
 );
 const EditChapterPage = lazy(() =>
-  import("@/pages/creator/EditChapter").then((m) => ({
-    default: m.EditChapterPage,
-  })),
-);
-const TrendingPage = lazy(() =>
-  import("@/pages/Trending").then((m) => ({ default: m.TrendingPage })),
-);
-const FaqPage = lazy(() =>
-  import("@/pages/Faq").then((m) => ({ default: m.FaqPage })),
+  import("@/pages/creator/EditChapter").then((m) => ({ default: m.EditChapterPage })),
 );
 const ProfilePage = lazy(() =>
   import("@/pages/Profile").then((m) => ({ default: m.ProfilePage })),
@@ -53,17 +38,17 @@ const ProfilePage = lazy(() =>
 const EditProfilePage = lazy(() =>
   import("@/pages/EditProfile").then((m) => ({ default: m.EditProfilePage })),
 );
+const FaqPage = lazy(() =>
+  import("@/pages/Faq").then((m) => ({ default: m.FaqPage })),
+);
 const PrivacyPolicyPage = lazy(() =>
   import("@/pages/PrivacyPolicy").then((m) => ({ default: m.PrivacyPolicyPage })),
-);
-const GenrePage = lazy(() =>
-  import("@/pages/Genre").then((m) => ({ default: m.GenrePage })),
 );
 const TermsAndConditionsPage = lazy(() =>
   import("@/pages/TermsAndConditions").then((m) => ({ default: m.TermsAndConditionsPage })),
 );
-const AdminDashboardPage = lazy(() =>
-  import("@/pages/AdminDashboard").then((m) => ({ default: m.AdminDashboardPage })),
+const GenrePage = lazy(() =>
+  import("@/pages/Genre").then((m) => ({ default: m.GenrePage })),
 );
 const NovelListPage = lazy(() =>
   import("@/pages/NovelList").then((m) => ({ default: m.NovelListPage })),
@@ -80,29 +65,32 @@ const CreateNovelPage = lazy(() =>
 const EditNovelChapterPage = lazy(() =>
   import("@/pages/creator/EditNovelChapter").then((m) => ({ default: m.EditNovelChapterPage })),
 );
+const AdminDashboardPage = lazy(() =>
+  import("@/pages/AdminDashboard").then((m) => ({ default: m.AdminDashboardPage })),
+);
 
-function RootComponent() {
-  return (
-    <ErrorBoundary>
-      <Layout>
-        <Suspense fallback={<PageLoader />}>
-          <Outlet />
-        </Suspense>
-      </Layout>
-    </ErrorBoundary>
-  );
-}
-
-// Root route
+// ─── Root route ───────────────────────────────────────────────────────────────
 const rootRoute = createRootRoute({
-  component: RootComponent,
+  component: () => (
+    <Layout>
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
+    </Layout>
+  ),
 });
 
-// Public routes
+// ─── Routes ───────────────────────────────────────────────────────────────────
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: HomePage,
+});
+
+const trendingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/trending",
+  component: TrendingPage,
 });
 
 const comicDetailRoute = createRoute({
@@ -117,17 +105,12 @@ const readerRoute = createRoute({
   component: ReaderPage,
 });
 
-// Protected creator routes
-function CreatorGuard({ children }: { children: React.ReactNode }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>;
-}
-
 const creatorDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator",
   component: () => (
     <CreatorGuard>
-      <CreatorDashboardPage />
+      <CreatorDashboard />
     </CreatorGuard>
   ),
 });
@@ -172,18 +155,6 @@ const editChapterRoute = createRoute({
   ),
 });
 
-const trendingRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/trending",
-  component: TrendingPage,
-});
-
-const faqRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/faq",
-  component: FaqPage,
-});
-
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile/$handle",
@@ -192,12 +163,18 @@ const profileRoute = createRoute({
 
 const editProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/profile/$handle/edit",
+  path: "/profile/edit",
   component: () => (
     <CreatorGuard>
       <EditProfilePage />
     </CreatorGuard>
   ),
+});
+
+const faqRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/faq",
+  component: FaqPage,
 });
 
 const privacyPolicyRoute = createRoute({
@@ -210,12 +187,6 @@ const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/terms",
   component: TermsAndConditionsPage,
-});
-
-const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/admin",
-  component: AdminDashboardPage,
 });
 
 const genreRoute = createRoute({
@@ -262,6 +233,13 @@ const editNovelChapterRoute = createRoute({
   ),
 });
 
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminDashboardPage,
+});
+
+// ─── Route tree ───────────────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   homeRoute,
   comicDetailRoute,
@@ -286,10 +264,14 @@ const routeTree = rootRoute.addChildren([
   editNovelChapterRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+// ─── Router ───────────────────────────────────────────────────────────────────
+export const router = createRouter({
+  routeTree,
+  defaultPreload: "intent",
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
-}
+      }
