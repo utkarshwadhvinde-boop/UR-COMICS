@@ -1,5 +1,5 @@
-import { createRouter, createRoute, createRootRoute, Outlet, lazy } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { createRouter, createRoute, createRootRoute, Outlet } from "@tanstack/react-router";
+import { lazy,Suspense } from "react";
 import { PageLoader } from "./components/LoadingSpinner";
 import { Layout } from "./components/Layout";
 
