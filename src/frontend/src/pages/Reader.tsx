@@ -12,27 +12,23 @@ import { useEffect, useRef, useState } from "react";
 
 const paperTexture = {
   background: "#f5f0e8",
-  backgroundImage: `
-    radial-gradient(circle, #00000008 1px, transparent 1px)
-  `,
+  backgroundImage: "radial-gradient(circle, #00000008 1px, transparent 1px)",
   backgroundSize: "24px 24px",
 };
 
 const globalStyles = `
   * { box-sizing: border-box; }
   @keyframes pageFlip {
-    0% { opacity: 0; transform: translateY(20px) rotateX(5deg); }
-    100% { opacity: 1; transform: translateY(0) rotateX(0deg); }
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
   @keyframes stampIn {
     0% { opacity: 0; transform: scale(1.5) rotate(-10deg); }
     60% { transform: scale(0.95) rotate(2deg); }
     100% { opacity: 1; transform: scale(1) rotate(0deg); }
   }
-  @keyframes speedLines {
-    0% { opacity: 0; }
-    50% { opacity: 0.3; }
-    100% { opacity: 0; }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
   .page-image {
     animation: pageFlip 0.4s ease forwards;
@@ -87,6 +83,7 @@ export function ReaderPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", ...paperTexture, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <style>{globalStyles}</style>
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: "60px", height: "60px", border: "4px solid #111",
@@ -97,14 +94,12 @@ export function ReaderPage() {
             LOADING...
           </p>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } } ${globalStyles}`}</style>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", ...paperTexture }}
-      >
+    <div style={{ minHeight: "100vh", ...paperTexture }}>
       <style>{globalStyles}</style>
 
       {/* Fixed Header */}
@@ -118,13 +113,7 @@ export function ReaderPage() {
         transition: "transform 0.3s ease",
         boxSizing: "border-box",
       }}>
-        {/* Yellow screentone overlay */}
-        <div style={{
-          position: "absolute", inset: 0, opacity: 0.08,
-          backgroundImage: "radial-gradient(circle, #fbbf24 1px, transparent 1px)",
-          backgroundSize: "10px 10px",
-          pointerEvents: "none",
-        }} />
+        <div style={{ position: "absolute", inset: 0, opacity: 0.08, backgroundImage: "radial-gradient(circle, #fbbf24 1px, transparent 1px)", backgroundSize: "10px 10px", pointerEvents: "none" }} />
 
         <Link
           to="/comics/$comicId"
@@ -169,11 +158,7 @@ export function ReaderPage() {
       {/* Pages */}
       <main style={{ paddingTop: "56px", paddingBottom: "80px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         {imageUrls.map((url, i) => (
-          <div
-            key={url}
-            id={`page-${i}`}
-            style={{ width: "100%", maxWidth: "800px", position: "relative" }}
-          >
+          <div key={url} id={`page-${i}`} style={{ width: "100%", maxWidth: "800px", position: "relative" }}>
             <img
               src={url}
               alt={`Page ${i + 1}`}
@@ -188,7 +173,7 @@ export function ReaderPage() {
               loading={i < 3 ? "eager" : "lazy"}
             />
 
-            {/* Login wall after page 1 */}
+            {/* Login wall */}
             {!user && i === 1 && (
               <div style={{
                 position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
@@ -196,7 +181,6 @@ export function ReaderPage() {
                 background: "rgba(245,240,232,0.9)",
                 zIndex: 10, padding: "24px",
               }}>
-                {/* Stamp animation */}
                 <div style={{
                   padding: "12px 24px",
                   border: "4px solid #cc0000",
@@ -241,10 +225,11 @@ export function ReaderPage() {
                 <AdBanner adKey="fb37617b5e2f1213963184b0b6221dee" width={300} height={250} />
               </div>
             )}
-
+          </div>
+        ))}
 
         {/* Chapter navigation */}
-        <div style={{ width: "100%", maxWidth: "800px", padding: "24px 16px", borderTop: "3px solid #111", display: "flex", gap: "12px", background: "#f5f0e8" }}>
+        <div style={{ width: "100%", maxWidth: "800px", padding: "24px 16px", borderTop: "3px solid #111", display: "flex", gap: "12px", background: "#f5f0e8", boxSizing: "border-box" }}>
           {prevChapter && (
             <button
               type="button"
@@ -258,7 +243,7 @@ export function ReaderPage() {
             <button
               type="button"
               onClick={() => navigate({ to: "/comics/$comicId/chapters/$chapterId", params: { comicId, chapterId: nextChapter.id } })}
-              style={{ flex: 1, padding: "12px", background: "#cc0000", border: "2px solid #111", color: "#fff", fontFamily: "monospace", fontWeight: 900, fontSize: "13px", cursor: "pointer", boxShadow: "3px 3px 0px #111" }}
+              style={{ flex: 1, padding: "12px", background: "#cc0000", border: "2px solid #111", color: "#fff", fontFamily: "monospace", fontWeight: 900, fontSize: "13px", cursor: "pointer", boxShadow: "4px 4px 0px #111" }}
             >
               Next Chapter
             </button>
@@ -266,11 +251,12 @@ export function ReaderPage() {
         </div>
 
         {/* Comments */}
-        <div style={{ width: "100%", maxWidth: "800px", padding: "0 16px 40px" }}>
+        <div style={{ width: "100%", maxWidth: "800px", padding: "0 16px 40px", boxSizing: "border-box" }}>
           <Comments comicId={comicId} chapterId={chapterId} />
         </div>
+      </main>
 
-      {/* Scroll down button */}
+      {/* Scroll button */}
       <AnimatePresence>
         {showScrollBtn && (
           <motion.button
@@ -300,4 +286,4 @@ export function ReaderPage() {
       )}
     </div>
   );
-}
+          }
