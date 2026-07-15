@@ -1,4 +1,4 @@
-Import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useComics } from "@/hooks/useComics";
 import { useTrending } from "@/hooks/useTrending";
 import { Link } from "@tanstack/react-router";
