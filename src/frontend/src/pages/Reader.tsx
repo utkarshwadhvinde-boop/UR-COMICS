@@ -103,7 +103,8 @@ export function ReaderPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", ...paperTexture }}>
+    <div style={{ minHeight: "100vh", ...paperTexture }}
+      >
       <style>{globalStyles}</style>
 
       {/* Fixed Header */}
