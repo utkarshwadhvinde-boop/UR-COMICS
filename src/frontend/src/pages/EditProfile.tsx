@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+Import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,13 +18,13 @@ const MAX_BIO = 300;
 
 function EditProfileSkeleton() {
   return (
-    <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto" style={{ boxSizing: "border-box" }}>
-      <Skeleton className="h-8 w-40 mb-8" style={{ borderRadius: "0px", backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
-      <div style={{ backgroundColor: "#ffffff", border: "4px solid #111111", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", boxSizing: "border-box" }}>
-        <Skeleton className="w-20 h-20 mx-auto" style={{ borderRadius: "0px", backgroundColor: "rgba(17, 17, 17, 0.1)", border: "2px solid #111111" }} />
-        <Skeleton className="h-10 w-full" style={{ borderRadius: "0px", backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
-        <Skeleton className="h-24 w-full" style={{ borderRadius: "0px", backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
-        <Skeleton className="h-10 w-full" style={{ borderRadius: "0px", backgroundColor: "rgba(17, 17, 17, 0.1)" }} />
+    <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto">
+      <Skeleton className="h-8 w-40 bg-purple-900/30 mb-8" />
+      <div className="bg-midnight-card rounded-2xl p-6 space-y-6">
+        <Skeleton className="w-20 h-20 rounded-full bg-purple-900/30 mx-auto" />
+        <Skeleton className="h-10 w-full bg-purple-900/30 rounded-lg" />
+        <Skeleton className="h-24 w-full bg-purple-900/30 rounded-lg" />
+        <Skeleton className="h-10 w-full bg-purple-900/30 rounded-lg" />
       </div>
     </div>
   );
@@ -119,364 +119,179 @@ export function EditProfilePage() {
     }
   }
 
-  if (authLoading || profileLoading) {
-    return (
-      <div style={{ backgroundColor: "#f5f0e8", minHeight: "100vh", width: "100%" }}>
-        <EditProfileSkeleton />
-      </div>
-    );
-  }
+  if (authLoading || profileLoading) return <EditProfileSkeleton />;
   if (!isAuthenticated) return null;
-  if (!profile || !profile.handle) {
-    return (
-      <div style={{ backgroundColor: "#f5f0e8", minHeight: "100vh", width: "100%" }}>
-        <EditProfileSkeleton />
-      </div>
-    );
-  }
+  if (!profile || !profile.handle) return <EditProfileSkeleton />;
 
   return (
-    <div 
-      style={{ 
-        backgroundColor: "#f5f0e8", 
-        backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
-        backgroundSize: "12px 12px",
-        minHeight: "100vh", 
-        width: "100%",
-        boxSizing: "border-box"
-      }}
-    >
-      <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto" style={{ boxSizing: "border-box" }}>
-        {/* Navigation Action Header Canvas Block */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px", boxSizing: "border-box" }}>
-          <button
-            type="button"
-            onClick={() =>
-              navigate({
-                to: "/profile/$handle",
-                params: { handle: profile.handle ?? userId },
-              })
-            }
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "0px",
-              backgroundColor: "#ffffff",
-              border: "2px solid #111111",
-              boxShadow: "2px 2px 0px #111111",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#111111",
-              boxSizing: "border-box"
-            }}
-            aria-label="Go back to profile"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div style={{ boxSizing: "border-box" }}>
-            <h1 style={{ fontFamily: "serif", fontSize: "24px", fontWeight: "900", color: "#111111", margin: 0, lineHeight: "1.2" }}>
-              Edit Profile
-            </h1>
-            <p style={{ margin: "2px 0 0 0", fontFamily: "monospace, sans-serif", fontSize: "11px", fontWeight: "bold", textTransform: "uppercase", color: "#555555" }}>
-              Update your public credentials
-            </p>
-          </div>
-        </div>
-
-        {/* Form Identity Editor Container Box */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          style={{ boxSizing: "border-box" }}
+    <div className="px-4 sm:px-6 py-10 max-w-xl mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <button
+          type="button"
+          onClick={() =>
+            navigate({
+              to: "/profile/$handle",
+              params: { handle: profile.handle ?? userId },
+            })
+          }
+          className="w-9 h-9 rounded-lg bg-card/50 border border-border hover:bg-accent/10 hover:border-accent/30 flex items-center justify-center transition-smooth text-muted-foreground hover:text-accent"
+          aria-label="Go back to profile"
         >
-          <form onSubmit={handleSubmit} style={{ boxSizing: "border-box" }}>
-            <div style={{
-              backgroundColor: "#ffffff",
-              border: "4px solid #111111",
-              boxShadow: "5px 5px 0px #111111",
-              padding: "24px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-              boxSizing: "border-box"
-            }}>
-              
-              {/* Profile Avatar Canvas Setup Frame */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", boxSizing: "border-box" }}>
-                <div style={{ position: "relative", boxSizing: "border-box" }}>
-                  {avatarPreview ? (
-                    <img
-                      src={avatarPreview}
-                      alt="Profile avatar preview"
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        borderRadius: "0px",
-                        objectFit: "cover",
-                        border: "3px solid #111111",
-                        boxShadow: "2px 2px 0px #111111",
-                        boxSizing: "border-box"
-                      }}
-                      onError={() => setAvatarPreview(null)}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        borderRadius: "0px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "20px",
-                        fontFamily: "monospace, sans-serif",
-                        fontWeight: "900",
-                        color: "#111111",
-                        backgroundColor: "#fbbf24",
-                        border: "3px solid #111111",
-                        boxShadow: "2px 2px 0px #111111",
-                        boxSizing: "border-box"
-                      }}
-                    >
-                      {initials}
-                    </div>
-                  )}
-                  
-                  {/* Camera File Trigger Overlay Button Block */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div>
+          <h1 className="font-display text-xl font-bold text-foreground">
+            Edit Profile
+          </h1>
+          <p className="text-xs text-muted-foreground font-body">
+            Update your public information
+          </p>
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="bg-midnight-card border border-purple-900/30 rounded-2xl p-6 sm:p-8 shadow-elevated space-y-6">
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Profile avatar preview"
+                    className="w-20 h-20 rounded-full object-cover border-2 border-accent/40 glow-accent-sm"
+                    onError={() => setAvatarPreview(null)}
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-display font-bold text-white border-2 border-accent/40 glow-accent-sm"
                     style={{
-                      position: "absolute",
-                      bottom: "-4px",
-                      right: "-4px",
-                      width: "28px",
-                      height: "28px",
-                      borderRadius: "0px",
-                      backgroundColor: "#111111",
-                      border: "2px solid #ffffff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      boxSizing: "border-box"
+                      background: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
                     }}
                   >
-                    {uploading ? (
-                      <span style={{
-                        width: "12px",
-                        height: "12px",
-                        border: "2px solid rgba(255, 255, 255, 0.3)",
-                        borderTopColor: "#ffffff",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite"
-                      }} />
-                    ) : (
-                      <Camera className="w-3 h-3 text-white" />
-                    )}
-                  </button>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarFileChange}
-                />
-
+                    {initials}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontFamily: "monospace, sans-serif",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    color: "#111111",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                    padding: 0,
-                    boxSizing: "border-box"
-                  }}
+                  className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-accent border-2 border-background flex items-center justify-center hover:bg-accent/80 transition-smooth"
                 >
-                  {uploading ? "Uploading…" : "Change Photo"}
-                </button>
-
-                <p style={{ margin: 0, fontFamily: "monospace, sans-serif", fontSize: "12px", color: "#555555", fontWeight: "bold", display: "flex", alignItems: "center", gap: "4px" }}>
-                  <User className="w-3 h-3" />@{profile.handle}
-                </p>
-              </div>
-
-              {/* Display Name Form Label Input Track */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", boxSizing: "border-box" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
-                  <Label htmlFor="displayName" style={{ fontFamily: "monospace, sans-serif", textTransform: "uppercase", fontSize: "12px", fontWeight: "900", color: "#111111" }}>
-                    Display Name <span style={{ color: "#cc0000" }}>*</span>
-                  </Label>
-                  <span style={{ 
-                    fontFamily: "monospace, sans-serif", 
-                    fontSize: "11px", 
-                    fontWeight: "bold",
-                    color: displayName.length > MAX_DISPLAY_NAME * 0.9 ? "#cc0000" : "#555555" 
-                  }}>
-                    {displayName.length}/{MAX_DISPLAY_NAME}
-                  </span>
-                </div>
-                <Input
-                  id="displayName"
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value.slice(0, MAX_DISPLAY_NAME))}
-                  placeholder="Your display name"
-                  maxLength={MAX_DISPLAY_NAME}
-                  style={{
-                    borderRadius: "0px",
-                    border: "2px solid #111111",
-                    backgroundColor: "#ffffff",
-                    color: "#111111",
-                    fontFamily: "serif",
-                    fontSize: "14px",
-                    padding: "10px",
-                    height: "auto",
-                    boxSizing: "border-box"
-                  }}
-                />
-              </div>
-
-              {/* Biography Text Area Content Box */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", boxSizing: "border-box" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" }}>
-                  <Label htmlFor="bio" style={{ fontFamily: "monospace, sans-serif", textTransform: "uppercase", fontSize: "12px", fontWeight: "900", color: "#111111" }}>
-                    Bio Text Summary
-                  </Label>
-                  <span style={{ 
-                    fontFamily: "monospace, sans-serif", 
-                    fontSize: "11px", 
-                    fontWeight: "bold",
-                    color: bio.length > MAX_BIO * 0.9 ? "#cc0000" : "#555555" 
-                  }}>
-                    {bio.length}/{MAX_BIO}
-                  </span>
-                </div>
-                <Textarea
-                  id="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO))}
-                  placeholder="Tell readers a little about yourself…"
-                  rows={4}
-                  maxLength={MAX_BIO}
-                  style={{
-                    borderRadius: "0px",
-                    border: "2px solid #111111",
-                    backgroundColor: "#ffffff",
-                    color: "#111111",
-                    fontFamily: "serif",
-                    fontSize: "14px",
-                    padding: "10px",
-                    resize: "none",
-                    boxSizing: "border-box"
-                  }}
-                />
-              </div>
-
-              {/* Action Operations Submission Buttons Bar */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingTop: "8px", boxSizing: "border-box" }} className="sm:flex-row">
-                <Button
-                  type="submit"
-                  disabled={updateProfile.isPending || uploading || !displayName.trim()}
-                  style={{
-                    flexGrow: 1,
-                    borderRadius: "0px",
-                    border: "2px solid #111111",
-                    backgroundColor: "#fbbf24",
-                    color: "#111111",
-                    fontFamily: "monospace, sans-serif",
-                    fontSize: "13px",
-                    fontWeight: "900",
-                    textTransform: "uppercase",
-                    boxShadow: "2px 2px 0px #111111",
-                    padding: "12px",
-                    height: "auto",
-                    cursor: "pointer",
-                    boxSizing: "border-box"
-                  }}
-                >
-                  {updateProfile.isPending ? (
-                    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                      <span style={{
-                        width: "14px",
-                        height: "14px",
-                        border: "2px solid rgba(17, 17, 17, 0.2)",
-                        borderTopColor: "#111111",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite"
-                      }} />
-                      Saving…
-                    </span>
+                  {uploading ? (
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
-                    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                      <Save className="w-4 h-4" />
-                      Save Changes
-                    </span>
+                    <Camera className="w-3 h-3 text-white" />
                   )}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    navigate({
-                      to: "/profile/$handle",
-                      params: { handle: profile.handle ?? userId },
-                    })
-                  }
-                  style={{
-                    flexGrow: 1,
-                    borderRadius: "0px",
-                    border: "2px solid #111111",
-                    backgroundColor: "#ffffff",
-                    color: "#555555",
-                    fontFamily: "monospace, sans-serif",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    boxShadow: "2px 2px 0px #111111",
-                    padding: "12px",
-                    height: "auto",
-                    cursor: "pointer",
-                    boxSizing: "border-box"
-                  }}
-                >
-                  Cancel
-                </Button>
+                </button>
               </div>
 
-              {updateProfile.isError && (
-                <p style={{ margin: 0, fontFamily: "monospace, sans-serif", fontSize: "11px", fontWeight: "bold", color: "#cc0000", textAlign: "center" }}>
-                  Something went wrong. Please try again.
-                </p>
-              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarFileChange}
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="text-xs text-accent font-body hover:underline disabled:opacity-50"
+              >
+                {uploading ? "Uploading…" : "Change photo"}
+              </button>
+
+              <p className="text-xs text-muted-foreground font-body flex items-center gap-1">
+                <User className="w-3 h-3" />@{profile.handle}
+              </p>
             </div>
-          </form>
-        </motion.div>
-      </div>
-      
-      {/* Dynamic Keyframe Injection Block */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        * { box-sizing: border-box; }
-      `}</style>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="displayName" className="text-sm font-medium text-foreground font-body">
+                  Display Name <span className="text-destructive">*</span>
+                </Label>
+                <span className={`text-xs font-body ${displayName.length > MAX_DISPLAY_NAME * 0.9 ? "text-destructive" : "text-muted-foreground"}`}>
+                  {displayName.length}/{MAX_DISPLAY_NAME}
+                </span>
+              </div>
+              <Input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value.slice(0, MAX_DISPLAY_NAME))}
+                placeholder="Your display name"
+                className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 transition-smooth"
+                maxLength={MAX_DISPLAY_NAME}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="bio" className="text-sm font-medium text-foreground font-body">
+                  Bio
+                </Label>
+                <span className={`text-xs font-body ${bio.length > MAX_BIO * 0.9 ? "text-destructive" : "text-muted-foreground"}`}>
+                  {bio.length}/{MAX_BIO}
+                </span>
+              </div>
+              <Textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO))}
+                placeholder="Tell readers a little about yourself…"
+                rows={4}
+                className="bg-input/40 border-border/60 focus:border-accent focus:ring-1 focus:ring-accent/50 font-body text-foreground placeholder:text-muted-foreground/60 resize-none transition-smooth"
+                maxLength={MAX_BIO}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button
+                type="submit"
+                disabled={updateProfile.isPending || uploading || !displayName.trim()}
+                className="flex-1 bg-accent hover:bg-accent/85 text-white font-body font-semibold gap-2 transition-smooth disabled:opacity-50"
+              >
+                {updateProfile.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving…
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </span>
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  navigate({
+                    to: "/profile/$handle",
+                    params: { handle: profile.handle ?? userId },
+                  })
+                }
+                className="flex-1 border-border/50 text-muted-foreground hover:text-foreground hover:border-border font-body transition-smooth"
+              >
+                Cancel
+              </Button>
+            </div>
+
+            {updateProfile.isError && (
+              <p className="text-xs text-destructive font-body text-center">
+                Something went wrong. Please try again.
+              </p>
+            )}
+          </div>
+        </form>
+      </motion.div>
     </div>
   );
-                    }
+}
