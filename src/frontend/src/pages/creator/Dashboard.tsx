@@ -1,94 +1,71 @@
-import { ConfirmModal } from "@/components/ConfirmModal";
-import { ErrorFallback } from "@/components/ErrorFallback";
-import { SkeletonCard } from "@/components/SkeletonCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { COMICS_QUERY_KEY, useComics } from "@/hooks/useComics";
-import { useProfile } from "@/hooks/useProfile";
-import { deleteComic } from "@/services/comicsService";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BookOpen, Eye, FolderOpen, Plus, Trash2 } from "lucide-react";
-import { motion } from "motion/react";
+import { BookOpen, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export function CreatorDashboardPage() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const userId = user?.id;
+  const [comics, setComics] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (!authLoading && !userId) {
+    if (!authLoading && !user?.id) {
       navigate({ to: "/" });
+      return;
     }
-  }, [authLoading, userId, navigate]);
 
-  // Only fetch if userId exists
-  const { data: profile } = useProfile(userId || undefined);
-  const { data: comics = [], isLoading, isError, refetch } = useComics();
+    if (!user?.id) return;
 
-  const queryClient = useQueryClient();
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+    // Fetch comics directly
+    const fetchComics = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("comics")
+          .select("*")
+          .eq("creator_id", user.id)
+          .order("created_at", { ascending: false });
 
-  // Safe comic filtering
-  const myComics = (comics || []).filter(
-    (comic) => comic && userId && comic.creator_id === userId
-  );
+        if (error) {
+          console.error("Error fetching comics:", error);
+          setComics([]);
+        } else {
+          setComics(data || []);
+        }
+      } catch (err) {
+        console.error("Exception fetching comics:", err);
+        setComics([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
+    fetchComics();
+  }, [authLoading, user?.id, navigate]);
 
-    try {
-      await deleteComic(deleteTarget);
-      toast.success("Comic deleted.");
-      await queryClient.invalidateQueries({ queryKey: COMICS_QUERY_KEY });
-      setDeleteTarget(null);
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete comic.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  // Show loading
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {[1, 2, 3].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
-  // Not authenticated
-  if (!userId) {
+  if (!user?.id) {
     return null;
   }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="font-display text-3xl text-foreground">
-              Creator Studio
-            </h1>
-            {profile?.is_creator && (
-              <span className="bg-accent text-white text-xs px-3 py-1 rounded-full font-body font-medium">
-                Creator
-              </span>
-            )}
-          </div>
+          <h1 className="font-display text-3xl text-foreground">
+            Creator Studio
+          </h1>
           <p className="text-muted-foreground font-body text-sm">
             Manage your comics and chapters
           </p>
@@ -103,30 +80,8 @@ export function CreatorDashboardPage() {
         </Button>
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {[1, 2, 3].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      )}
-
-      {/* Error State */}
-      {isError && (
-        <ErrorFallback
-          message="Failed to load your comics."
-          onRetry={() => refetch()}
-        />
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !isError && myComics.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-24 gap-4"
-        >
+      {comics.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
           <BookOpen className="w-14 h-14 text-muted-foreground" />
           <p className="font-body text-base text-muted-foreground">
             You haven't created any comics yet.
@@ -139,91 +94,44 @@ export function CreatorDashboardPage() {
               <Plus className="w-4 h-4 mr-2" /> Create your first comic
             </Link>
           </Button>
-        </motion.div>
-      )}
-
-      {/* Comics Grid */}
-      {!isLoading && !isError && myComics.length > 0 && (
+        </div>
+      ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-          {myComics.map((comic, i) => (
-            <motion.div
+          {comics.map((comic) => (
+            <div
               key={comic.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: i * 0.07,
-                type: "spring",
-                stiffness: 280,
-                damping: 24,
-              }}
-              className="rounded-xl overflow-hidden bg-card border border-purple-900/40 hover:border-accent/60 group flex flex-col"
+              className="rounded-xl overflow-hidden bg-card border border-purple-900/40 hover:border-accent/60"
             >
-              <div className="relative aspect-[3/4] overflow-hidden">
-                <img
-                  src={comic.cover_url || ""}
-                  alt={comic.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-3 p-3">
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="secondary"
-                    className="w-full text-xs"
-                  >
-                    <Link
-                      to="/comics/$comicId"
-                      params={{ comicId: comic.id }}
-                    >
-                      <Eye className="w-3.5 h-3.5 mr-1.5" /> Preview
-                    </Link>
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDeleteTarget(comic.id)}
-                    className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete
-                  </Button>
-                </div>
+              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                {comic.cover_url && (
+                  <img
+                    src={comic.cover_url}
+                    alt={comic.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
-
-              <div className="p-3 flex flex-col gap-2">
-                <h3 className="font-display text-sm text-foreground line-clamp-2 leading-snug">
+              <div className="p-3">
+                <h3 className="font-display text-sm text-foreground line-clamp-2">
                   {comic.title}
                 </h3>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 w-fit">
-                  Comic
-                </Badge>
                 <Button
                   asChild
                   size="sm"
-                  className="w-full mt-1 bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-accent-foreground text-xs transition-colors duration-200"
+                  className="w-full mt-2 bg-accent/10 text-accent border border-accent/20 hover:bg-accent hover:text-accent-foreground text-xs"
                 >
                   <Link
                     to="/creator/comics/$comicId"
                     params={{ comicId: comic.id }}
                   >
-                    <FolderOpen className="w-3.5 h-3.5 mr-1.5" /> Manage
+                    Manage
                   </Link>
                 </Button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
-
-      <ConfirmModal
-        open={deleteTarget !== null}
-        title="Delete comic?"
-        description="This will permanently delete the comic and all its chapters. This cannot be undone."
-        confirmLabel={isDeleting ? "Deleting..." : "Delete Comic"}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-        destructive
-      />
     </div>
   );
-                    }
+}
