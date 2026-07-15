@@ -11,51 +11,52 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Eye, FolderOpen, Plus, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function CreatorDashboardPage() {
-  const { data: comics, isLoading, isError, refetch } = useComics();
   const { user, isLoading: authLoading } = useAuth();
   const userId = user?.id;
 
   // ✅ Only fetch profile if userId exists
-  const { data: profile } = useProfile(userId);
+  const { data: profile, isLoading: profileLoading } = useProfile(userId);
+  
+  // ✅ Fetch comics - but handle empty/null gracefully
+  const { data: comics = [], isLoading: comicsLoading, isError, refetch } = useComics();
 
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // ✅ Redirect if not authenticated
-  if (!authLoading && !userId) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <ErrorFallback
-          message="You must be logged in to access the creator studio."
-          onRetry={() => window.location.href = "/"}
-        />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!authLoading && !userId) {
+      window.location.href = "/";
+    }
+  }, [authLoading, userId]);
 
-  const myComics =
-    comics?.filter((c) => userId && c.creator_id === userId) ?? [];
+  // ✅ Safe filtering - handle undefined/null comics
+  const myComics = Array.isArray(comics)
+    ? comics.filter((c) => userId && c && c.creator_id === userId)
+    : [];
+
+  const isLoading = authLoading || profileLoading || comicsLoading;
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
-    // Snapshot current cache for rollback
+    
     const previous = queryClient.getQueryData<typeof comics>(COMICS_QUERY_KEY);
-    // Optimistic update — remove immediately from UI
+    
     queryClient.setQueryData(COMICS_QUERY_KEY, (old: typeof comics) =>
-      (old ?? []).filter((c) => c.id !== deleteTarget),
+      Array.isArray(old) ? old.filter((c) => c.id !== deleteTarget) : [],
     );
+    
     try {
       await deleteComic(deleteTarget);
       await queryClient.invalidateQueries({ queryKey: COMICS_QUERY_KEY });
       toast.success("Comic deleted.");
     } catch (error) {
-      // Rollback on failure
       console.error("Delete comic error:", error);
       queryClient.setQueryData(COMICS_QUERY_KEY, previous);
       toast.error("Failed to delete comic.");
@@ -64,6 +65,22 @@ export function CreatorDashboardPage() {
       setDeleteTarget(null);
     }
   };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return null;
+  }
 
   return (
     <div
@@ -76,7 +93,7 @@ export function CreatorDashboardPage() {
             <h1 className="font-display text-3xl text-foreground">
               Creator Studio
             </h1>
-            {profile?.is_creator && (
+            {profile && profile.is_creator && (
               <span
                 className="bg-accent text-white text-xs px-3 py-1 rounded-full font-body font-medium"
                 data-ocid="creator_dashboard.creator_badge"
@@ -100,7 +117,7 @@ export function CreatorDashboardPage() {
         </Button>
       </div>
 
-      {isLoading && (
+      {comicsLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {[1, 2, 3].map((i) => (
             <SkeletonCard key={i} />
@@ -115,7 +132,7 @@ export function CreatorDashboardPage() {
         />
       )}
 
-      {!isLoading && !isError && myComics.length === 0 && (
+      {!comicsLoading && !isError && (!Array.isArray(myComics) || myComics.length === 0) && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -137,11 +154,11 @@ export function CreatorDashboardPage() {
         </motion.div>
       )}
 
-      {!isLoading && !isError && myComics.length > 0 && (
+      {!comicsLoading && !isError && Array.isArray(myComics) && myComics.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {myComics.map((comic, i) => (
             <motion.div
-              key={comic.id}
+              key={comic?.id || `comic-${i}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -156,8 +173,8 @@ export function CreatorDashboardPage() {
               {/* Cover */}
               <div className="relative aspect-[3/4] overflow-hidden">
                 <img
-                  src={comic.cover_url ?? ""}
-                  alt={comic.title}
+                  src={comic?.cover_url ?? ""}
+                  alt={comic?.title ?? "Comic"}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 {/* Hover overlay — quick actions */}
@@ -169,7 +186,7 @@ export function CreatorDashboardPage() {
                     className="w-full text-xs"
                     data-ocid={`creator_dashboard.view_button.${i + 1}`}
                   >
-                    <Link to="/comics/$comicId" params={{ comicId: comic.id }}>
+                    <Link to="/comics/$comicId" params={{ comicId: comic?.id || "" }}>
                       <Eye className="w-3.5 h-3.5 mr-1.5" /> Preview
                     </Link>
                   </Button>
@@ -177,7 +194,7 @@ export function CreatorDashboardPage() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => setDeleteTarget(comic.id)}
+                    onClick={() => setDeleteTarget(comic?.id || null)}
                     className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                     data-ocid={`creator_dashboard.delete_button.${i + 1}`}
                   >
@@ -189,7 +206,7 @@ export function CreatorDashboardPage() {
               {/* Card footer */}
               <div className="p-3 flex flex-col gap-2">
                 <h3 className="font-display text-sm text-foreground line-clamp-2 leading-snug">
-                  {comic.title}
+                  {comic?.title || "Untitled Comic"}
                 </h3>
                 <Badge
                   variant="secondary"
@@ -205,7 +222,7 @@ export function CreatorDashboardPage() {
                 >
                   <Link
                     to="/creator/comics/$comicId"
-                    params={{ comicId: comic.id }}
+                    params={{ comicId: comic?.id || "" }}
                   >
                     <FolderOpen className="w-3.5 h-3.5 mr-1.5" /> Manage
                   </Link>
@@ -227,4 +244,4 @@ export function CreatorDashboardPage() {
       />
     </div>
   );
-      }
+          }
