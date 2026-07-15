@@ -1,4 +1,4 @@
-import { ErrorFallback } from "@/components/ErrorFallback";
+Import { ErrorFallback } from "@/components/ErrorFallback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +15,6 @@ import {
   Layers,
   Lock,
   User,
-  AlertTriangle,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -35,110 +34,31 @@ const REPORT_REASONS = [
 function ChapterRow({ chapter, comicId, index }: { chapter: Chapter; comicId: string; index: number }) {
   const date = new Date(chapter.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 12 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      transition={{ delay: index * 0.05, duration: 0.3 }} 
-      data-ocid={`comic_detail.chapters.item.${index + 1}`}
-      style={{ boxSizing: 'border-box' }}
-    >
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05, duration: 0.3 }} data-ocid={`comic_detail.chapters.item.${index + 1}`}>
       <Link
         to="/comics/$comicId/chapters/$chapterId"
         params={{ comicId, chapterId: chapter.id }}
+        className="flex items-center justify-between p-4 rounded-xl bg-card border border-accent/30 hover:border-accent/60 hover:bg-purple-900/30 hover:shadow-card transition-smooth group"
         data-ocid={`comic_detail.chapter_read_link.${index + 1}`}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'between',
-          padding: '14px 16px',
-          borderRadius: '0px',
-          backgroundColor: '#ffffff',
-          border: '2px solid #111111',
-          boxShadow: '2px 2px 0px #111111',
-          textDecoration: 'none',
-          color: '#111111',
-          boxSizing: 'border-box',
-          transition: 'transform 0.1s ease, box-shadow 0.1s ease'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '4px 4px 0px #111111';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0px)';
-          e.currentTarget.style.boxShadow = '2px 2px 0px #111111';
-        }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '0', width: '100%', justifyContent: 'space-between', boxSizing: 'border-box' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '0', boxSizing: 'border-box' }}>
-            {/* Number Box */}
-            <div style={{
-              flexShrink: 0,
-              width: '36px',
-              height: '36px',
-              backgroundColor: '#fbbf24',
-              border: '2px solid #111111',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'monospace, sans-serif',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              color: '#111111',
-              boxSizing: 'border-box'
-            }}>
-              {chapter.chapter_number}
-            </div>
-            {/* Title Text */}
-            <div style={{ minWidth: '0', boxSizing: 'border-box' }}>
-              <p style={{
-                margin: '0',
-                fontFamily: 'serif',
-                fontSize: '15px',
-                fontWeight: 'bold',
-                color: '#111111',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                boxSizing: 'border-box'
-              }}>
-                {chapter.title ?? `Chapter ${chapter.chapter_number}`}
-              </p>
-              <p style={{
-                margin: '4px 0 0 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '11px',
-                fontFamily: 'monospace, sans-serif',
-                color: '#555555',
-                textTransform: 'uppercase',
-                boxSizing: 'border-box'
-              }}>
-                <Calendar style={{ width: '12px', height: '12px' }} /> {date}
-              </p>
-            </div>
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-center">
+            <span className="text-accent font-display text-sm leading-none">{chapter.chapter_number}</span>
           </div>
-
-          {/* Action Trigger Block */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, boxSizing: 'border-box' }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '11px',
-              fontFamily: 'monospace, sans-serif',
-              fontWeight: '900',
-              textTransform: 'uppercase',
-              color: '#111111',
-              border: '2px solid #111111',
-              backgroundColor: '#f5f0e8',
-              padding: '4px 10px',
-              boxSizing: 'border-box'
-            }}>
-              READ <ChevronRight style={{ width: '12px', height: '12px' }} />
-            </span>
+          <div className="min-w-0">
+            <p className="font-body text-sm text-foreground font-medium truncate group-hover:text-accent transition-smooth">
+              {chapter.title ?? `Chapter ${chapter.chapter_number}`}
+            </p>
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+              <Calendar className="w-3 h-3" />{date}
+            </p>
           </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs font-body font-medium text-accent border border-accent/30 bg-accent/10 rounded-full px-2.5 py-0.5 group-hover:bg-accent/20 transition-smooth">
+            Read <ChevronRight className="w-3 h-3" />
+          </span>
+          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-smooth sm:hidden" />
         </div>
       </Link>
     </motion.div>
@@ -167,22 +87,20 @@ export function ComicDetailPage() {
 
   const handleLike = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Please login to like"); return; }
+    if (!user) return;
     const { data } = await supabase.rpc("toggle_like", { p_comic_id: comicId });
     if (data) { setLiked(data.liked); setLikeCount(prev => data.liked ? prev + 1 : prev - 1); }
   };
 
   const handleBookmark = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error("Please login to bookmark"); return; }
+    if (!user) return;
     if (bookmarked) {
       await supabase.from("bookmarks").delete().eq("comic_id", comicId).eq("user_id", user.id);
       setBookmarked(false);
-      toast.success("Removed bookmark");
     } else {
       await supabase.from("bookmarks").insert({ comic_id: comicId, user_id: user.id });
       setBookmarked(true);
-      toast.success("Saved bookmark!");
     }
   };
 
@@ -213,384 +131,120 @@ export function ComicDetailPage() {
   const firstChapter = publishedChapters[0];
 
   if (comicError) {
-    return (
-      <div style={{ backgroundColor: '#f5f0e8', minHeight: '100vh', padding: '64px 16px', boxSizing: 'border-box' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', boxSizing: 'border-box' }}>
-          <ErrorFallback message="Failed to load comic." onRetry={() => refetchComic()} />
-        </div>
-      </div>
-    );
+    return <div className="max-w-5xl mx-auto px-4 py-16"><ErrorFallback message="Failed to load comic." onRetry={() => refetchComic()} /></div>;
   }
 
   return (
-    <div 
-      data-ocid="comic_detail.page"
-      style={{
-        backgroundColor: '#f5f0e8',
-        backgroundImage: 'radial-gradient(#fbbf24 1.2px, transparent 1.2px)',
-        backgroundSize: '12px 12px',
-        minHeight: '100vh',
-        width: '100%',
-        color: '#111111',
-        boxSizing: 'border-box'
-      }}
-    >
-      {/* Top Banner Cover Hero Block */}
-      <section style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '4px solid #111111',
-        padding: '32px 16px',
-        boxSizing: 'border-box',
-        width: '100%'
-      }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-          {/* Back Button */}
-          <Link 
-            to="/" 
-            data-ocid="comic_detail.back_link"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontFamily: 'monospace, sans-serif',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              textTransform: 'uppercase',
-              textDecoration: 'none',
-              color: '#111111',
-              marginBottom: '24px',
-              width: 'fit-content',
-              boxSizing: 'border-box'
-            }}
-          >
-            <ChevronLeft style={{ width: '14px', height: '14px' }} /> Back to Home
+    <div className="bg-background min-h-screen" data-ocid="comic_detail.page">
+      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)" }}>
+        {!comicLoading && comic?.cover_url && (
+          <div className="absolute inset-0 opacity-15 blur-2xl scale-110" style={{ backgroundImage: `url(${comic.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-background" />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-smooth mb-8 font-body group" data-ocid="comic_detail.back_link">
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-smooth" />Back to Home
           </Link>
 
-          {/* Main Showcase Panel Layout */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px',
-            boxSizing: 'border-box'
-          }} className="sm:flex-row">
-            {/* Left Column: Image Canvas Frame */}
+          <div className="flex flex-col sm:flex-row gap-8 lg:gap-12">
             {comicLoading ? (
-              <div style={{ width: '176px', aspectRatio: '9/14', backgroundColor: 'rgba(17, 17, 17, 0.08)', border: '2px solid #111111', boxSizing: 'border-box' }}>
-                <Skeleton className="w-full h-full" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-              </div>
+              <Skeleton className="w-44 h-64 sm:w-52 sm:h-72 rounded-xl flex-shrink-0 bg-muted" />
             ) : comic ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 12 }} 
-                animate={{ opacity: 1, scale: 1, y: 0 }} 
-                transition={{ duration: 0.35 }}
-                style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}
-              >
-                <div style={{
-                  position: 'relative',
-                  width: '176px',
-                  aspectRatio: '9/14',
-                  backgroundColor: '#111111',
-                  border: '3px solid #111111',
-                  boxShadow: '4px 4px 0px #111111',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxSizing: 'border-box'
-                }}>
-                  {comic.cover_url ? (
-                    <img 
-                      src={comic.cover_url} 
-                      alt={comic.title} 
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', boxSizing: 'border-box' }} 
-                    />
-                  ) : (
-                    <BookOpen style={{ width: '40px', height: '40px', color: '#fbbf24' }} />
-                  )}
-                </div>
+              <motion.div initial={{ opacity: 0, scale: 0.94, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.45 }} className="flex-shrink-0">
+                {comic.cover_url ? (
+                  <img src={comic.cover_url} alt={comic.title} className="w-44 sm:w-52 h-auto rounded-xl shadow-manga object-cover" />
+                ) : (
+                  <div className="w-44 sm:w-52 aspect-[9/14] rounded-xl bg-muted/60 border border-border flex items-center justify-center">
+                    <BookOpen className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
               </motion.div>
             ) : null}
 
-            {/* Right Column: Title and Narrative Content */}
-            <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, minWidth: '0', justifyContent: 'space-between', boxSizing: 'border-box' }}>
+            <div className="flex flex-col justify-end gap-4 min-w-0">
               {comicLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', boxSizing: 'border-box' }}>
-                  <Skeleton className="h-8 w-64" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-                  <Skeleton className="h-4 w-full" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-                  <Skeleton className="h-4 w-5/6" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-                </div>
+                <>
+                  <Skeleton className="h-9 w-72 bg-muted" />
+                  <Skeleton className="h-4 w-full max-w-sm bg-muted" />
+                  <Skeleton className="h-4 w-3/4 bg-muted" />
+                  <div className="flex gap-2 mt-2">
+                    <Skeleton className="h-6 w-24 rounded-full bg-muted" />
+                    <Skeleton className="h-6 w-20 rounded-full bg-muted" />
+                  </div>
+                </>
               ) : comic ? (
-                <motion.div 
-                  initial={{ opacity: 0, y: 12 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  transition={{ duration: 0.35, delay: 0.05 }}
-                  style={{ display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}
-                >
-                  {/* Title and Badges */}
-                  <h1 style={{
-                    fontFamily: 'serif',
-                    fontSize: '28px',
-                    fontWeight: '900',
-                    color: '#111111',
-                    margin: '0 0 12px 0',
-                    lineHeight: '1.2',
-                    boxSizing: 'border-box'
-                  }}>
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="flex flex-col gap-3">
+                  <h1 className="font-display text-4xl sm:text-5xl text-foreground leading-tight">
                     {comic.title}
                     {(comic as any).is_ai_generated && (
-                      <span style={{
-                        display: 'inline-block',
-                        marginLeft: '12px',
-                        padding: '2px 8px',
-                        backgroundColor: '#111111',
-                        border: '1px solid #ffffff',
-                        color: '#fbbf24',
-                        fontFamily: 'monospace, sans-serif',
-                        fontSize: '11px',
-                        fontWeight: '900',
-                        letterSpacing: '1px',
-                        verticalAlign: 'middle',
-                        boxSizing: 'border-box'
-                      }}>
-                        AI
-                      </span>
+                      <span style={{ display: "inline-block", marginLeft: "10px", padding: "3px 10px", borderRadius: "6px", background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: 800, letterSpacing: "1px", verticalAlign: "middle" }}>AI</span>
                     )}
                   </h1>
-
-                  {/* Prose Description */}
-                  <p style={{
-                    margin: '0 0 16px 0',
-                    fontFamily: 'serif',
-                    fontSize: '14px',
-                    lineHeight: '1.6',
-                    color: '#333333',
-                    maxWidth: '650px',
-                    boxSizing: 'border-box'
-                  }}>
-                    {comic.description}
-                  </p>
-
-                  {/* Metadata Indicators */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px', boxSizing: 'border-box' }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '11px',
-                      fontFamily: 'monospace, sans-serif',
-                      fontWeight: 'bold',
-                      backgroundColor: '#111111',
-                      color: '#ffffff',
-                      padding: '4px 10px',
-                      boxSizing: 'border-box'
-                    }}>
-                      <Layers style={{ width: '12px', height: '12px', color: '#fbbf24' }} /> {publishedChapters.length} CHAPTER{publishedChapters.length !== 1 ? "S" : ""}
-                    </span>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '11px',
-                      fontFamily: 'monospace, sans-serif',
-                      fontWeight: 'bold',
-                      backgroundColor: '#f5f0e8',
-                      color: '#111111',
-                      border: '2px solid #111111',
-                      padding: '2px 8px',
-                      boxSizing: 'border-box'
-                    }}>
-                      <User style={{ width: '12px', height: '12px' }} /> CREATOR: {comic.author_name ?? comic.creator_id?.slice(0, 10)}…
-                    </span>
+                  <p className="font-body text-sm text-muted-foreground max-w-lg leading-relaxed">{comic.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <Badge className="bg-accent/15 text-accent border border-accent/30 font-body inline-flex items-center gap-1">
+                      <Layers className="w-3 h-3" />{publishedChapters.length} Chapter{publishedChapters.length !== 1 ? "s" : ""}
+                    </Badge>
+                    <Badge className="bg-muted text-muted-foreground border border-border font-body inline-flex items-center gap-1">
+                      <User className="w-3 h-3" />{comic.author_name ?? comic.creator_id?.slice(0, 10)}…
+                    </Badge>
                   </div>
-
-                  {/* Operational Interactive Action Row */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', boxSizing: 'border-box' }}>
-                    
-                    {/* Read Action Triggers Primary Focus */}
+                  <div className="flex flex-wrap gap-3 mt-2">
+                    <button type="button" onClick={handleBookmark} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: bookmarked ? "1px solid rgba(250,204,21,0.5)" : "1px solid rgba(255,255,255,0.15)", background: bookmarked ? "rgba(250,204,21,0.15)" : "rgba(255,255,255,0.05)", color: bookmarked ? "#facc15" : "rgba(255,255,255,0.5)", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}>
+                      <span style={{ fontSize: "18px" }}>🔖</span>{bookmarked ? "Saved" : "Save"}
+                    </button>
+                    <button type="button" onClick={handleLike} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: liked ? "1px solid rgba(255,50,50,0.5)" : "1px solid rgba(255,255,255,0.15)", background: liked ? "rgba(255,50,50,0.15)" : "rgba(255,255,255,0.05)", color: liked ? "#ff3232" : "rgba(255,255,255,0.5)", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}>
+                      <span style={{ fontSize: "18px" }}>{liked ? "❤️" : "🤍"}</span>{likeCount}
+                    </button>
+                    <button type="button" onClick={() => setShowReportModal(true)} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", borderRadius: "10px", border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "rgba(239,68,68,0.7)", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}>
+                      Report
+                    </button>
                     {progress?.last_chapter_id && (
-                      <Link 
-                        to="/comics/$comicId/chapters/$chapterId" 
-                        params={{ comicId, chapterId: progress.last_chapter_id }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '10px 18px',
-                          backgroundColor: '#fbbf24',
-                          color: '#111111',
-                          fontFamily: 'monospace, sans-serif',
-                          fontWeight: '900',
-                          textTransform: 'uppercase',
-                          textDecoration: 'none',
-                          border: '2px solid #111111',
-                          boxShadow: '3px 3px 0px #111111',
-                          fontSize: '13px',
-                          boxSizing: 'border-box'
-                        }}
-                      >
-                        <BookOpen style={{ width: '16px', height: '16px' }} /> Continue Reading →
-                      </Link>
+                      <Button asChild size="lg" variant="outline" className="w-fit border-accent/50 text-accent hover:bg-accent/10 font-body font-semibold" data-ocid="comic_detail.continue_button">
+                        <Link to="/comics/$comicId/chapters/$chapterId" params={{ comicId, chapterId: progress.last_chapter_id }}>
+                          <BookOpen className="w-5 h-5 mr-2" />Continue Reading →
+                        </Link>
+                      </Button>
                     )}
-
-                    {firstChapter && !progress?.last_chapter_id && (
-                      <Link 
-                        to="/comics/$comicId/chapters/$chapterId" 
-                        params={{ comicId, chapterId: firstChapter.id }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '10px 18px',
-                          backgroundColor: '#cc0000',
-                          color: '#ffffff',
-                          fontFamily: 'monospace, sans-serif',
-                          fontWeight: '900',
-                          textTransform: 'uppercase',
-                          textDecoration: 'none',
-                          border: '2px solid #111111',
-                          boxShadow: '3px 3px 0px #111111',
-                          fontSize: '13px',
-                          boxSizing: 'border-box'
-                        }}
-                      >
-                        <BookOpen style={{ width: '16px', height: '16px' }} /> Start Reading
-                      </Link>
+                    {firstChapter && (
+                      <Button asChild size="lg" className="w-fit bg-accent text-accent-foreground hover:bg-accent/90 font-body font-semibold shadow-manga" data-ocid="comic_detail.read_button">
+                        <Link to="/comics/$comicId/chapters/$chapterId" params={{ comicId, chapterId: firstChapter.id }}>
+                          <BookOpen className="w-5 h-5 mr-2" />Start Reading
+                        </Link>
+                      </Button>
                     )}
-
-                    {/* Bookmark Toggle Block Button */}
-                    <button 
-                      type="button" 
-                      onClick={handleBookmark} 
-                      style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: "6px", 
-                        padding: "10px 14px", 
-                        borderRadius: "0px", 
-                        border: "2px solid #111111", 
-                        background: bookmarked ? "#fbbf24" : "#ffffff", 
-                        color: "#111111", 
-                        fontFamily: 'monospace, sans-serif',
-                        fontSize: "12px", 
-                        fontWeight: 900, 
-                        textTransform: 'uppercase',
-                        cursor: "pointer",
-                        boxShadow: '2px 2px 0px #111111',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <span>🔖</span>{bookmarked ? "Saved" : "Save"}
-                    </button>
-
-                    {/* Like Core Core Interaction Button */}
-                    <button 
-                      type="button" 
-                      onClick={handleLike} 
-                      style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: "6px", 
-                        padding: "10px 14px", 
-                        borderRadius: "0px", 
-                        border: "2px solid #111111", 
-                        background: liked ? "#ffffff" : "#ffffff", 
-                        color: "#111111", 
-                        fontFamily: 'monospace, sans-serif',
-                        fontSize: "12px", 
-                        fontWeight: 900, 
-                        textTransform: 'uppercase',
-                        cursor: "pointer",
-                        boxShadow: '2px 2px 0px #111111',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <span>{liked ? "❤️" : "🤍"}</span>{likeCount}
-                    </button>
-
-                    {/* Report Alert Button Block */}
-                    <button 
-                      type="button" 
-                      onClick={() => setShowReportModal(true)} 
-                      style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: "4px", 
-                        padding: "10px 14px", 
-                        borderRadius: "0px", 
-                        border: "2px solid #111111", 
-                        background: "#ffffff", 
-                        color: "#cc0000", 
-                        fontFamily: 'monospace, sans-serif',
-                        fontSize: "12px", 
-                        fontWeight: 900, 
-                        textTransform: 'uppercase',
-                        cursor: "pointer",
-                        boxShadow: '2px 2px 0px #111111',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <AlertTriangle style={{ width: '12px', height: '12px' }} /> Report
-                    </button>
-
                   </div>
                 </motion.div>
               ) : null}
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* Chapters Index Listing Main Canvas Layout Frame */}
-      <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 16px', boxSizing: 'border-box' }} data-ocid="comic_detail.chapters_section">
-        {/* Newspaper Style Block Section Header Grid */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          marginBottom: '24px',
-          boxSizing: 'border-box'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', boxSizing: 'border-box' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              backgroundColor: '#111111',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxSizing: 'border-box'
-            }}>
-              <Layers style={{ width: '16px', height: '16px', color: '#fbbf24' }} />
-            </div>
-            <h2 style={{
-              fontFamily: 'monospace, sans-serif',
-              fontSize: '22px',
-              fontWeight: '900',
-              textTransform: 'uppercase',
-              margin: '0',
-              color: '#111111'
-            }}>
-              Chapters Grid
-            </h2>
-            {!chaptersLoading && (
-              <span style={{ fontFamily: 'monospace, sans-serif', fontSize: '13px', fontWeight: 'bold', color: '#555555' }}>
-                ({publishedChapters.length})
-              </span>
-            )}
+      <div style={{ padding: "0 16px" }}>
+        <Comments comicId={comicId} creatorId={comic?.creator_id} />
+      </div>
+
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12" data-ocid="comic_detail.chapters_section">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2.5">
+            <Layers className="w-5 h-5 text-accent" />
+            <h2 className="font-display text-3xl text-foreground">Chapters</h2>
+            {!chaptersLoading && <span className="ml-1 text-sm text-muted-foreground font-body">({publishedChapters.length})</span>}
           </div>
-          <div style={{ marginTop: '12px', width: '100%', height: '3px', backgroundColor: '#111111', boxSizing: 'border-box' }} />
         </div>
 
-        {/* Loading Framework States Skeletons */}
         {chaptersLoading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', boxSizing: 'border-box' }}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', backgroundColor: '#ffffff', border: '2px solid #111111', boxSizing: 'border-box' }}>
-                <Skeleton className="w-8 h-8" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <Skeleton className="h-4 w-1/3" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
-                  <Skeleton className="h-3 w-1/4" style={{ borderRadius: 0, backgroundColor: 'rgba(17, 17, 17, 0.1)' }} />
+          <div className="flex flex-col gap-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border">
+                <Skeleton className="w-10 h-10 rounded-lg bg-muted" />
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <Skeleton className="h-4 w-1/2 bg-muted" />
+                  <Skeleton className="h-3 w-1/4 bg-muted" />
                 </div>
+                <Skeleton className="h-6 w-16 rounded-full bg-muted" />
               </div>
             ))}
           </div>
@@ -598,86 +252,41 @@ export function ComicDetailPage() {
 
         {chaptersError && <ErrorFallback message="Failed to load chapters." onRetry={() => refetchChapters()} />}
 
-        {/* Blank State Canvas Wrapper */}
         {!chaptersLoading && !chaptersError && publishedChapters.length === 0 && (
-          <div 
-            data-ocid="comic_detail.empty_state"
-            style={{
-              textAlign: 'center',
-              padding: '48px 16px',
-              backgroundColor: '#ffffff',
-              border: '2px solid #111111',
-              boxShadow: '3px 3px 0px #111111',
-              maxWidth: '450px',
-              margin: '24px auto',
-              boxSizing: 'border-box'
-            }}
-          >
-            <div style={{ width: '48px', height: '48px', backgroundColor: '#f5f0e8', border: '2px solid #111111', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 16px auto' }}>
-              <Lock style={{ width: '20px', height: '20px', color: '#cc0000', margin: '0 auto' }} />
+          <div className="flex flex-col items-center justify-center py-20 gap-4" data-ocid="comic_detail.empty_state">
+            <div className="w-16 h-16 rounded-2xl bg-muted/60 border border-border flex items-center justify-center">
+              <Lock className="w-7 h-7 text-muted-foreground" />
             </div>
-            <p style={{ fontFamily: 'monospace, sans-serif', fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0' }}>No chapters yet</p>
-            <p style={{ fontFamily: 'serif', fontSize: '13px', color: '#555555', margin: '0' }}>The creator hasn't published any chapters yet. Check back soon!</p>
+            <div className="text-center">
+              <p className="text-foreground font-body font-semibold">No chapters yet</p>
+              <p className="text-muted-foreground font-body text-sm mt-1">The creator hasn&apos;t published any chapters yet. Check back soon!</p>
+            </div>
           </div>
         )}
 
-        {/* Population Grid Index Row Mapping Container */}
         {!chaptersLoading && !chaptersError && publishedChapters.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', boxSizing: 'border-box' }}>
+          <div className="flex flex-col gap-2">
             {publishedChapters.map((ch, i) => <ChapterRow key={ch.id} chapter={ch} comicId={comicId} index={i} />)}
           </div>
         )}
       </section>
 
-      {/* Interactive Core Public Comments Canvas Panel Block Container */}
-      <section style={{ maxWidth: '1000px', margin: '0 auto 48px auto', padding: '0 16px', boxSizing: 'border-box' }}>
-        <div style={{ 
-          backgroundColor: '#ffffff', 
-          border: '2px solid #111111', 
-          boxShadow: '4px 4px 0px #111111', 
-          padding: '20px 16px', 
-          boxSizing: 'border-box' 
-        }}>
-          <Comments comicId={comicId} creatorId={comic?.creator_id} />
-        </div>
-      </section>
-
-      {/* System Framework Report Abuse Modal Overlay Panel Box */}
+      {/* Report Modal */}
       {showReportModal && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(17,17,17,0.75)", backdropFilter: "blur(2px)", padding: "16px", boxSizing: "border-box" }}>
-          <div style={{ 
-            background: "#ffffff", 
-            border: "3px solid #111111", 
-            boxShadow: '6px 6px 0px #111111',
-            padding: "24px", 
-            width: "100%", 
-            maxWidth: "420px", 
-            boxSizing: "border-box",
-            borderRadius: '0px'
-          }}>
-            <h3 style={{ color: "#111111", fontFamily: 'monospace, sans-serif', textTransform: 'uppercase', fontSize: "18px", fontWeight: 900, margin: '0 0 16px 0', borderBottom: '2px solid #111111', paddingBottom: '8px' }}>
-              Report Comic Content
-            </h3>
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", padding: "16px", boxSizing: "border-box" }}>
+          <div style={{ background: "#0f0f0f", border: "1px solid rgba(124,58,237,0.3)", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px", boxSizing: "border-box" }}>
+            <h3 style={{ color: "#fff", fontSize: "18px", fontWeight: 800, marginBottom: "16px" }}>Report Comic</h3>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px", boxSizing: 'border-box' }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
               {REPORT_REASONS.map(reason => (
                 <button
                   key={reason}
                   type="button"
                   onClick={() => setReportReason(reason)}
                   style={{
-                    padding: "10px 12px", 
-                    borderRadius: "0px", 
-                    textAlign: "left", 
-                    cursor: "pointer", 
-                    fontSize: "12px", 
-                    fontFamily: 'serif',
-                    fontWeight: reportReason === reason ? "bold" : "normal", 
-                    border: "2px solid #111111",
-                    background: reportReason === reason ? "#fbbf24" : "#f5f0e8",
-                    color: "#111111",
-                    boxShadow: reportReason === reason ? '1px 1px 0px #111111' : 'none',
-                    boxSizing: 'border-box'
+                    padding: "10px 14px", borderRadius: "8px", textAlign: "left", cursor: "pointer", fontSize: "13px", fontWeight: 600, border: "none",
+                    background: reportReason === reason ? "rgba(124,58,237,0.3)" : "rgba(255,255,255,0.05)",
+                    color: reportReason === reason ? "#a78bfa" : "rgba(255,255,255,0.6)",
                   }}
                 >
                   {reason}
@@ -688,39 +297,17 @@ export function ComicDetailPage() {
             <textarea
               value={reportDetails}
               onChange={(e) => setReportDetails(e.target.value)}
-              placeholder="Provide clear additional contextual documentation details (optional)..."
+              placeholder="Additional details (optional)..."
               rows={3}
-              style={{ width: "100%", padding: "10px 12px", borderRadius: "0px", background: "#ffffff", border: "2px solid #111111", color: "#111111", fontFamily: 'serif', fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "none", marginBottom: "16px" }}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(124,58,237,0.2)", color: "#fff", fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "none", marginBottom: "16px" }}
             />
 
-            <div style={{ display: "flex", gap: "12px", boxSizing: 'border-box' }}>
-              <button 
-                type="button" 
-                onClick={() => setShowReportModal(false)} 
-                style={{ flex: 1, padding: "10px", borderRadius: "0px", background: "#ffffff", border: "2px solid #111111", color: "#111111", fontFamily: 'monospace, sans-serif', fontWeight: 'bold', textTransform: 'uppercase', cursor: "pointer", boxSizing: 'border-box' }}
-              >
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button type="button" onClick={() => setShowReportModal(false)} style={{ flex: 1, padding: "10px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
                 Cancel
               </button>
-              <button 
-                type="button" 
-                onClick={handleReport} 
-                disabled={isReporting || !reportReason} 
-                style={{ 
-                  flex: 1, 
-                  padding: "10px", 
-                  borderRadius: "0px", 
-                  background: "#cc0000", 
-                  border: "2px solid #111111", 
-                  color: "#ffffff", 
-                  fontFamily: 'monospace, sans-serif', 
-                  fontWeight: 900, 
-                  textTransform: 'uppercase',
-                  cursor: "pointer", 
-                  opacity: isReporting || !reportReason ? 0.5 : 1,
-                  boxSizing: 'border-box'
-                }}
-              >
-                {isReporting ? "Submitting..." : "Submit"}
+              <button type="button" onClick={handleReport} disabled={isReporting || !reportReason} style={{ flex: 1, padding: "10px", borderRadius: "8px", background: "linear-gradient(135deg, #ef4444, #dc2626)", border: "none", color: "#fff", fontWeight: 700, cursor: "pointer", opacity: isReporting || !reportReason ? 0.5 : 1 }}>
+                {isReporting ? "Submitting..." : "Submit Report"}
               </button>
             </div>
           </div>
@@ -728,5 +315,4 @@ export function ComicDetailPage() {
       )}
     </div>
   );
-                    }
-         
+    }
