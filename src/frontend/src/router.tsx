@@ -2,9 +2,7 @@ import { createRouter, createRoute, createRootRoute, Outlet, lazy } from "@tanst
 import { Suspense } from "react";
 import { PageLoader } from "./components/LoadingSpinner";
 import { Layout } from "./components/Layout";
-import { CreatorGuard } from "./components/CreatorGuard";
 
-// ─── Lazy imports ─────────────────────────────────────────────────────────────
 const HomePage = lazy(() =>
   import("@/pages/Home").then((m) => ({ default: m.HomePage })),
 );
@@ -69,7 +67,6 @@ const AdminDashboardPage = lazy(() =>
   import("@/pages/AdminDashboard").then((m) => ({ default: m.AdminDashboardPage })),
 );
 
-// ─── Root route ───────────────────────────────────────────────────────────────
 const rootRoute = createRootRoute({
   component: () => (
     <Layout>
@@ -80,7 +77,6 @@ const rootRoute = createRootRoute({
   ),
 });
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
@@ -108,51 +104,31 @@ const readerRoute = createRoute({
 const creatorDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator",
-  component: () => (
-    <CreatorGuard>
-      <CreatorDashboard />
-    </CreatorGuard>
-  ),
+  component: CreatorDashboard,
 });
 
 const createComicRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/comics/new",
-  component: () => (
-    <CreatorGuard>
-      <CreateComicPage />
-    </CreatorGuard>
-  ),
+  component: CreateComicPage,
 });
 
 const editComicRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/comics/$comicId",
-  component: () => (
-    <CreatorGuard>
-      <EditComicPage />
-    </CreatorGuard>
-  ),
+  component: EditComicPage,
 });
 
 const createChapterRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/comics/$comicId/chapters/new",
-  component: () => (
-    <CreatorGuard>
-      <CreateChapterPage />
-    </CreatorGuard>
-  ),
+  component: CreateChapterPage,
 });
 
 const editChapterRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/comics/$comicId/chapters/$chapterId",
-  component: () => (
-    <CreatorGuard>
-      <EditChapterPage />
-    </CreatorGuard>
-  ),
+  component: EditChapterPage,
 });
 
 const profileRoute = createRoute({
@@ -164,11 +140,7 @@ const profileRoute = createRoute({
 const editProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile/edit",
-  component: () => (
-    <CreatorGuard>
-      <EditProfilePage />
-    </CreatorGuard>
-  ),
+  component: EditProfilePage,
 });
 
 const faqRoute = createRoute({
@@ -216,21 +188,13 @@ const novelReaderRoute = createRoute({
 const createNovelRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/novels/new",
-  component: () => (
-    <CreatorGuard>
-      <CreateNovelPage />
-    </CreatorGuard>
-  ),
+  component: CreateNovelPage,
 });
 
 const editNovelChapterRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creator/novels/$novelId/chapters/$chapterId",
-  component: () => (
-    <CreatorGuard>
-      <EditNovelChapterPage />
-    </CreatorGuard>
-  ),
+  component: EditNovelChapterPage,
 });
 
 const adminRoute = createRoute({
@@ -239,7 +203,6 @@ const adminRoute = createRoute({
   component: AdminDashboardPage,
 });
 
-// ─── Route tree ───────────────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   homeRoute,
   comicDetailRoute,
@@ -264,7 +227,6 @@ const routeTree = rootRoute.addChildren([
   editNovelChapterRoute,
 ]);
 
-// ─── Router ───────────────────────────────────────────────────────────────────
 export const router = createRouter({
   routeTree,
   defaultPreload: "intent",
@@ -274,4 +236,4 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
-      }
+    }
