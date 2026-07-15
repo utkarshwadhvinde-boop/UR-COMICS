@@ -85,7 +85,7 @@ export function ReaderPage() {
   const nextChapter = sortedChapters[currentIndex + 1];
 
   if (loading) {
-    return (
+    return 
       <div style={{ minHeight: "100vh", ...paperTexture, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{
