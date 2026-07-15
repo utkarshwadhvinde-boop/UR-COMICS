@@ -16,12 +16,27 @@ import { toast } from "sonner";
 
 export function CreatorDashboardPage() {
   const { data: comics, isLoading, isError, refetch } = useComics();
-  const { user } = useAuth();
-  const userId = user?.id ?? "";
+  const { user, isLoading: authLoading } = useAuth();
+  const userId = user?.id;
+
+  // ✅ Only fetch profile if userId exists
   const { data: profile } = useProfile(userId);
+
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // ✅ Redirect if not authenticated
+  if (!authLoading && !userId) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <ErrorFallback
+          message="You must be logged in to access the creator studio."
+          onRetry={() => window.location.href = "/"}
+        />
+      </div>
+    );
+  }
 
   const myComics =
     comics?.filter((c) => userId && c.creator_id === userId) ?? [];
@@ -39,8 +54,9 @@ export function CreatorDashboardPage() {
       await deleteComic(deleteTarget);
       await queryClient.invalidateQueries({ queryKey: COMICS_QUERY_KEY });
       toast.success("Comic deleted.");
-    } catch {
+    } catch (error) {
       // Rollback on failure
+      console.error("Delete comic error:", error);
       queryClient.setQueryData(COMICS_QUERY_KEY, previous);
       toast.error("Failed to delete comic.");
     } finally {
@@ -211,4 +227,4 @@ export function CreatorDashboardPage() {
       />
     </div>
   );
-}
+      }
