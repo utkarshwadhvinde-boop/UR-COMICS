@@ -1,4 +1,4 @@
-Import { useComicsByGenre, useGenres } from "@/hooks/useGenres";
+import { useComicsByGenre, useGenres } from "@/hooks/useGenres";
 import { Link, useParams } from "@tanstack/react-router";
 import { BookOpen, ChevronLeft } from "lucide-react";
 import type { Comic } from "@/types/index";
