@@ -1,45 +1,37 @@
 import { useAuth } from "@/hooks/useAuth";
-import { listGenres, createComic, updateComic, setComicGenres } from "@/services/comicsService";
+import { createComic, listGenres, setComicGenres, updateComic } from "@/services/comicsService";
+import { isValidImageFile, sanitizeDescription, sanitizeTitle } from "@/lib/utils";
 import { uploadCoverImage } from "@/services/uploadService";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { sanitizeDescription, sanitizeTitle, isValidImageFile } from "@/lib/utils";
 
-const globalStyles = `
-  * { box-sizing: border-box; }
-  @keyframes stampIn {
-    0% { opacity: 0; transform: scale(1.3) rotate(-5deg); }
-    100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  }
-`;
-
-const paperBg = {
+const paperBg: React.CSSProperties = {
   background: "#f5f0e8",
   backgroundImage: "radial-gradient(circle, #fbbf2440 1px, transparent 1px)",
   backgroundSize: "20px 20px",
   minHeight: "100vh",
 };
 
-const inputStyle = {
+const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
-  borderRadius: "0px",
   background: "#fff",
   border: "2px solid #111",
   color: "#111",
   fontSize: "14px",
   outline: "none",
   fontFamily: "monospace",
+  boxSizing: "border-box",
   boxShadow: "3px 3px 0px #111",
 };
 
-const labelStyle = {
+const labelStyle: React.CSSProperties = {
   color: "#111",
   fontSize: "12px",
   fontWeight: 900,
   fontFamily: "monospace",
-  textTransform: "uppercase" as const,
+  textTransform: "uppercase",
   letterSpacing: "1px",
   display: "block",
   marginBottom: "8px",
@@ -98,10 +90,10 @@ export function CreateComicPage() {
       });
       if (coverFile) {
         const cover_url = await uploadCoverImage(comic.id, coverFile);
-       await updateComic(comic.id, { cover_url });
+        await updateComic(comic.id, { cover_url });
       }
       if (selectedGenres.length > 0) {
-       await setComicGenres(comic.id, selectedGenres);
+        await setComicGenres(comic.id, selectedGenres);
       }
       toast.success("Comic created!");
       navigate({ to: "/creator/comics/$comicId", params: { comicId: comic.id } });
@@ -116,8 +108,7 @@ export function CreateComicPage() {
 
   return (
     <div style={paperBg}>
-      <style>{globalStyles}</style>
-      <div style={{ maxWidth: "600px", margin: "0 auto", padding: "24px 16px" }}>
+      <div style={{ maxWidth: "600px", margin: "0 auto", padding: "24px 16px", boxSizing: "border-box" }}>
 
         {/* Header */}
         <div style={{ background: "#111", padding: "16px", marginBottom: "24px", position: "relative", overflow: "hidden" }}>
@@ -131,9 +122,17 @@ export function CreateComicPage() {
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: "0", marginBottom: "24px" }}>
+        <div style={{ display: "flex", marginBottom: "24px" }}>
           {steps.map((s, i) => (
-            <div key={s} style={{ flex: 1, textAlign: "center", padding: "8px 4px", background: i === step ? "#cc0000" : i < step ? "#111" : "#fff", border: "2px solid #111", borderRight: i < steps.length - 1 ? "none" : "2px solid #111" }}>
+            <div
+              key={s}
+              style={{
+                flex: 1, textAlign: "center", padding: "8px 4px",
+                background: i === step ? "#cc0000" : i < step ? "#111" : "#fff",
+                border: "2px solid #111",
+                borderRight: i < steps.length - 1 ? "none" : "2px solid #111",
+              }}
+            >
               <p style={{ margin: 0, fontSize: "10px", fontWeight: 900, fontFamily: "monospace", color: i <= step ? "#fff" : "#999", textTransform: "uppercase", letterSpacing: "1px" }}>
                 {i + 1}. {s}
               </p>
@@ -225,7 +224,7 @@ export function CreateComicPage() {
               {isAiGenerated && (
                 <div style={{ padding: "10px", background: "#fff8f0", border: "2px solid #cc0000" }}>
                   <p style={{ color: "#cc0000", fontSize: "11px", fontFamily: "monospace", fontWeight: 700, margin: 0 }}>
-                    AI comics require manual review before publishing and are not eligible for monetization.
+                    AI comics require manual review and are not eligible for monetization.
                   </p>
                 </div>
               )}
@@ -247,6 +246,8 @@ export function CreateComicPage() {
                 textTransform: "uppercase",
                 letterSpacing: "2px",
                 boxShadow: title.trim() ? "4px 4px 0px #cc0000" : "none",
+                boxSizing: "border-box",
+                width: "100%",
               }}
             >
               Next: Upload Cover
@@ -313,7 +314,11 @@ export function CreateComicPage() {
                     Ready to publish
                   </p>
                   <p style={{ color: "#111", fontSize: "18px", fontWeight: 900, fontFamily: "serif", margin: "0 0 6px" }}>{title}</p>
-                  {description && <p style={{ color: "#666", fontSize: "12px", fontFamily: "serif", margin: "0 0 8px" }}>{description.slice(0, 80)}{description.length > 80 ? "..." : ""}</p>}
+                  {description && (
+                    <p style={{ color: "#666", fontSize: "12px", fontFamily: "serif", margin: "0 0 8px" }}>
+                      {description.slice(0, 80)}{description.length > 80 ? "..." : ""}
+                    </p>
+                  )}
                   {isAiGenerated && (
                     <span style={{ padding: "2px 8px", background: "#111", color: "#fff", fontSize: "10px", fontFamily: "monospace", fontWeight: 900 }}>AI</span>
                   )}
@@ -333,7 +338,13 @@ export function CreateComicPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                style={{ flex: 2, padding: "12px", background: "#cc0000", border: "2px solid #111", color: "#fff", fontFamily: "monospace", fontWeight: 900, cursor: isSubmitting ? "not-allowed" : "pointer", boxShadow: "4px 4px 0px #111", textTransform: "uppercase", letterSpacing: "1px", opacity: isSubmitting ? 0.7 : 1 }}
+                style={{
+                  flex: 2, padding: "12px", background: "#cc0000", border: "2px solid #111",
+                  color: "#fff", fontFamily: "monospace", fontWeight: 900,
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                  boxShadow: "4px 4px 0px #111", textTransform: "uppercase",
+                  letterSpacing: "1px", opacity: isSubmitting ? 0.7 : 1,
+                }}
               >
                 {isSubmitting ? "Creating..." : "Create Comic"}
               </button>
@@ -343,4 +354,4 @@ export function CreateComicPage() {
       </div>
     </div>
   );
-                    }
+        }
