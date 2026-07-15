@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+Import { supabase } from "@/lib/supabase";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -16,70 +16,29 @@ function NovelCard({ novel }: { novel: Novel }) {
   return (
     <Link to="/novels/$novelId" params={{ novelId: novel.id }} style={{ textDecoration: "none" }}>
       <div style={{
-        width: "100%", 
-        aspectRatio: "9/14", 
-        borderRadius: "0px", 
-        overflow: "hidden",
-        position: "relative", 
-        background: "#ffffff",
-        border: "2px solid #111111",
-        boxShadow: "3px 3px 0px #111111",
+        width: "100%", aspectRatio: "9/14", borderRadius: "14px", overflow: "hidden",
+        position: "relative", background: "#111",
+        border: "1px solid rgba(124,58,237,0.35)",
+        boxShadow: "0 0 12px rgba(124,58,237,0.2), 0 4px 16px rgba(0,0,0,0.4)",
         boxSizing: "border-box",
       }}>
         {novel.cover_url ? (
-          <img 
-            src={novel.cover_url} 
-            alt={novel.title} 
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} 
-            loading="lazy" 
-          />
+          <img src={novel.cover_url} alt={novel.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
         ) : (
-          <div style={{ 
-            width: "100%", 
-            height: "100%", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            background: "#fbbf24", 
-            fontSize: "32px",
-            boxSizing: "border-box"
-          }}>
-            {/* Empty block representation */}
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a0b2e", fontSize: "32px" }}>
+            
           </div>
         )}
-        
-        {/* Crisp Printed Manga Panel Information Bar */}
         <div style={{
-          position: "absolute", 
-          bottom: 0, 
-          left: 0, 
-          right: 0,
-          padding: "10px 8px",
-          backgroundColor: "#ffffff",
-          borderTop: "2px solid #111111",
-          boxSizing: "border-box"
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          padding: "16px 8px 8px",
+          background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%)",
         }}>
-          <p style={{ 
-            color: "#111111", 
-            fontFamily: "serif",
-            fontSize: "13px", 
-            fontWeight: "900", 
-            margin: 0, 
-            whiteSpace: "nowrap", 
-            overflow: "hidden", 
-            textOverflow: "ellipsis" 
-          }}>
+          <p style={{ color: "#fff", fontSize: "12px", fontWeight: 700, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {novel.title}
           </p>
-          <p style={{ 
-            color: "#555555", 
-            fontFamily: "monospace, sans-serif",
-            fontSize: "10px", 
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            margin: "2px 0 0" 
-          }}>
-            {novel.view_count} VIEWS
+          <p style={{ color: "rgba(196,168,255,0.6)", fontSize: "10px", margin: "2px 0 0" }}>
+            {novel.view_count} views
           </p>
         </div>
       </div>
@@ -103,115 +62,65 @@ export function NovelListPage() {
     });
   }, []);
 
-  {/* Solid Ink Chapter/Section Header Badge Block */}
   const SectionHeader = ({ title }: { title: string }) => (
-    <div style={{ 
-      display: "inline-block", 
-      backgroundColor: "#111111", 
-      padding: "4px 12px", 
-      marginBottom: "16px",
-      boxSizing: "border-box"
+    <h2 style={{
+      fontSize: "18px", fontWeight: 900, margin: "0 0 14px",
+      background: "linear-gradient(90deg, #a855f7, #7c3aed)",
+      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
     }}>
-      <h2 style={{
-        fontSize: "12px", 
-        fontWeight: "900", 
-        margin: 0,
-        fontFamily: "monospace, sans-serif", 
-        textTransform: "uppercase", 
-        color: "#ffffff",
-        letterSpacing: "0.5px"
-      }}>
-        {title}
-      </h2>
-    </div>
+      {title}
+    </h2>
   );
 
   return (
-    <div 
-      style={{ 
-        backgroundColor: "#f5f0e8", 
-        backgroundImage: "radial-gradient(#fbbf24 1.2px, transparent 1.2px)",
-        backgroundSize: "12px 12px",
-        minHeight: "100vh", 
-        paddingBottom: "80px", 
-        boxSizing: "border-box" 
-      }}
-    >
-      {/* Structural Headline Catalog Canvas Header */}
-      <div style={{ 
-        padding: "32px 14px 20px 14px", 
-        backgroundColor: "#ffffff", 
-        borderBottom: "4px solid #111111", 
-        marginBottom: "32px",
-        boxSizing: "border-box"
-      }}>
-        <h1 style={{ margin: "0 0 4px 0", fontFamily: "serif", fontSize: "36px", fontWeight: "900", color: "#111111" }}>
-          <span style={{ color: "#fbbf24", marginRight: "4px" }}>◆</span>Novels
+    <div style={{ minHeight: "100vh", background: "#0a0010", paddingBottom: "80px", boxSizing: "border-box" }}>
+      <div style={{ padding: "24px 14px 0", background: "linear-gradient(180deg, #1a0b2e 0%, #0a0010 100%)", borderBottom: "1px solid rgba(124,58,237,0.15)", marginBottom: "24px" }}>
+        <h1 style={{ margin: "0 0 4px", fontSize: "28px", fontWeight: 900, color: "#fff" }}>
+          <span style={{ color: "#a855f7" }}>◆</span> Novels
         </h1>
-        <p style={{ margin: 0, color: "#555555", fontFamily: "monospace, sans-serif", textTransform: "uppercase", fontSize: "12px", fontWeight: "bold" }}>
+        <p style={{ margin: "0 0 16px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
           Read stories from Indian creators
         </p>
       </div>
 
       {loading ? (
-        /* Skeleton Framework Grid State */
-        <div style={{ padding: "0 14px", boxSizing: "border-box" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", boxSizing: "border-box" }}>
+        <div style={{ padding: "0 14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             {Array.from({ length: 6 }).map((_, i) => (
-              <div 
-                key={i} 
-                style={{ 
-                  aspectRatio: "9/14", 
-                  borderRadius: "0px", 
-                  border: "2px solid #111111",
-                  backgroundColor: "rgba(17, 17, 17, 0.08)",
-                  boxSizing: "border-box"
-                }} 
-              />
+              <div key={i} style={{ aspectRatio: "9/14", borderRadius: "14px", background: "rgba(124,58,237,0.1)" }} />
             ))}
           </div>
         </div>
       ) : (
-        <div style={{ padding: "0 14px", boxSizing: "border-box" }}>
-          {/* Trending Panel Section Track */}
+        <div style={{ padding: "0 14px" }}>
+          {/* Trending */}
           {trending.length > 0 && (
-            <div style={{ marginBottom: "36px", boxSizing: "border-box" }}>
+            <div style={{ marginBottom: "32px" }}>
               <SectionHeader title="Trending Novels" />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", boxSizing: "border-box" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 {trending.map(novel => <NovelCard key={novel.id} novel={novel} />)}
               </div>
             </div>
           )}
 
-          {/* Latest Panel Section Track */}
+          {/* Latest */}
           {latest.length > 0 && (
-            <div style={{ marginBottom: "36px", boxSizing: "border-box" }}>
-              <SectionHeader title="Latest Releases" />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", boxSizing: "border-box" }}>
+            <div style={{ marginBottom: "32px" }}>
+              <SectionHeader title="Latest Novels" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 {latest.map(novel => <NovelCard key={novel.id} novel={novel} />)}
               </div>
             </div>
           )}
 
-          {/* Empty Inventory Layout Template */}
           {trending.length === 0 && latest.length === 0 && (
-            <div style={{
-              textAlign: "center",
-              padding: "48px 16px",
-              backgroundColor: "#ffffff",
-              border: "2px solid #111111",
-              boxShadow: "4px 4px 0px #111111",
-              marginTop: "40px",
-              boxSizing: "border-box"
-            }}>
-              <p style={{ margin: 0, fontFamily: "monospace, sans-serif", fontSize: "13px", fontWeight: "bold", textTransform: "uppercase", color: "#111111" }}>
-                No novels found yet. Be the first to publish one!
-              </p>
-            </div>
+            <p style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: "60px" }}>
+              No novels yet. Be the first to publish one!
+            </p>
           )}
         </div>
       )}
       <style>{`* { box-sizing: border-box; }`}</style>
     </div>
   );
-}
+      }
