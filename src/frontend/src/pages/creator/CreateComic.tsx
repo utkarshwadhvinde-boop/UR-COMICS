@@ -89,11 +89,19 @@ export function CreateComicPage() {
         ai_status: isAiGenerated ? "pending" : "none",
       });
       if (coverFile) {
-        const cover_url = await uploadCoverImage(comic.id, coverFile);
-        await updateComic(comic.id, { cover_url });
+        try {
+          const cover_url = await uploadCoverImage(comic.id, coverFile);
+          await updateComic(comic.id, { cover_url });
+        } catch {
+          console.error("Cover upload failed");
+        }
       }
       if (selectedGenres.length > 0) {
-        await setComicGenres(comic.id, selectedGenres);
+        try {
+          await setComicGenres(comic.id, selectedGenres);
+        } catch {
+          console.error("Genre set failed");
+        }
       }
       toast.success("Comic created!");
       navigate({ to: "/creator/comics/$comicId", params: { comicId: comic.id } });
