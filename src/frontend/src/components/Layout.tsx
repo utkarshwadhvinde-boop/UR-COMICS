@@ -11,10 +11,11 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div
-      className="min-h-screen dark"
+      className="min-h-screen"
       style={{
-        background:
-          "linear-gradient(135deg, #000000 0%, #1a0b2e 50%, #000000 100%)",
+        background: "#f5f0e8",
+        backgroundImage: "radial-gradient(circle, #fbbf2440 1px, transparent 1px)",
+        backgroundSize: "20px 20px",
       }}
     >
       <Header onMenuToggle={() => setSidebarOpen((v) => !v)} />
