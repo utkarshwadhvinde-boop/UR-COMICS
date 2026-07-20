@@ -14,79 +14,117 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
   const displayLabel =
     user?.user_metadata?.display_name || user?.email?.split("@")[0] || "";
-
   const displayInitial = displayLabel.slice(0, 1).toUpperCase() || "U";
 
   return (
     <>
       <header
-        className="glass-header fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 gap-3"
         data-ocid="header.bar"
+        style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0,
+          zIndex: 50,
+          height: "64px",
+          display: "flex",
+          alignItems: "center",
+          padding: "0 16px",
+          gap: "12px",
+          background: "#111",
+          borderBottom: "3px solid #cc0000",
+          boxSizing: "border-box",
+        }}
       >
+        {/* Yellow screentone overlay */}
+        <div style={{
+          position: "absolute", inset: 0, opacity: 0.06,
+          backgroundImage: "radial-gradient(circle, #fbbf24 1px, transparent 1px)",
+          backgroundSize: "10px 10px",
+          pointerEvents: "none",
+        }} />
+
         {/* Mobile hamburger */}
         <button
           type="button"
-          className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground transition-smooth"
           onClick={onMenuToggle}
           aria-label="Toggle sidebar"
           data-ocid="header.mobile_menu_button"
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: "#fff", padding: "8px", display: "flex",
+            alignItems: "center", justifyContent: "center",
+          }}
+          className="md:hidden"
         >
-          <Menu className="w-5 h-5" />
+          <Menu style={{ width: 20, height: 20 }} />
         </button>
 
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 group"
           data-ocid="header.logo_link"
+          style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}
         >
           <img
             src="/assets/IMG-20260428-WA0003.jpg"
-            className="h-10 w-auto object-contain rounded-sm"
+            style={{ height: "40px", width: "auto", objectFit: "contain", borderRadius: "4px", border: "2px solid #cc0000" }}
             alt="UR COMICS"
           />
-          <span
-            className="font-display text-xl tracking-tight leading-none"
-            style={{ letterSpacing: "-0.02em" }}
-          >
-            <span className="text-foreground">UR</span>
-            <span className="text-accent ml-1">COMICS</span>
+          <span style={{ fontFamily: "serif", fontSize: "18px", fontWeight: 900, letterSpacing: "-0.02em" }}>
+            <span style={{ color: "#fff" }}>UR</span>
+            <span style={{ color: "#cc0000", marginLeft: "4px" }}>COMICS</span>
           </span>
         </Link>
 
         {/* Spacer */}
-        <div className="flex-1" />
+        <div style={{ flex: 1 }} />
 
         {/* Auth section */}
         {isAuthenticated ? (
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:block text-sm text-muted-foreground font-body truncate max-w-32">
-              {displayLabel}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/20 border border-accent/40 text-accent font-display text-sm font-bold select-none"
-              aria-label={`Signed in as ${displayLabel}`}
               data-ocid="header.account_button"
+              style={{
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: "#cc0000", border: "2px solid #fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontFamily: "monospace", fontSize: "13px",
+                fontWeight: 900, flexShrink: 0,
+              }}
             >
               {displayInitial}
             </div>
             <button
               type="button"
               onClick={logout}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-smooth font-body"
-              aria-label="Sign out"
               data-ocid="header.logout_button"
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "rgba(255,255,255,0.6)", display: "flex",
+                alignItems: "center", gap: "4px", fontFamily: "monospace",
+                fontSize: "12px", padding: "4px",
+              }}
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
+              <LogOut style={{ width: 14, height: 14 }} />
             </button>
           </div>
         ) : (
           <button
             type="button"
             onClick={() => setShowAuth(true)}
-            className="px-4 py-1.5 rounded-md bg-accent text-white text-sm font-body font-medium hover:bg-accent/90 transition-smooth glow-accent-sm"
             data-ocid="header.login_button"
+            style={{
+              padding: "8px 18px",
+              background: "#cc0000",
+              border: "2px solid #fff",
+              color: "#fff",
+              fontFamily: "monospace",
+              fontWeight: 900,
+              fontSize: "13px",
+              cursor: "pointer",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              boxShadow: "3px 3px 0px #fff",
+            }}
           >
             Sign In
           </button>
