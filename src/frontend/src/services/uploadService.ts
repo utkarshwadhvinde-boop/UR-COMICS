@@ -53,7 +53,6 @@ export async function commitChapterUpload(
     image_url,
   }));
 
-  // Insert in batches of 20
   const batchSize = 20;
   for (let i = 0; i < pages.length; i += batchSize) {
     const batch = pages.slice(i, i + batchSize);
@@ -65,35 +64,26 @@ export async function commitChapterUpload(
   }
 
   const { error } = await supabase
-  .from("chapters")
-  .update({
-    updated_at: new Date().toISOString(),
-    is_published: true,
-  } as unknown as never)
-  .eq("id", chapterId);
+    .from("chapters")
+    .update({
+      updated_at: new Date().toISOString(),
+      is_published: true,
+    } as unknown as never)
+    .eq("id", chapterId);
+  if (error) throw error;
   onProgress?.(100);
 }
 
 export async function rollbackChapterUpload(
   _comicId: string,
   chapterId: string,
-  uploadedPaths: string[],
 ): Promise<void> {
-  if (uploadedPaths.length > 0) {
-    await supabase.storage.from(BUCKET).remove(uploadedPaths);
-  }
   await supabase.from("chapters").delete().eq("id", chapterId);
 }
 
 export async function deleteChapterFiles(
   _comicId: string,
-  chapterId: string,
+  _chapterId: string,
 ): Promise<void> {
-  const { data } = await supabase.storage
-    .from(BUCKET)
-    .list(`${_comicId}/${chapterId}`);
-  if (data && data.length > 0) {
-    const paths = data.map((f) => `${_comicId}/${chapterId}/${f.name}`);
-    await supabase.storage.from(BUCKET).remove(paths);
-  }
+  // Files are on Cloudinary — deletion handled separately
 }
