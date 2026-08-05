@@ -25,7 +25,11 @@ export function ChapterUploader({
 
   const addFiles = useCallback(
     (raw: File[], isOwner = false) => {
-      const images = raw.filter((f) => f.type.startsWith("image/"));
+      const images = raw.filter((f) => f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024);
+const rejected = raw.filter((f) => f.type.startsWith("image/") && f.size > 10 * 1024 * 1024);
+if (rejected.length > 0) {
+  alert(`${rejected.length} image(s) were too large and skipped. Max size is 10MB per image.`);
+}
       setFiles((prev) => {
         const newTotal = isOwner ? 0 : [...prev, ...images].reduce((acc, f) => acc + f.size, 0);
         if (!isOwner && newTotal > MAX_SIZE_BYTES) {
