@@ -59,7 +59,7 @@ export function ReaderPage() {
       }
       setLoading(false);
     });
-    supabase.rpc("increment_view_count", { comic_id: comicId }).catch(() => {});
+    supabase.rpc("increment_view_count", { comic_id: comicId }).then(() => {}).catch(() => {});
   }, [chapterId, comicId]);
 
   useEffect(() => {
