@@ -272,8 +272,9 @@ export function EditChapterPage() {
         setUploadProgress(Math.round(((i + 1) / pages.length) * 90));
       }
       await commitChapterUpload(chapterId, imageUrls);
+      await supabase.from("chapters").update({ is_published: true }).eq("id", chapterId);
       setUploadProgress(100);
-      toast.success("Chapter uploaded and published!");
+      toast.success("Chapter uploaded and published!");  
       queryClient.invalidateQueries({ queryKey: ["chapter", chapterId] });
       setPages([]);
       navigate({ to: `/creator/comics/${comicId}/edit` });
