@@ -12,8 +12,10 @@ export async function uploadToCloudinary(file: File, folder = "urcomics"): Promi
     { method: "POST", body: formData }
   );
 
-  if (!response.ok) throw new Error("Failed to upload image to Cloudinary");
-
+if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Cloudinary error: ${JSON.stringify(errorData)}`);
+}
   const data = await response.json();
   return data.secure_url;
 }
