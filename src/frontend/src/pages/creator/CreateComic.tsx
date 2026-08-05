@@ -80,22 +80,22 @@ export function CreateComicPage() {
     if (cleanDesc === null) { toast.error("Description too long."); return; }
     setIsSubmitting(true);
     try {
+      let cover_url: string | undefined = undefined;
+      if (coverFile) {
+        try {
+          cover_url = await uploadCoverImage("temp", coverFile);
+        } catch {
+          toast.error("Cover upload failed. Comic will be created without cover.");
+        }
+      }
       const comic = await createComic({
         title: cleanTitle,
         description: cleanDesc || undefined,
-        cover_url: undefined,
+        cover_url,
         creator_id: user.id,
         is_ai_generated: isAiGenerated,
         ai_status: isAiGenerated ? "pending" : "none",
       });
-      if (coverFile) {
-        try {
-          const cover_url = await uploadCoverImage(comic.id, coverFile);
-          await updateComic(comic.id, { cover_url });
-        } catch {
-          console.error("Cover upload failed");
-        }
-      }
       if (selectedGenres.length > 0) {
         try {
           await setComicGenres(comic.id, selectedGenres);
